@@ -7,7 +7,7 @@
 	let now = $state(new Date());
 
 	// Calculate day progress percentage (based on waking hours 6am-10pm)
-	const dayProgress = $derived(() => {
+	const dayProgress = $derived.by(() => {
 		if (!isToday(date)) return null;
 
 		const hours = now.getHours();
@@ -36,15 +36,15 @@
 	});
 </script>
 
-{#if dayProgress() !== null}
+{#if dayProgress !== null}
 	<div class="flex items-center gap-3 px-4 py-2 bg-white border-b border-neutral-100">
 		<span class="text-xs text-neutral-500 w-20">Day progress</span>
 		<div class="flex-1 h-2 bg-neutral-100 rounded-full overflow-hidden">
 			<div
 				class="h-full bg-gradient-to-r from-primary-400 to-primary-500 rounded-full transition-all duration-1000"
-				style="width: {dayProgress()}%"
+				style="width: {dayProgress}%"
 			></div>
 		</div>
-		<span class="text-xs font-medium text-neutral-600 w-10 text-right">{dayProgress()}%</span>
+		<span class="text-xs font-medium text-neutral-600 w-10 text-right">{dayProgress}%</span>
 	</div>
 {/if}

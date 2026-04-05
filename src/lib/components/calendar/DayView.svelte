@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
-	import { calendar, settingsStore } from '$stores';
-	import { formatDateSmart, formatDayOfWeek, getEventPosition, isToday, isSameDay } from '$utils';
+	import { calendar } from '$stores';
+	import { formatDayOfWeek, getEventPosition, isToday, isSameDay } from '$utils';
 	import { format } from 'date-fns';
 	import { EventIcon } from '$components/ui';
 	import EventBlock from './EventBlock.svelte';
@@ -20,7 +20,7 @@
 
 	// Current time indicator position
 	let now = $state(new Date());
-	const nowPosition = $derived(() => {
+	const nowPosition = $derived.by(() => {
 		if (!isToday(date)) return null;
 		const minutes = now.getHours() * 60 + now.getMinutes();
 		return (minutes / 1440) * 100;
@@ -41,7 +41,7 @@
 	let timeGridRef: HTMLDivElement | undefined = $state();
 	$effect(() => {
 		if (browser && timeGridRef && isToday(date)) {
-			const scrollTarget = (nowPosition() ?? 50) / 100 * 1440 - 200;
+			const scrollTarget = (nowPosition ?? 50) / 100 * 1440 - 200;
 			timeGridRef.scrollTop = Math.max(0, scrollTarget);
 		}
 	});
@@ -96,7 +96,7 @@
 	<div class="flex-1 overflow-y-auto" bind:this={timeGridRef}>
 		<div class="relative h-[1440px] mt-3">
 			<!-- Hour lines -->
-			{#each Array(24) as _, hour}
+			{#each Array(24) as _, hour (hour)}
 				<div
 					class="absolute left-0 right-0 border-t border-neutral-100"
 					style="top: {(hour / 24) * 100}%"
@@ -108,7 +108,7 @@
 			{/each}
 
 			<!-- Half-hour lines -->
-			{#each Array(24) as _, hour}
+			{#each Array(24) as _, hour (hour)}
 				<div
 					class="absolute left-16 right-0 border-t border-neutral-50"
 					style="top: {((hour + 0.5) / 24) * 100}%"
@@ -116,10 +116,10 @@
 			{/each}
 
 			<!-- Current time indicator -->
-			{#if nowPosition() !== null}
+			{#if nowPosition !== null}
 				<div
 					class="absolute left-0 right-0 z-20 pointer-events-none"
-					style="top: {nowPosition()}%"
+					style="top: {nowPosition}%"
 				>
 					<div class="flex items-center">
 						<!-- Time label -->

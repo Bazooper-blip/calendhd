@@ -36,7 +36,7 @@ import {
 } from '$db';
 import { auth } from './auth.svelte';
 import { settingsStore } from './settings.svelte';
-import type { CalendarEvent, ExternalEvent, DisplayEvent, LocalEvent } from '$types';
+import type { CalendarEvent, CalendarSubscription, ExternalEvent, DisplayEvent, LocalEvent } from '$types';
 
 export type ViewType = 'day' | 'week' | 'month';
 
@@ -120,7 +120,7 @@ function createCalendarStore() {
 
 			// Convert external events
 			for (const event of externalEvents) {
-				const subscription = (event as any).expand?.subscription;
+				const subscription = (event as ExternalEvent & { expand?: { subscription?: CalendarSubscription } }).expand?.subscription;
 				allEvents.push({
 					id: event.id,
 					title: event.title,
@@ -349,11 +349,14 @@ function createCalendarStore() {
 
 		async updateEvent(id: string, changes: Partial<CalendarEvent>) {
 			// Optimistically update
-			const oldEvents = events;
 			events = events.map((e) => (e.id === id ? { ...e, ...changes } : e));
 
-			// Update local DB
-			await updateLocalEvent(id, changes);
+			// Update local DB — look up by server id or local_id
+			const localRecord = await db.events.where('id').equals(id).first()
+				|| await db.events.get(id);
+			if (localRecord) {
+				await updateLocalEvent(localRecord.local_id, changes);
+			}
 
 			// Sync to server
 			try {

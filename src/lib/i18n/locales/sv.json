@@ -177,6 +177,7 @@
 		"1hour": "1 timme före",
 		"2hours": "2 timmar före",
 		"1day": "1 dag före",
+		"2days": "2 dagar före",
 		"1week": "1 vecka före"
 	},
 	"recurrence": {

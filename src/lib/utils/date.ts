@@ -151,15 +151,15 @@ export function isSameMonth(date1: Date, date2: Date): boolean {
 
 // Common reminder options
 export const REMINDER_OPTIONS = [
-	{ value: 0, label: 'At time of event' },
-	{ value: 5, label: '5 minutes before' },
-	{ value: 10, label: '10 minutes before' },
-	{ value: 15, label: '15 minutes before' },
-	{ value: 30, label: '30 minutes before' },
-	{ value: 60, label: '1 hour before' },
-	{ value: 120, label: '2 hours before' },
-	{ value: 1440, label: '1 day before' },
-	{ value: 2880, label: '2 days before' }
+	{ value: 0, i18nKey: 'reminder.atTime' },
+	{ value: 5, i18nKey: 'reminder.5min' },
+	{ value: 10, i18nKey: 'reminder.10min' },
+	{ value: 15, i18nKey: 'reminder.15min' },
+	{ value: 30, i18nKey: 'reminder.30min' },
+	{ value: 60, i18nKey: 'reminder.1hour' },
+	{ value: 120, i18nKey: 'reminder.2hours' },
+	{ value: 1440, i18nKey: 'reminder.1day' },
+	{ value: 2880, i18nKey: 'reminder.2days' }
 ];
 
 // Format relative time (e.g., "5 minutes ago", "2 hours ago", "Yesterday")

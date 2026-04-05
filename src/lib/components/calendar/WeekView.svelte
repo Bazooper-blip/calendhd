@@ -112,7 +112,7 @@
 	<div class="flex-1 overflow-y-auto" bind:this={timeGridRef}>
 		<div class="relative h-[1440px] mt-3">
 			<!-- Hour lines and labels -->
-			{#each Array(24) as _, hour}
+			{#each Array(24) as _, hour (hour)}
 				<div
 					class="absolute left-0 right-0 border-t border-neutral-100"
 					style="top: {(hour / 24) * 100}%"

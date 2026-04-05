@@ -26,14 +26,16 @@
 	}
 </script>
 
-<div class={cn('flex items-start gap-3', className)}>
-	<button
-		type="button"
-		role="switch"
-		aria-checked={checked}
-		aria-label={label || 'Toggle'}
-		{disabled}
-		onclick={toggle}
+<button
+	type="button"
+	role="switch"
+	aria-checked={checked}
+	aria-label={label || 'Toggle'}
+	{disabled}
+	onclick={toggle}
+	class={cn('flex items-start gap-3 text-left w-full', className)}
+>
+	<span
 		class={cn(
 			'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
 			checked ? 'bg-primary-500' : 'bg-neutral-200 dark:bg-neutral-600'
@@ -45,18 +47,16 @@
 				checked ? 'translate-x-5' : 'translate-x-0'
 			)}
 		></span>
-	</button>
+	</span>
 
 	{#if label || description}
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="flex flex-col cursor-pointer" onclick={toggle}>
+		<span class="flex flex-col">
 			{#if label}
 				<span class="text-sm font-medium text-neutral-800 dark:text-neutral-100">{label}</span>
 			{/if}
 			{#if description}
 				<span class="text-sm text-neutral-500 dark:text-neutral-400">{description}</span>
 			{/if}
-		</div>
+		</span>
 	{/if}
-</div>
+</button>

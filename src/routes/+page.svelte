@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { onMount } from 'svelte';
 	import { settingsStore } from '$stores';
 
 	// Redirect to default calendar view
-	onMount(() => {
+	$effect(() => {
 		const defaultView = settingsStore.defaultView;
 		goto(`/calendar/${defaultView}`, { replaceState: true });
 	});

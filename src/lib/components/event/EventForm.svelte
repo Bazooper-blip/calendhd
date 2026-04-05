@@ -47,10 +47,10 @@
 		}))
 	);
 
-	const reminderOptions = REMINDER_OPTIONS.map((r) => ({
+	const reminderOptions = $derived(REMINDER_OPTIONS.map((r) => ({
 		value: r.value.toString(),
-		label: r.label
-	}));
+		label: $t(r.i18nKey)
+	})));
 
 	const recurrenceOptions = $derived(RECURRENCE_PRESETS.map((r, i) => ({
 		value: i.toString(),

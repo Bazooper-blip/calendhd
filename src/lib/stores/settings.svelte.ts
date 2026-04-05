@@ -132,6 +132,7 @@ function createSettingsStore() {
 			// Sync locale with i18n if changed
 			if (changes.locale) {
 				setLocale(changes.locale);
+				setDateLocale(changes.locale);
 			}
 			// Sync timezone with date utils if changed
 			if (changes.timezone) {

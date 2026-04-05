@@ -7,6 +7,7 @@ import {
 	subscribeToCategories
 } from '$api/pocketbase';
 import {
+	db,
 	getLocalCategories,
 	createLocalCategory,
 	updateLocalCategory,
@@ -170,13 +171,15 @@ function createCategoriesStore() {
 		},
 
 		async update(id: string, changes: Partial<Category>) {
-			// Find local_id if this is a server id
 			const category = categories.find((c) => c.id === id);
 			if (!category) return;
 
-			// Update locally
-			const localId = (category as any).local_id || id;
-			await updateLocalCategory(localId, changes);
+			// Look up by server id or local_id in IndexedDB
+			const localRecord = await db.categories.where('id').equals(id).first()
+				|| await db.categories.get(id);
+			if (localRecord) {
+				await updateLocalCategory(localRecord.local_id, changes);
+			}
 
 			// Optimistically update
 			categories = categories
@@ -198,8 +201,12 @@ function createCategoriesStore() {
 			const category = categories.find((c) => c.id === id);
 			if (!category) return;
 
-			const localId = (category as any).local_id || id;
-			await deleteLocalCategory(localId);
+			// Look up by server id or local_id in IndexedDB
+			const localRecord = await db.categories.where('id').equals(id).first()
+				|| await db.categories.get(id);
+			if (localRecord) {
+				await deleteLocalCategory(localRecord.local_id);
+			}
 
 			// Optimistically remove
 			categories = categories.filter((c) => c.id !== id);

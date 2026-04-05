@@ -1,6 +1,7 @@
 import { browser } from '$app/environment';
 import { getTemplates, createTemplate, updateTemplate, deleteTemplate } from '$api/pocketbase';
 import {
+	db,
 	getLocalTemplates,
 	createLocalTemplate,
 	updateLocalTemplate,
@@ -110,8 +111,11 @@ function createTemplatesStore() {
 			const template = templates.find((t) => t.id === id);
 			if (!template) return;
 
-			const localId = (template as any).local_id || id;
-			await updateLocalTemplate(localId, changes);
+			const localRecord = await db.templates.where('id').equals(id).first()
+				|| await db.templates.get(id);
+			if (localRecord) {
+				await updateLocalTemplate(localRecord.local_id, changes);
+			}
 
 			// Optimistically update
 			templates = templates
@@ -133,8 +137,11 @@ function createTemplatesStore() {
 			const template = templates.find((t) => t.id === id);
 			if (!template) return;
 
-			const localId = (template as any).local_id || id;
-			await deleteLocalTemplate(localId);
+			const localRecord = await db.templates.where('id').equals(id).first()
+				|| await db.templates.get(id);
+			if (localRecord) {
+				await deleteLocalTemplate(localRecord.local_id);
+			}
 
 			// Optimistically remove
 			templates = templates.filter((t) => t.id !== id);

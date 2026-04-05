@@ -33,7 +33,7 @@ Home Assistant deployment build:
 
 ### Client-Only PWA (No SSR)
 
-SSR is disabled (`export const ssr = false` in `+layout.ts`). The app is built as a static SPA using `@sveltejs/adapter-static` with `fallback: 'index.html'` for client-side routing. PWA capabilities are provided by `@vite-pwa/sveltekit` with Workbox.
+SSR is disabled (`export const ssr = false` in `+layout.ts`). The app is built as a static SPA using `@sveltejs/adapter-static` with `fallback: 'index.html'` for client-side routing. PWA capabilities are provided by a hand-written service worker (`src/service-worker.ts`) using SvelteKit's built-in `$service-worker` module.
 
 ### Data Flow
 
