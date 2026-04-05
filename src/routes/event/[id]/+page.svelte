@@ -6,7 +6,7 @@
 	import { getEvent, updateEvent, deleteEvent } from '$api/pocketbase';
 	import { EventForm } from '$components/event';
 	import { Button, Modal } from '$components/ui';
-	import { toast } from '$components/ui/Toast.svelte';
+	import { toast } from 'svelte-sonner';
 	import { format, parseTimeToDate } from '$utils';
 	import type { CalendarEvent, EventFormData } from '$types';
 
@@ -28,7 +28,7 @@
 		try {
 			event = await getEvent(eventId);
 		} catch (error) {
-			toast($t('errors.notFound'), 'error');
+			toast.error($t('errors.notFound'));
 			goto('/');
 		} finally {
 			loading = false;
@@ -63,10 +63,10 @@
 				recurrence_rule: data.recurrence_rule
 			});
 
-			toast($t('event.updated'), 'success');
+			toast.success($t('event.updated'));
 			goto('/');
 		} catch (error) {
-			toast(error instanceof Error ? error.message : $t('errors.updateEvent'), 'error');
+			toast.error(error instanceof Error ? error.message : $t('errors.updateEvent'));
 		} finally {
 			saving = false;
 		}
@@ -77,10 +77,10 @@
 
 		try {
 			await deleteEvent(event.id);
-			toast($t('event.deleted'), 'success');
+			toast.success($t('event.deleted'));
 			goto('/');
 		} catch (error) {
-			toast(error instanceof Error ? error.message : $t('errors.deleteEvent'), 'error');
+			toast.error(error instanceof Error ? error.message : $t('errors.deleteEvent'));
 		}
 	}
 

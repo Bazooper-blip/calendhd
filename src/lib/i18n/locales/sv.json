@@ -155,6 +155,7 @@
 		"updated": "Prenumeration uppdaterad",
 		"deleted": "Prenumeration borttagen",
 		"deleteConfirm": "Ta bort denna prenumeration? Händelser från denna kalender kommer tas bort.",
+		"noEventsFound": "Inga händelser hittades i kalenderflödet",
 		"error": "Fel",
 		"minutes": "minuter",
 		"hour": "timme",

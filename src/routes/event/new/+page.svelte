@@ -3,7 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { calendar } from '$stores';
 	import { EventForm } from '$components/event';
-	import { toast } from '$components/ui/Toast.svelte';
+	import { toast } from 'svelte-sonner';
 	import { parseTimeToDate } from '$utils';
 	import type { EventFormData } from '$types';
 
@@ -37,10 +37,10 @@
 				recurrence_rule: data.recurrence_rule
 			});
 
-			toast($t('event.created'), 'success');
+			toast.success($t('event.created'));
 			goto('/');
 		} catch (error) {
-			toast(error instanceof Error ? error.message : $t('errors.createEvent'), 'error');
+			toast.error(error instanceof Error ? error.message : $t('errors.createEvent'));
 		} finally {
 			loading = false;
 		}

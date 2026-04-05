@@ -3,7 +3,8 @@
 	import { browser } from '$app/environment';
 	import { auth, settingsStore, categoriesStore, templatesStore, calendar } from '$stores';
 	import { Sidebar, Header } from '$components/layout';
-	import { Toast, OfflineIndicator } from '$components/ui';
+	import { OfflineIndicator } from '$components/ui';
+	import { Toaster } from 'svelte-sonner';
 	import { QuickAdd } from '$components/event';
 	import { initI18n, _, isLoading as i18nLoading, locale } from '$lib/i18n';
 
@@ -114,7 +115,14 @@
 {/if}
 
 <!-- Toast notifications -->
-<Toast />
+<Toaster
+	position="bottom-right"
+	richColors
+	closeButton
+	toastOptions={{
+		duration: 4000
+	}}
+/>
 
 <!-- Offline indicator -->
 <OfflineIndicator />

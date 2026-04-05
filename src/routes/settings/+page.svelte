@@ -2,7 +2,7 @@
 	import { browser } from '$app/environment';
 	import { settingsStore } from '$stores';
 	import { Select, Toggle, Button } from '$components/ui';
-	import { toast } from '$components/ui/Toast.svelte';
+	import { toast } from 'svelte-sonner';
 	import { _, availableLocales } from '$lib/i18n';
 	import {
 		isNotificationSupported,
@@ -48,7 +48,7 @@
 				// Get VAPID public key from server
 				const vapidKey = await getVapidPublicKey();
 				if (!vapidKey) {
-					toast('Push notifications not configured on server', 'error');
+					toast.error('Push notifications not configured on server');
 					return;
 				}
 
@@ -58,13 +58,13 @@
 					// Save subscription to server
 					await savePushSubscription(subscription);
 					hasSubscription = true;
-					toast($_('settings.notificationsEnabled') || 'Push notifications enabled!', 'success');
+					toast.success($_('settings.notificationsEnabled') || 'Push notifications enabled!');
 				}
 			} else if (permission === 'denied') {
-				toast($_('settings.notificationsDenied') || 'Notifications blocked. Please enable in browser settings.', 'error');
+				toast.error($_('settings.notificationsDenied') || 'Notifications blocked. Please enable in browser settings.');
 			}
 		} catch (error) {
-			toast(error instanceof Error ? error.message : 'Failed to enable notifications', 'error');
+			toast.error(error instanceof Error ? error.message : 'Failed to enable notifications');
 		} finally {
 			notificationLoading = false;
 		}
@@ -76,9 +76,9 @@
 			await unsubscribeFromPush();
 			await removePushSubscription();
 			hasSubscription = false;
-			toast($_('settings.notificationsDisabled') || 'Push notifications disabled', 'success');
+			toast.success($_('settings.notificationsDisabled') || 'Push notifications disabled');
 		} catch (error) {
-			toast(error instanceof Error ? error.message : 'Failed to disable notifications', 'error');
+			toast.error(error instanceof Error ? error.message : 'Failed to disable notifications');
 		} finally {
 			notificationLoading = false;
 		}
@@ -87,9 +87,9 @@
 	async function handleTestNotification() {
 		try {
 			await sendTestNotification();
-			toast($_('settings.testNotificationSent') || 'Test notification sent!', 'success');
+			toast.success($_('settings.testNotificationSent') || 'Test notification sent!');
 		} catch (error) {
-			toast(error instanceof Error ? error.message : 'Failed to send test notification', 'error');
+			toast.error(error instanceof Error ? error.message : 'Failed to send test notification');
 		}
 	}
 
@@ -98,13 +98,13 @@
 		try {
 			const result = await testServerNotification();
 			if (result.success) {
-				toast($_('settings.pushTestSuccess') || 'Push notification sent! Check your device.', 'success');
+				toast.success($_('settings.pushTestSuccess') || 'Push notification sent! Check your device.');
 			} else {
 				const errorMsg = result.error || 'Failed to send push notification';
-				toast(errorMsg, 'error');
+				toast.error(errorMsg);
 			}
 		} catch (error) {
-			toast(error instanceof Error ? error.message : 'Failed to send push notification', 'error');
+			toast.error(error instanceof Error ? error.message : 'Failed to send push notification');
 		} finally {
 			pushTestLoading = false;
 		}
@@ -141,9 +141,9 @@
 	async function handleChange(key: string, value: any) {
 		try {
 			await settingsStore.update({ [key]: value });
-			toast($_('settings.saved'), 'success');
+			toast.success($_('settings.saved'));
 		} catch (error) {
-			toast($_('errors.saveSettings'), 'error');
+			toast.error($_('errors.saveSettings'));
 		}
 	}
 </script>

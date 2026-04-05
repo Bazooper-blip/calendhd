@@ -155,6 +155,7 @@
 		"updated": "Subscription updated",
 		"deleted": "Subscription deleted",
 		"deleteConfirm": "Delete this subscription? Events from this calendar will be removed.",
+		"noEventsFound": "No events found in calendar feed",
 		"error": "Error",
 		"minutes": "minutes",
 		"hour": "hour",

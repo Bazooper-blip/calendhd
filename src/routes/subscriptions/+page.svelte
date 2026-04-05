@@ -2,7 +2,7 @@
 	import { t } from 'svelte-i18n';
 	import { getSubscriptions, createSubscription, updateSubscription, deleteSubscription, getAuthToken } from '$api/pocketbase';
 	import { Button, Input, Modal, Toggle, ColorPicker } from '$components/ui';
-	import { toast } from '$components/ui/Toast.svelte';
+	import { toast } from 'svelte-sonner';
 	import { calendar } from '$stores';
 	import { normalizeCalendarUrl, formatRelativeTime } from '$utils';
 	import type { CalendarSubscription } from '$types';
@@ -30,7 +30,7 @@
 		try {
 			subscriptions = await getSubscriptions();
 		} catch (error) {
-			toast($t('errors.generic'), 'error');
+			toast.error($t('errors.generic'));
 		} finally {
 			loading = false;
 		}
@@ -74,7 +74,7 @@
 					color_override: colorOverride || undefined,
 					refresh_interval_minutes: refreshIntervalMinutes
 				});
-				toast($t('subscription.updated'), 'success');
+				toast.success($t('subscription.updated'));
 				// Sync after update in case URL changed
 				await syncSubscription(editingSubscription.id);
 			} else {
@@ -85,7 +85,7 @@
 					refresh_interval_minutes: refreshIntervalMinutes,
 					is_active: true
 				});
-				toast($t('subscription.created'), 'success');
+				toast.success($t('subscription.created'));
 				// Immediately sync the new subscription
 				await loadSubscriptions();
 				await syncSubscription(newSub.id);
@@ -94,7 +94,7 @@
 			await loadSubscriptions();
 			closeModal();
 		} catch (error) {
-			toast(error instanceof Error ? error.message : $t('errors.generic'), 'error');
+			toast.error(error instanceof Error ? error.message : $t('errors.generic'));
 		} finally {
 			saving = false;
 		}
@@ -111,7 +111,7 @@
 				await syncSubscription(subscription.id);
 			}
 		} catch (error) {
-			toast($t('errors.generic'), 'error');
+			toast.error($t('errors.generic'));
 		}
 	}
 
@@ -120,10 +120,10 @@
 
 		try {
 			await deleteSubscription(subscription.id);
-			toast($t('subscription.deleted'), 'success');
+			toast.success($t('subscription.deleted'));
 			await loadSubscriptions();
 		} catch (error) {
-			toast($t('errors.generic'), 'error');
+			toast.error($t('errors.generic'));
 		}
 	}
 
@@ -135,7 +135,7 @@
 		try {
 			const token = getAuthToken();
 			if (!token) {
-				toast($t('errors.unauthorized'), 'error');
+				toast.error($t('errors.unauthorized'));
 				return;
 			}
 
@@ -150,20 +150,20 @@
 
 			if (response.ok) {
 				if (result.created > 0) {
-					toast(`${$t('subscription.syncSuccess')} (${result.created} events)`, 'success');
+					toast.success(`${$t('subscription.syncSuccess')} (${result.created} events)`);
 				} else if (result.totalParsed === 0) {
-					toast($t('subscription.noEventsFound') || 'No events found in calendar feed', 'warning');
+					toast.warning($t('subscription.noEventsFound') || 'No events found in calendar feed');
 				} else {
-					toast(`Parsed ${result.totalParsed} events but created ${result.created}`, 'warning');
+					toast.warning(`Parsed ${result.totalParsed} events but created ${result.created}`);
 				}
 				await loadSubscriptions();
 				await calendar.loadEvents();
 			} else {
-				toast(result.message || $t('errors.generic'), 'error');
+				toast.error(result.message || $t('errors.generic'));
 				await loadSubscriptions(); // Reload to get error message
 			}
 		} catch (error) {
-			toast($t('errors.generic'), 'error');
+			toast.error($t('errors.generic'));
 		} finally {
 			syncingIds = new Set([...syncingIds].filter(i => i !== id));
 		}

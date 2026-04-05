@@ -2,7 +2,7 @@
 	import { browser } from '$app/environment';
 	import { format, addHours, setHours, setMinutes } from 'date-fns';
 	import { calendar } from '$stores';
-	import { toast } from '$components/ui/Toast.svelte';
+	import { toast } from 'svelte-sonner';
 	import { Button, Input, Modal } from '$components/ui';
 
 	let showModal = $state(false);
@@ -55,10 +55,10 @@
 				reminders: [{ minutes_before: 10, type: 'notification' }]
 			});
 
-			toast('Event created', 'success');
+			toast.success('Event created');
 			closeModal();
 		} catch (error) {
-			toast(error instanceof Error ? error.message : 'Failed to create event', 'error');
+			toast.error(error instanceof Error ? error.message : 'Failed to create event');
 		} finally {
 			loading = false;
 		}

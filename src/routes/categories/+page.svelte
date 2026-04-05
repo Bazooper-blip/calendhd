@@ -2,7 +2,7 @@
 	import { t } from 'svelte-i18n';
 	import { categoriesStore } from '$stores';
 	import { Button, Input, Modal, ColorPicker } from '$components/ui';
-	import { toast } from '$components/ui/Toast.svelte';
+	import { toast } from 'svelte-sonner';
 	import { cn } from '$utils';
 	import type { Category } from '$types';
 
@@ -98,14 +98,14 @@
 
 			if (editingCategory) {
 				await categoriesStore.update(editingCategory.id, data);
-				toast($t('category.updated') || $t('common.success'), 'success');
+				toast.success($t('category.updated') || $t('common.success'));
 			} else {
 				await categoriesStore.create(data);
-				toast($t('category.created') || $t('common.success'), 'success');
+				toast.success($t('category.created') || $t('common.success'));
 			}
 			closeModal();
 		} catch (error) {
-			toast(error instanceof Error ? error.message : $t('errors.generic'), 'error');
+			toast.error(error instanceof Error ? error.message : $t('errors.generic'));
 		} finally {
 			loading = false;
 		}
@@ -118,9 +118,9 @@
 
 		try {
 			await categoriesStore.delete(category.id);
-			toast($t('category.deleted') || $t('common.success'), 'success');
+			toast.success($t('category.deleted') || $t('common.success'));
 		} catch (error) {
-			toast(error instanceof Error ? error.message : $t('errors.generic'), 'error');
+			toast.error(error instanceof Error ? error.message : $t('errors.generic'));
 		}
 	}
 </script>

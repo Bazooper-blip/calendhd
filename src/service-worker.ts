@@ -1,53 +1,86 @@
+/// <reference types="@sveltejs/kit" />
 /// <reference lib="webworker" />
-
-import { precacheAndRoute } from 'workbox-precaching';
-import { registerRoute } from 'workbox-routing';
-import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies';
-import { ExpirationPlugin } from 'workbox-expiration';
-import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 
 declare const self: ServiceWorkerGlobalScope;
 
-// Precache all assets injected by the build
-precacheAndRoute(self.__WB_MANIFEST);
+import { build, files, version } from '$service-worker';
 
-// Cache-first for static assets (icons, fonts)
-registerRoute(
-	({ url }) => url.pathname.startsWith('/icons/') || url.pathname.startsWith('/fonts/'),
-	new CacheFirst({
-		cacheName: 'static-assets',
-		plugins: [
-			new ExpirationPlugin({ maxEntries: 60, maxAgeSeconds: 30 * 24 * 60 * 60 }),
-			new CacheableResponsePlugin({ statuses: [0, 200] })
-		]
-	})
-);
+const CACHE_NAME = `calendhd-${version}`;
 
-// Network-first for API calls
-registerRoute(
-	({ url }) => url.pathname.startsWith('/api/'),
-	new NetworkFirst({
-		cacheName: 'api-cache',
-		plugins: [
-			new ExpirationPlugin({ maxEntries: 100, maxAgeSeconds: 24 * 60 * 60 }),
-			new CacheableResponsePlugin({ statuses: [0, 200] })
-		]
-	})
-);
+// All app assets: build artifacts + static files
+const ASSETS = [...build, ...files];
 
-// Stale-while-revalidate for app bundles and other navigations
-registerRoute(
-	({ url }) => url.pathname.startsWith('/_app/'),
-	new StaleWhileRevalidate({
-		cacheName: 'app-cache',
-		plugins: [
-			new ExpirationPlugin({ maxEntries: 100, maxAgeSeconds: 24 * 60 * 60 }),
-			new CacheableResponsePlugin({ statuses: [0, 200] })
-		]
-	})
-);
+// ── Install: precache all build assets ──────────────────────────────
+self.addEventListener('install', (event) => {
+	event.waitUntil(
+		caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+	);
+});
 
-// Push notification handling
+// ── Activate: clean up old caches ───────────────────────────────────
+self.addEventListener('activate', (event) => {
+	event.waitUntil(
+		caches.keys().then((keys) =>
+			Promise.all(
+				keys
+					.filter((key) => key !== CACHE_NAME)
+					.map((key) => caches.delete(key))
+			)
+		)
+	);
+});
+
+// ── Fetch: cache-first for assets, network-first for API/navigation ─
+self.addEventListener('fetch', (event) => {
+	const url = new URL(event.request.url);
+
+	// Skip non-GET and cross-origin requests
+	if (event.request.method !== 'GET') return;
+	if (url.origin !== self.location.origin) return;
+
+	// Network-first for API calls (always want fresh data)
+	if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/_/')) {
+		event.respondWith(networkFirst(event.request));
+		return;
+	}
+
+	// Cache-first for precached build assets and static files
+	if (ASSETS.includes(url.pathname)) {
+		event.respondWith(cacheFirst(event.request));
+		return;
+	}
+
+	// Network-first for navigation and everything else
+	event.respondWith(networkFirst(event.request));
+});
+
+async function cacheFirst(request: Request): Promise<Response> {
+	const cached = await caches.match(request);
+	if (cached) return cached;
+
+	const response = await fetch(request);
+	if (response.ok) {
+		const cache = await caches.open(CACHE_NAME);
+		cache.put(request, response.clone());
+	}
+	return response;
+}
+
+async function networkFirst(request: Request): Promise<Response> {
+	try {
+		const response = await fetch(request);
+		if (response.ok) {
+			const cache = await caches.open(CACHE_NAME);
+			cache.put(request, response.clone());
+		}
+		return response;
+	} catch {
+		const cached = await caches.match(request);
+		return cached || new Response('Offline', { status: 503 });
+	}
+}
+
+// ── Push notification handling ──────────────────────────────────────
 self.addEventListener('push', (event) => {
 	if (!event.data) return;
 
@@ -71,7 +104,7 @@ self.addEventListener('push', (event) => {
 	);
 });
 
-// Notification click handling
+// ── Notification click handling ─────────────────────────────────────
 self.addEventListener('notificationclick', (event) => {
 	event.notification.close();
 
@@ -84,7 +117,6 @@ self.addEventListener('notificationclick', (event) => {
 		self.clients
 			.matchAll({ type: 'window', includeUncontrolled: true })
 			.then((clients) => {
-				// Focus existing window or open new one
 				const existingClient = clients.find((client) => 'focus' in client);
 				if (existingClient) {
 					existingClient.focus();
@@ -96,11 +128,10 @@ self.addEventListener('notificationclick', (event) => {
 	);
 });
 
-// Background sync for offline changes
+// ── Background sync for offline changes ─────────────────────────────
 self.addEventListener('sync', (event) => {
 	if (event.tag === 'calendhd-sync') {
 		event.waitUntil(
-			// Notify clients to sync
 			self.clients.matchAll().then((clients) => {
 				clients.forEach((client) => {
 					client.postMessage({ type: 'SYNC_REQUESTED' });
@@ -110,7 +141,7 @@ self.addEventListener('sync', (event) => {
 	}
 });
 
-// Listen for messages from the main app
+// ── Listen for messages from the main app ───────────────────────────
 self.addEventListener('message', (event) => {
 	if (event.data?.type === 'SKIP_WAITING') {
 		self.skipWaiting();

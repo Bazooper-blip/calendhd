@@ -2,7 +2,7 @@
 	import { t } from 'svelte-i18n';
 	import { templatesStore, categoriesStore } from '$stores';
 	import { Button, Input, Modal, Select, Toggle, ColorPicker } from '$components/ui';
-	import { toast } from '$components/ui/Toast.svelte';
+	import { toast } from 'svelte-sonner';
 	import { REMINDER_OPTIONS, formatDuration } from '$utils';
 	import type { Template, ReminderConfig } from '$types';
 
@@ -83,14 +83,14 @@
 
 			if (editingTemplate) {
 				await templatesStore.update(editingTemplate.id, data);
-				toast($t('template.updated') || $t('common.success'), 'success');
+				toast.success($t('template.updated') || $t('common.success'));
 			} else {
 				await templatesStore.create(data);
-				toast($t('template.created') || $t('common.success'), 'success');
+				toast.success($t('template.created') || $t('common.success'));
 			}
 			closeModal();
 		} catch (error) {
-			toast(error instanceof Error ? error.message : $t('errors.generic'), 'error');
+			toast.error(error instanceof Error ? error.message : $t('errors.generic'));
 		} finally {
 			loading = false;
 		}
@@ -101,9 +101,9 @@
 
 		try {
 			await templatesStore.delete(template.id);
-			toast($t('template.deleted') || $t('common.success'), 'success');
+			toast.success($t('template.deleted') || $t('common.success'));
 		} catch (error) {
-			toast(error instanceof Error ? error.message : $t('errors.generic'), 'error');
+			toast.error(error instanceof Error ? error.message : $t('errors.generic'));
 		}
 	}
 </script>
