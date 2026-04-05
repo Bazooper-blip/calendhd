@@ -15,36 +15,68 @@
 	// Common emoji categories for calendar/productivity use
 	const emojiCategories = [
 		{
-			name: 'Common',
-			emojis: ['📅', '📆', '🗓️', '⏰', '🔔', '✅', '❌', '⭐', '💡', '📝', '📌', '🎯', '🏠', '💼', '📧', '📞']
+			name: 'Suggested',
+			emojis: ['🌅', '💊', '🍽️', '🌙', '🧹', '🚿', '💤', '💼', '💻', '📞', '📝', '🎯', '📅', '🏥', '🦷', '🧠', '🏃', '🧘', '☕', '🎂', '🎉', '🎮', '🎵', '👥', '🚗', '✈️', '🛒', '📦', '⚡', '⭐']
 		},
 		{
-			name: 'Activities',
-			emojis: ['🏃', '🚶', '🧘', '💪', '🏋️', '🚴', '🏊', '⚽', '🎾', '🎮', '🎬', '🎵', '📚', '✈️', '🚗', '🛒']
+			name: 'Routine & Home',
+			emojis: ['🏠', '🧹', '🚿', '💤', '🛏️', '🪴', '🔑', '🧺', '🪥', '🚰', '🛁', '🧴', '🪞', '💡', '🔒', '🏡', '🧸', '🕯️', '🧊', '📱']
 		},
 		{
-			name: 'Health',
-			emojis: ['💊', '🏥', '🩺', '🧠', '❤️', '😴', '🥗', '🍎', '💧', '🧘‍♀️', '🦷', '👁️', '💉', '🩹', '🧪', '🌡️']
+			name: 'Work & Productivity',
+			emojis: ['💼', '💻', '📞', '📧', '📝', '📅', '📊', '📋', '✅', '🎯', '📌', '🗓️', '📈', '✏️', '🖊️', '📎', '🗂️', '📁', '🖥️', '⏰', '🔔', '📢', '🤝', '👔']
 		},
 		{
-			name: 'Work',
-			emojis: ['💻', '📊', '📈', '💰', '🏦', '📁', '📋', '✏️', '🖊️', '📎', '🗂️', '💳', '🎓', '👔', '🤝', '📢']
+			name: 'Health & Medical',
+			emojis: ['🏥', '🦷', '🩺', '💊', '💉', '🧠', '❤️', '🩹', '🌡️', '🧪', '👁️', '🩻', '🏨', '🩸', '😷', '🤒', '🧬', '♿', '🩼', '🫀']
 		},
 		{
-			name: 'People',
-			emojis: ['👨‍👩‍👧', '👶', '🧒', '👦', '👧', '🧑', '👨', '👩', '🧓', '👴', '👵', '🐕', '🐈', '🎂', '🎉', '🎁']
+			name: 'Fitness & Wellness',
+			emojis: ['🏃', '🧘', '🏋️', '🚴', '🏊', '⚽', '🎾', '🧘‍♀️', '💪', '🚶', '🤸', '🏄', '🧗', '🏌️', '⛷️', '🏓', '🥊', '🏸', '💧', '🧖']
 		},
 		{
-			name: 'Food',
-			emojis: ['☕', '🍵', '🥤', '🍔', '🍕', '🍜', '🍱', '🥡', '🍳', '🥐', '🍰', '🍪', '🥛', '🍺', '🍷', '🧁']
+			name: 'Food & Drink',
+			emojis: ['☕', '🍵', '🥤', '🍔', '🍕', '🍜', '🍱', '🥡', '🍳', '🥐', '🍰', '🍪', '🥛', '🍺', '🍷', '🧁', '🥗', '🍎', '🍝', '🥘', '🍣', '🌮', '🥪', '🧇']
 		},
 		{
-			name: 'Nature',
-			emojis: ['🌸', '🌺', '🌻', '🌳', '🌴', '🌊', '⛰️', '🌙', '☀️', '🌈', '❄️', '🔥', '💨', '🌍', '🌵', '🍀']
+			name: 'Social & Celebrations',
+			emojis: ['🎂', '🎉', '🎁', '👥', '🤝', '☕', '🍽️', '💐', '🥂', '🎊', '💒', '🎈', '🥳', '🎀', '💌', '🫂', '🤗', '🙋', '👋', '🎆']
 		},
 		{
-			name: 'Objects',
-			emojis: ['🔑', '🔒', '💎', '🎀', '🧸', '🎈', '🎨', '🔧', '🔨', '💡', '🔋', '📷', '🎥', '🎧', '🕹️', '🧩']
+			name: 'Travel & Transport',
+			emojis: ['✈️', '🚗', '🚌', '🚆', '🏨', '🗺️', '🚕', '📦', '🚲', '🛵', '🚢', '🚁', '🛫', '🛬', '⛽', '🅿️', '🚏', '🧳', '🏖️', '🗼', '🎡', '🏕️', '🌍', '🧭']
+		},
+		{
+			name: 'Education',
+			emojis: ['📚', '🎓', '✏️', '📖', '🧪', '🗣️', '🎒', '💡', '📐', '🔬', '🧮', '📓', '🖍️', '🎨', '🌐', '📝']
+		},
+		{
+			name: 'Nature & Weather',
+			emojis: ['🌸', '🌺', '🌻', '🌳', '🌴', '🌊', '⛰️', '🌙', '☀️', '🌈', '❄️', '🔥', '💨', '🌍', '🌵', '🍀', '🌧️', '⛈️', '🌤️', '🌪️', '🌱', '🍂', '🦋', '🌾']
+		},
+		{
+			name: 'Finance',
+			emojis: ['💰', '💳', '🏦', '📊', '🧾', '💵', '💲', '📉', '📈', '🪙', '💎', '🏧', '🤑', '💸', '📒', '🧮']
+		},
+		{
+			name: 'Kids & Family',
+			emojis: ['👶', '🏫', '🎨', '⚽', '🎵', '🎭', '🧸', '🎠', '🎪', '🧒', '👦', '👧', '👨‍👩‍👧', '🍼', '🎮', '📚']
+		},
+		{
+			name: 'Pets',
+			emojis: ['🐕', '🐱', '🐾', '🐟', '🐴', '🐰', '🐦', '🐢', '🦜', '🐹', '🐍', '🦎']
+		},
+		{
+			name: 'Objects & Symbols',
+			emojis: ['🔑', '🔒', '💎', '🎀', '📷', '🎧', '🧩', '🔧', '🔨', '🔋', '🎥', '🕹️', '📻', '⚙️', '🧲', '🔭', '📡', '🪄', '🎲', '🏆', '🚨', '🔄', '❌', '🚫']
+		},
+		{
+			name: 'Flags',
+			emojis: ['🏁', '🚩', '🏳️', '🇺🇸', '🇬🇧', '🇸🇪', '🇩🇪', '🇫🇷', '🇪🇸', '🇮🇹', '🇯🇵', '🇰🇷', '🇨🇳', '🇧🇷', '🇨🇦', '🇦🇺', '🇮🇳', '🇲🇽', '🇳🇴', '🇫🇮']
+		},
+		{
+			name: 'Smileys & Expressions',
+			emojis: ['😊', '😴', '🤔', '😤', '🥳', '🤒', '😎', '😅', '🥰', '😢', '😡', '🤯', '😱', '🫠', '😌', '🙄', '😬', '🤓', '😇', '🥱', '😶', '🫡', '😮', '🤩']
 		}
 	];
 
@@ -97,7 +129,7 @@
 
 	<!-- Dropdown -->
 	{#if isOpen}
-		<div class="absolute z-50 mt-2 w-72 bg-white dark:bg-neutral-800 rounded-xl shadow-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden">
+		<div class="absolute z-50 mt-2 w-full sm:w-96 bg-white dark:bg-neutral-800 rounded-xl shadow-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden">
 			<!-- Search -->
 			<div class="p-2 border-b border-neutral-100 dark:border-neutral-700">
 				<input
@@ -109,15 +141,15 @@
 			</div>
 
 			<!-- Emoji grid -->
-			<div class="max-h-64 overflow-y-auto p-2">
+			<div class="max-h-80 overflow-y-auto p-2">
 				{#if filteredEmojis}
 					<!-- Search results -->
-					<div class="grid grid-cols-8 gap-1">
+					<div class="grid grid-cols-6 sm:grid-cols-8 gap-1">
 						{#each filteredEmojis as emoji}
 							<button
 								type="button"
 								onclick={() => selectEmoji(emoji)}
-								class="w-8 h-8 flex items-center justify-center text-xl hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded transition-colors"
+								class="w-10 h-10 flex items-center justify-center text-xl hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded transition-colors"
 							>
 								{emoji}
 							</button>
@@ -131,12 +163,12 @@
 					{#each emojiCategories as category}
 						<div class="mb-3">
 							<h4 class="text-xs font-semibold text-neutral-500 dark:text-neutral-400 mb-1 px-1">{category.name}</h4>
-							<div class="grid grid-cols-8 gap-1">
+							<div class="grid grid-cols-6 sm:grid-cols-8 gap-1">
 								{#each category.emojis as emoji}
 									<button
 										type="button"
 										onclick={() => selectEmoji(emoji)}
-										class="w-8 h-8 flex items-center justify-center text-xl hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded transition-colors"
+										class="w-10 h-10 flex items-center justify-center text-xl hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded transition-colors"
 									>
 										{emoji}
 									</button>
