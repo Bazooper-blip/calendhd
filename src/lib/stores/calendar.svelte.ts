@@ -30,6 +30,8 @@ import {
 	createLocalEvent,
 	updateLocalEvent,
 	deleteLocalEvent,
+	hardDeleteLocalEvent,
+	getPendingDeleteEvents,
 	markEventSynced
 } from '$db';
 import { auth } from './auth.svelte';
@@ -219,6 +221,25 @@ function createCalendarStore() {
 				console.warn('Failed to load from local DB:', error);
 			}
 
+			// Retry any pending deletions before fetching server state
+			try {
+				const pendingDeletes = await getPendingDeleteEvents();
+				for (const pending of pendingDeletes) {
+					if (pending.id) {
+						try {
+							await deleteServerEvent(pending.id);
+						} catch {
+							// Server delete failed again — keep soft-deleted for next retry
+							continue;
+						}
+					}
+					// Server confirmed or was never synced — hard-delete locally
+					await hardDeleteLocalEvent(pending.local_id);
+				}
+			} catch {
+				// Failed to read pending deletes — continue with load
+			}
+
 			// Try to sync from server
 			try {
 				const [serverEvents, serverExternalEvents] = await Promise.all([
@@ -226,7 +247,12 @@ function createCalendarStore() {
 					getExternalEvents(start, end)
 				]);
 
-				events = serverEvents;
+				// Filter out events that are still pending deletion locally
+				const stillPendingDeletes = await getPendingDeleteEvents();
+				const pendingDeleteIds = new Set(stillPendingDeletes.map((e) => e.id).filter(Boolean));
+				events = pendingDeleteIds.size > 0
+					? serverEvents.filter((e) => !pendingDeleteIds.has(e.id))
+					: serverEvents;
 				externalEvents = serverExternalEvents;
 
 				// Save external events to IndexedDB for offline access
@@ -267,6 +293,10 @@ function createCalendarStore() {
 						break;
 					case 'delete':
 						events = events.filter((e) => e.id !== record.id);
+						// Hard-delete from local DB (server confirmed deletion)
+						db.events.where('id').equals(record.id).first().then((local) => {
+							if (local) hardDeleteLocalEvent(local.local_id);
+						});
 						break;
 				}
 			});
@@ -336,19 +366,32 @@ function createCalendarStore() {
 		},
 
 		async deleteEvent(id: string) {
-			// Optimistically remove
-			const oldEvents = events;
+			// Optimistically remove from UI
 			events = events.filter((e) => e.id !== id);
 
-			// Delete from local DB
-			await deleteLocalEvent(id);
+			// Soft-delete in local DB (marks sync_status: 'deleted')
+			// For pending events (local_id as id), use that; for synced events, find by server id
+			const localRecord = await db.events.where('id').equals(id).first()
+				?? await db.events.get(id);
+			if (localRecord) {
+				await deleteLocalEvent(localRecord.local_id);
+			}
 
-			// Sync to server
-			try {
-				await deleteServerEvent(id);
-			} catch (error) {
-				console.error('Failed to sync event deletion to server:', error);
-				// Already removed from UI, will sync on next load
+			// Try to delete from server (only if it has a server id)
+			if (localRecord?.id) {
+				try {
+					await deleteServerEvent(localRecord.id);
+					// Server confirmed deletion — hard-delete local record
+					if (localRecord) {
+						await hardDeleteLocalEvent(localRecord.local_id);
+					}
+				} catch (error) {
+					console.error('Failed to sync event deletion to server:', error);
+					// Stays soft-deleted locally, will retry on next loadEvents
+				}
+			} else if (localRecord) {
+				// Pending event never reached server — hard-delete immediately
+				await hardDeleteLocalEvent(localRecord.local_id);
 			}
 		},
 

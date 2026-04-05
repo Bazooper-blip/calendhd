@@ -130,7 +130,7 @@ export interface PushSubscriptionData {
 export interface LocalEvent extends Omit<CalendarEvent, 'id' | 'created' | 'updated'> {
 	id?: string; // may not have server ID yet
 	local_id: string;
-	sync_status: 'synced' | 'pending' | 'conflict';
+	sync_status: 'synced' | 'pending' | 'conflict' | 'deleted';
 	pending_changes?: Partial<CalendarEvent>;
 }
 

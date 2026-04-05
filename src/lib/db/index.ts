@@ -45,10 +45,11 @@ export async function getLocalEvents(
 	startDate: Date,
 	endDate: Date
 ): Promise<LocalEvent[]> {
-	return db.events
+	const all = await db.events
 		.where('[user+start_time]')
 		.between([userId, startDate.toISOString()], [userId, endDate.toISOString()], true, true)
 		.toArray();
+	return all.filter((e) => e.sync_status !== 'deleted');
 }
 
 export async function getLocalEvent(localId: string): Promise<LocalEvent | undefined> {
@@ -76,7 +77,15 @@ export async function updateLocalEvent(
 }
 
 export async function deleteLocalEvent(localId: string): Promise<void> {
+	await db.events.update(localId, { sync_status: 'deleted' });
+}
+
+export async function hardDeleteLocalEvent(localId: string): Promise<void> {
 	await db.events.delete(localId);
+}
+
+export async function getPendingDeleteEvents(): Promise<LocalEvent[]> {
+	return db.events.where('sync_status').equals('deleted').toArray();
 }
 
 export async function markEventSynced(localId: string, serverId: string): Promise<void> {
