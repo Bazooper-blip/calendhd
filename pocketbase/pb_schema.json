@@ -12,7 +12,7 @@
         "required": true,
         "options": {
           "collectionId": "_pb_users_auth_",
-          "cascadeDelete": true,
+          "cascadeDelete": false,
           "maxSelect": 1,
           "displayFields": []
         }
@@ -33,9 +33,7 @@
         "type": "text",
         "required": true,
         "options": {
-          "min": 4,
-          "max": 9,
-          "pattern": "^#[0-9A-Fa-f]{3,8}$"
+          "max": 20
         }
       },
       {
@@ -51,11 +49,12 @@
         "id": "cat_sort",
         "name": "sort_order",
         "type": "number",
-        "required": true,
-        "options": {
-          "min": 0
-        }
+        "required": false,
+        "options": {}
       }
+    ],
+    "indexes": [
+      "CREATE INDEX idx_categories_user ON categories (user)"
     ],
     "listRule": "@request.auth.id = user",
     "viewRule": "@request.auth.id = user",
@@ -76,7 +75,7 @@
         "required": true,
         "options": {
           "collectionId": "_pb_users_auth_",
-          "cascadeDelete": true,
+          "cascadeDelete": false,
           "maxSelect": 1,
           "displayFields": []
         }
@@ -107,11 +106,8 @@
         "id": "tpl_duration",
         "name": "default_duration_minutes",
         "type": "number",
-        "required": true,
-        "options": {
-          "min": 0,
-          "max": 10080
-        }
+        "required": false,
+        "options": {}
       },
       {
         "id": "tpl_allday",
@@ -144,7 +140,16 @@
         "options": {
           "maxSelect": 1,
           "maxSize": 5242880,
-          "mimeTypes": ["image/jpeg", "image/png", "image/webp"]
+          "mimeTypes": ["image/jpeg", "image/png", "image/webp", "image/gif"]
+        }
+      },
+      {
+        "id": "tpl_icon",
+        "name": "icon",
+        "type": "text",
+        "required": false,
+        "options": {
+          "max": 100
         }
       },
       {
@@ -153,10 +158,12 @@
         "type": "text",
         "required": false,
         "options": {
-          "max": 9,
-          "pattern": "^#[0-9A-Fa-f]{3,8}$"
+          "max": 20
         }
       }
+    ],
+    "indexes": [
+      "CREATE INDEX idx_templates_user ON templates (user)"
     ],
     "listRule": "@request.auth.id = user",
     "viewRule": "@request.auth.id = user",
@@ -177,7 +184,7 @@
         "required": true,
         "options": {
           "collectionId": "_pb_users_auth_",
-          "cascadeDelete": true,
+          "cascadeDelete": false,
           "maxSelect": 1,
           "displayFields": []
         }
@@ -247,6 +254,13 @@
         "options": {}
       },
       {
+        "id": "evt_task",
+        "name": "is_task",
+        "type": "bool",
+        "required": false,
+        "options": {}
+      },
+      {
         "id": "evt_image",
         "name": "image",
         "type": "file",
@@ -254,7 +268,16 @@
         "options": {
           "maxSelect": 1,
           "maxSize": 5242880,
-          "mimeTypes": ["image/jpeg", "image/png", "image/webp"]
+          "mimeTypes": ["image/jpeg", "image/png", "image/webp", "image/gif"]
+        }
+      },
+      {
+        "id": "evt_icon",
+        "name": "icon",
+        "type": "text",
+        "required": false,
+        "options": {
+          "max": 100
         }
       },
       {
@@ -263,8 +286,7 @@
         "type": "text",
         "required": false,
         "options": {
-          "max": 9,
-          "pattern": "^#[0-9A-Fa-f]{3,8}$"
+          "max": 20
         }
       },
       {
@@ -281,7 +303,7 @@
         "required": false,
         "options": {
           "collectionId": "calendhd_events",
-          "cascadeDelete": true,
+          "cascadeDelete": false,
           "maxSelect": 1,
           "displayFields": []
         }
@@ -317,6 +339,11 @@
         "options": {}
       }
     ],
+    "indexes": [
+      "CREATE INDEX idx_events_user ON events (user)",
+      "CREATE INDEX idx_events_start ON events (start_time)",
+      "CREATE INDEX idx_events_user_start ON events (user, start_time)"
+    ],
     "listRule": "@request.auth.id = user",
     "viewRule": "@request.auth.id = user",
     "createRule": "@request.auth.id != \"\"",
@@ -336,7 +363,7 @@
         "required": true,
         "options": {
           "collectionId": "_pb_users_auth_",
-          "cascadeDelete": true,
+          "cascadeDelete": false,
           "maxSelect": 1,
           "displayFields": []
         }
@@ -364,19 +391,15 @@
         "type": "text",
         "required": false,
         "options": {
-          "max": 9,
-          "pattern": "^#[0-9A-Fa-f]{3,8}$"
+          "max": 20
         }
       },
       {
         "id": "sub_refresh",
         "name": "refresh_interval_minutes",
         "type": "number",
-        "required": true,
-        "options": {
-          "min": 15,
-          "max": 10080
-        }
+        "required": false,
+        "options": {}
       },
       {
         "id": "sub_lastref",
@@ -402,6 +425,9 @@
         }
       }
     ],
+    "indexes": [
+      "CREATE INDEX idx_calsubs_user ON calendar_subscriptions (user)"
+    ],
     "listRule": "@request.auth.id = user",
     "viewRule": "@request.auth.id = user",
     "createRule": "@request.auth.id != \"\"",
@@ -421,7 +447,7 @@
         "required": true,
         "options": {
           "collectionId": "_pb_users_auth_",
-          "cascadeDelete": true,
+          "cascadeDelete": false,
           "maxSelect": 1,
           "displayFields": []
         }
@@ -507,8 +533,16 @@
         "name": "raw_ics",
         "type": "text",
         "required": false,
-        "options": {}
+        "options": {
+          "max": 50000
+        }
       }
+    ],
+    "indexes": [
+      "CREATE INDEX idx_ext_events_user ON external_events (user)",
+      "CREATE INDEX idx_ext_events_uid ON external_events (uid)",
+      "CREATE INDEX idx_ext_events_user_start ON external_events (user, start_time)",
+      "CREATE INDEX idx_ext_events_sub ON external_events (subscription)"
     ],
     "listRule": "@request.auth.id = user",
     "viewRule": "@request.auth.id = user",
@@ -538,7 +572,7 @@
         "id": "set_view",
         "name": "default_view",
         "type": "select",
-        "required": true,
+        "required": false,
         "options": {
           "values": ["day", "week", "month"]
         }
@@ -547,17 +581,14 @@
         "id": "set_weekstart",
         "name": "week_starts_on",
         "type": "number",
-        "required": true,
-        "options": {
-          "min": 0,
-          "max": 6
-        }
+        "required": false,
+        "options": {}
       },
       {
         "id": "set_timeformat",
         "name": "time_format",
         "type": "select",
-        "required": true,
+        "required": false,
         "options": {
           "values": ["12h", "24h"]
         }
@@ -566,16 +597,27 @@
         "id": "set_theme",
         "name": "theme",
         "type": "select",
-        "required": true,
+        "required": false,
         "options": {
           "values": ["light", "dark", "system"]
+        }
+      },
+      {
+        "id": "set_locale",
+        "name": "locale",
+        "type": "text",
+        "required": false,
+        "options": {
+          "min": 2,
+          "max": 10,
+          "pattern": "^[a-z]{2}(-[A-Z]{2})?$"
         }
       },
       {
         "id": "set_palette",
         "name": "color_palette",
         "type": "select",
-        "required": true,
+        "required": false,
         "options": {
           "values": ["default", "muted", "vibrant"]
         }
@@ -612,7 +654,7 @@
         "id": "set_tz",
         "name": "timezone",
         "type": "text",
-        "required": true,
+        "required": false,
         "options": {
           "max": 100
         }
@@ -623,7 +665,28 @@
         "type": "json",
         "required": false,
         "options": {}
+      },
+      {
+        "id": "set_hadevice",
+        "name": "ha_device_id",
+        "type": "text",
+        "required": false,
+        "options": {
+          "max": 200
+        }
+      },
+      {
+        "id": "set_notifmethod",
+        "name": "notification_method",
+        "type": "select",
+        "required": false,
+        "options": {
+          "values": ["auto", "ha_companion", "ntfy", "browser"]
+        }
       }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX idx_settings_user ON user_settings (user)"
     ],
     "listRule": "@request.auth.id = user",
     "viewRule": "@request.auth.id = user",
@@ -672,7 +735,7 @@
         "id": "rem_type",
         "name": "reminder_type",
         "type": "select",
-        "required": true,
+        "required": false,
         "options": {
           "values": ["notification", "email"]
         }
@@ -683,7 +746,30 @@
         "type": "date",
         "required": false,
         "options": {}
+      },
+      {
+        "id": "rem_delivery",
+        "name": "delivery_method",
+        "type": "select",
+        "required": false,
+        "options": {
+          "values": ["ha_companion", "ntfy", "browser"]
+        }
+      },
+      {
+        "id": "rem_error",
+        "name": "error_message",
+        "type": "text",
+        "required": false,
+        "options": {
+          "max": 1000
+        }
       }
+    ],
+    "indexes": [
+      "CREATE INDEX idx_reminders_user ON scheduled_reminders (user)",
+      "CREATE INDEX idx_reminders_scheduled ON scheduled_reminders (scheduled_for)",
+      "CREATE INDEX idx_reminders_event ON scheduled_reminders (event)"
     ],
     "listRule": "@request.auth.id = user",
     "viewRule": "@request.auth.id = user",
