@@ -127,9 +127,9 @@
 	<!-- Template selector -->
 	{#if templateOptions.length > 0}
 		<div>
-			<label class="block text-sm font-medium text-neutral-700 mb-1">
+			<span class="block text-sm font-medium text-neutral-700 mb-1">
 				{$t('template.startFrom')}
-			</label>
+			</span>
 			<Select
 				options={templateOptions}
 				placeholder={$t('template.selectTemplate')}
@@ -153,10 +153,10 @@
 
 	<!-- Icon -->
 	<div>
-		<label class="block text-sm font-medium text-neutral-700 mb-1">
+		<span class="block text-sm font-medium text-neutral-700 mb-1">
 			{$t('event.icon')}
 			<span class="text-neutral-400 font-normal">({$t('common.optional')})</span>
-		</label>
+		</span>
 		<IconPicker value={icon} onSelect={(v) => icon = v} />
 	</div>
 
@@ -243,17 +243,17 @@
 
 	<!-- Color override -->
 	<div>
-		<label class="block text-sm font-medium text-neutral-700 mb-2">
+		<span class="block text-sm font-medium text-neutral-700 mb-2">
 			{$t('event.color')}
-		</label>
+		</span>
 		<ColorPicker bind:value={colorOverride} />
 	</div>
 
 	<!-- Recurrence -->
 	<div>
-		<label class="block text-sm font-medium text-neutral-700 mb-1">
+		<span class="block text-sm font-medium text-neutral-700 mb-1">
 			{$t('event.repeat')}
-		</label>
+		</span>
 		<Select
 			options={recurrenceOptions}
 			value={RECURRENCE_PRESETS.findIndex(
@@ -266,9 +266,9 @@
 	<!-- Reminders -->
 	<div>
 		<div class="flex items-center justify-between mb-2">
-			<label class="block text-sm font-medium text-neutral-700">
+			<span class="block text-sm font-medium text-neutral-700">
 				{$t('event.reminders')}
-			</label>
+			</span>
 			<Button variant="ghost" size="sm" onclick={addReminder}>
 				{$t('event.addReminder')}
 			</Button>

@@ -147,7 +147,7 @@
 		</div>
 
 		<div>
-			<label class="block text-xs font-medium text-neutral-500 mb-1">Duration</label>
+			<span class="block text-xs font-medium text-neutral-500 mb-1">Duration</span>
 			<div class="flex gap-2">
 				{#each [15, 30, 60, 120] as mins}
 					<button

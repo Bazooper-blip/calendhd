@@ -339,9 +339,9 @@
 		</div>
 
 		<div>
-			<label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+			<span class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
 				{$t('subscription.color')}
-			</label>
+			</span>
 			<ColorPicker bind:value={colorOverride} />
 		</div>
 

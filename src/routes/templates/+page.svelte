@@ -234,9 +234,9 @@
 		{/if}
 
 		<div>
-			<label class="block text-sm font-medium text-neutral-700 mb-2">
+			<span class="block text-sm font-medium text-neutral-700 mb-2">
 				{$t('event.color')} ({$t('common.optional')})
-			</label>
+			</span>
 			<ColorPicker bind:value={colorOverride} />
 		</div>
 
