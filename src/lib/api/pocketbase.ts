@@ -139,7 +139,7 @@ export async function getEvents(startDate: Date, endDate: Date): Promise<Calenda
 	const user = getCurrentUser();
 	if (!user) return [];
 
-	// Filter by date range - PocketBase API rules handle user/household access
+	// Filter by date range - PocketBase API rules handle user access
 	const records = await collections.events().getFullList({
 		filter: `start_time >= "${startDate.toISOString()}" && start_time <= "${endDate.toISOString()}"`,
 		sort: 'start_time'

@@ -8,7 +8,6 @@ A calm, ADHD-friendly calendar PWA designed for neurodivergent minds.
 - **Multiple Views**: Day, Week, and Month calendar views
 - **Event Templates**: Quick event creation from saved templates
 - **Categories**: Color-coded organization for events
-- **Households**: Share calendars with family and friends
 - **Recurrence**: Daily, weekly, monthly, and yearly repeating events
 - **Reminders**: Configurable push notification reminders
 - **Calendar Subscriptions**: Subscribe to external iCal/ICS feeds (Google Calendar, Outlook, etc.)
@@ -88,13 +87,11 @@ docker-compose up -d
 calendhd/
 ├── src/
 │   ├── routes/           # SvelteKit pages
-│   │   ├── auth/         # Login/register
 │   │   ├── calendar/     # Day/week/month views
 │   │   ├── event/        # Event creation/editing
 │   │   ├── templates/    # Event templates
 │   │   ├── categories/   # Category management
 │   │   ├── subscriptions/# External calendar feeds
-│   │   ├── household/    # Household sharing
 │   │   └── settings/     # User preferences
 │   │
 │   ├── lib/

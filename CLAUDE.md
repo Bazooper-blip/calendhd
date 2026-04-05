@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-calenDHD is a calm, ADHD-friendly calendar PWA for neurodivergent minds. It's an offline-first, client-only SvelteKit app backed by PocketBase, with IndexedDB (Dexie) as the local data store.
+calenDHD is a calm, ADHD-friendly calendar PWA for neurodivergent minds. It's a client-only SvelteKit app backed by PocketBase, with IndexedDB (Dexie) as the local data store. Each instance serves as a singleton calendar for a single household — there is no multi-user authentication or household sharing; the app auto-logs in a home account.
 
 ## Commands
 
@@ -35,15 +35,12 @@ Home Assistant deployment build:
 
 SSR is disabled (`export const ssr = false` in `+layout.ts`). The app is built as a static SPA using `@sveltejs/adapter-static` with `fallback: 'index.html'` for client-side routing. PWA capabilities are provided by `@vite-pwa/sveltekit` with Workbox.
 
-### Data Flow: Local-First with Background Sync
+### Data Flow
 
-1. All mutations write to **IndexedDB (Dexie)** immediately with `sync_status: 'pending'`
+1. All mutations write to **IndexedDB (Dexie)** immediately
 2. UI updates optimistically from local data
-3. **Sync engine** (`src/lib/sync/engine.ts`) pushes pending changes to PocketBase in the background
-4. PocketBase realtime subscriptions pull remote changes back to local
-5. Sync runs on: app start, `online` event, and periodic interval (60s)
-
-Sync status values: `'synced' | 'pending' | 'conflict'` (conflicts resolve local-wins for pending items).
+3. PocketBase realtime subscriptions pull remote changes back to local
+4. Server sync is attempted after each local write
 
 ### Svelte 5 Runes
 
@@ -52,12 +49,10 @@ All stores use the Svelte 5 rune system (`$state`, `$derived`, `$effect`), not l
 ### Path Aliases
 
 Defined in `svelte.config.js`:
-- `$components` → `src/lib/components`
+- `$components` �� `src/lib/components`
 - `$stores` → `src/lib/stores`
 - `$db` → `src/lib/db`
 - `$api` → `src/lib/api`
-- `$sync` → `src/lib/sync`
-- `$ical` → `src/lib/ical`
 - `$utils` → `src/lib/utils`
 - `$types` → `src/lib/types`
 
@@ -65,30 +60,25 @@ Defined in `svelte.config.js`:
 
 | Module | Path | Purpose |
 |--------|------|---------|
-| Database | `src/lib/db/index.ts` | Dexie schema (events, categories, templates, subscriptions, external_events, settings, sync_meta) |
+| Database | `src/lib/db/index.ts` | Dexie schema (events, categories, templates, subscriptions, external_events, settings) |
 | API | `src/lib/api/pocketbase.ts` | PocketBase client, collection helpers, realtime subscriptions |
-| Sync | `src/lib/sync/engine.ts` | Offline-first sync: push pending → pull remote → update metadata |
-| Stores | `src/lib/stores/*.svelte.ts` | Rune-based stores: auth, calendar, categories, templates, household, settings |
-| Schemas | `src/lib/schemas/index.ts` | Zod validation for forms (login, register, event, category, template, subscription) |
-| iCal | `src/lib/ical/parser.ts` | Parse external iCal feeds using ical-expander |
+| Stores | `src/lib/stores/*.svelte.ts` | Rune-based stores: auth, calendar, categories, templates, settings |
 | i18n | `src/lib/i18n/` | English (default, sync-loaded) and Swedish (lazy-loaded) via svelte-i18n |
 | Date Utils | `src/lib/utils/date.ts` | Timezone-aware date formatting/manipulation via date-fns + date-fns-tz |
-| Recurrence | `src/lib/utils/recurrence.ts` | Expand recurrence rules (daily, weekly, biweekly, monthly, yearly) |
+| Recurrence | `src/lib/utils/recurrence.ts` | Recurrence rule formatting and presets |
 | Notifications | `src/lib/utils/notifications.ts` | Web Push API, VAPID key handling |
-| Types | `src/lib/types/index.ts` | Core types: CalendarEvent/LocalEvent, Category/LocalCategory, Template, DisplayEvent, RecurrenceRule, UserSettings, Household |
+| Types | `src/lib/types/index.ts` | Core types: CalendarEvent/LocalEvent, Category/LocalCategory, Template, DisplayEvent, RecurrenceRule, UserSettings |
 
 ### Routes
 
 - `/` — Redirects to user's default calendar view
 - `/calendar/day/[[date]]`, `/calendar/week/[[date]]`, `/calendar/month/[[date]]` — Calendar views (optional date param)
 - `/event/new`, `/event/[id]` — Event creation/editing
-- `/auth/login`, `/auth/register` — Authentication
-- `/categories`, `/templates`, `/subscriptions`, `/household`, `/settings` — Management pages
-- `/api/subscriptions/[id]/sync` — Server endpoint for iCal feed sync
+- `/categories`, `/templates`, `/subscriptions`, `/settings` — Management pages
 
 ### PocketBase Schema
 
-Migrations live in `pocketbase/pb_migrations/`. Collections: users, events, categories, templates, calendar_subscriptions, external_events, user_settings, scheduled_reminders, households, push_subscriptions.
+Migrations live in `pocketbase/pb_migrations/`. Collections: users, events, categories, templates, calendar_subscriptions, external_events, user_settings, scheduled_reminders, push_subscriptions.
 
 ### Deployment Targets
 
@@ -100,8 +90,7 @@ Migrations live in `pocketbase/pb_migrations/`. Collections: users, events, cate
 
 - **Tailwind CSS 4** via `@tailwindcss/vite` plugin (no PostCSS config needed)
 - **Calm color palette**: Theme color is sage green (`#7C9885`); UI avoids harsh contrasts
-- **Dual type system**: Server types (e.g. `CalendarEvent`) extend `BaseRecord`; local types (e.g. `LocalEvent`) add `local_id` (auto-increment) and `sync_status`
+- **Dual type system**: Server types (e.g. `CalendarEvent`) extend `BaseRecord`; local types (e.g. `LocalEvent`) add `local_id` and `sync_status`
 - **Barrel exports**: Each `src/lib/` subdirectory has an `index.ts` re-exporting its contents
-- **Forms**: Validated with Zod schemas + `validateForm()` helper from `src/lib/schemas/`
 - **i18n**: All user-facing text uses `$t('key')` from svelte-i18n; keys organized hierarchically in `src/lib/i18n/locales/{en,sv}.json`
 - **Accessibility**: Support for reduced animations, high contrast mode, configurable time format (12h/24h), and week start day

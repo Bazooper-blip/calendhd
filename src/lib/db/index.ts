@@ -3,7 +3,6 @@ import type {
 	LocalEvent,
 	LocalCategory,
 	LocalTemplate,
-	SyncMeta,
 	CalendarSubscription,
 	ExternalEvent,
 	UserSettings
@@ -17,7 +16,6 @@ class CalendHDDatabase extends Dexie {
 	subscriptions!: EntityTable<CalendarSubscription, 'id'>;
 	external_events!: EntityTable<ExternalEvent, 'id'>;
 	settings!: EntityTable<UserSettings, 'id'>;
-	sync_meta!: EntityTable<SyncMeta, 'id'>;
 
 	constructor() {
 		super('CalendHD');
@@ -28,8 +26,7 @@ class CalendHDDatabase extends Dexie {
 			templates: 'local_id, id, user, name, category, sync_status',
 			subscriptions: 'id, user, name, is_active',
 			external_events: 'id, user, subscription, uid, start_time, [user+start_time]',
-			settings: 'id, user',
-			sync_meta: 'id, collection, last_synced'
+			settings: 'id, user'
 		});
 	}
 }
@@ -82,10 +79,6 @@ export async function deleteLocalEvent(localId: string): Promise<void> {
 	await db.events.delete(localId);
 }
 
-export async function getPendingEvents(userId: string): Promise<LocalEvent[]> {
-	return db.events.where({ user: userId, sync_status: 'pending' }).toArray();
-}
-
 export async function markEventSynced(localId: string, serverId: string): Promise<void> {
 	await db.events.update(localId, {
 		id: serverId,
@@ -123,17 +116,6 @@ export async function updateLocalCategory(
 
 export async function deleteLocalCategory(localId: string): Promise<void> {
 	await db.categories.delete(localId);
-}
-
-export async function getPendingCategories(userId: string): Promise<LocalCategory[]> {
-	return db.categories.where({ user: userId, sync_status: 'pending' }).toArray();
-}
-
-export async function markCategorySynced(localId: string, serverId: string): Promise<void> {
-	await db.categories.update(localId, {
-		id: serverId,
-		sync_status: 'synced'
-	});
 }
 
 // Template helpers
@@ -192,12 +174,4 @@ export async function setLocalSettings(settings: UserSettings): Promise<void> {
 	await db.settings.put(settings);
 }
 
-// Sync metadata
-export async function getSyncMeta(collection: string): Promise<SyncMeta | undefined> {
-	return db.sync_meta.where('collection').equals(collection).first();
-}
-
-export async function setSyncMeta(meta: SyncMeta): Promise<void> {
-	await db.sync_meta.put(meta);
-}
 

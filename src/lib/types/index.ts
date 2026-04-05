@@ -146,14 +146,6 @@ export interface LocalTemplate extends Omit<Template, 'id' | 'created' | 'update
 	sync_status: 'synced' | 'pending' | 'conflict';
 }
 
-// Sync metadata
-export interface SyncMeta {
-	id: string;
-	collection: string;
-	last_synced: string;
-	cursor?: string;
-}
-
 // Calendar view event (expanded for display)
 export interface DisplayEvent {
 	id: string;
