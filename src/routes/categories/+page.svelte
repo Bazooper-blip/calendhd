@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { categoriesStore } from '$stores';
-	import { Button, Input, Modal, ColorPicker, EmojiPicker } from '$components/ui';
+	import { Button, Input, Modal, ColorPicker } from '$components/ui';
 	import { toast } from '$components/ui/Toast.svelte';
 	import { cn } from '$utils';
 	import type { Category } from '$types';
@@ -14,12 +14,59 @@
 	let name = $state('');
 	let color = $state('#7C9885');
 	let icon = $state('');
+	let emojiSearch = $state('');
+
+	// Emoji data with searchable names
+	const emojiData: [string, string][] = [
+		['🌅','sunrise'],['💊','pill medication'],['🍽️','dinner meal'],['🌙','moon night'],['🧹','broom cleaning'],['🚿','shower'],['💤','sleep'],['💼','briefcase work'],['💻','laptop computer'],['📞','phone call'],['📝','memo notes'],['🎯','target goal'],['📅','calendar date'],['🏥','hospital'],['🦷','tooth dentist'],['🧠','brain therapy'],['🏃','running exercise'],['🧘','yoga meditation'],['☕','coffee'],['🎂','birthday cake'],['🎉','party celebration'],['🎮','gaming'],['🎵','music'],['👥','group people'],['🚗','car driving'],['✈️','airplane travel flight'],['🛒','shopping cart'],['📦','package delivery'],['⚡','lightning energy'],['⭐','star favorite'],
+		['🏠','house home'],['🛏️','bed bedroom'],['🪴','plant'],['🔑','key'],['🧺','laundry basket'],['🪥','toothbrush'],['🚰','water tap'],['🛁','bathtub'],['🧴','lotion'],['🪞','mirror'],['💡','lightbulb idea'],['🔒','lock'],['🏡','house garden'],
+		['📧','email'],['📊','chart analytics'],['📋','clipboard'],['✅','check done'],['📌','pin'],['🗓️','calendar'],['📈','trending up'],['✏️','pencil edit'],['🖊️','pen'],['📎','paperclip'],['🗂️','folder files'],['📁','folder'],['🖥️','desktop monitor'],['⏰','alarm clock time'],['🔔','bell notification'],['📢','megaphone'],['🤝','handshake meeting'],['👔','tie business'],
+		['🩺','stethoscope doctor'],['💉','syringe vaccine'],['❤️','heart love'],['🩹','bandage'],['🌡️','thermometer temperature'],['🧪','test tube lab'],['👁️','eye vision'],['😷','mask sick'],['🤒','fever ill'],['♿','wheelchair accessibility'],
+		['🏋️','gym weights'],['🚴','cycling bike'],['🏊','swimming'],['⚽','soccer football'],['🎾','tennis'],['💪','muscle strength'],['🚶','walking'],['🤸','gymnastics'],['🏄','surfing'],['💧','water drop'],
+		['🍵','tea'],['🥤','drink beverage'],['🍔','burger'],['🍕','pizza'],['🍜','noodles ramen'],['🍳','cooking egg'],['🥐','croissant breakfast'],['🍰','cake dessert'],['🥗','salad healthy'],['🍎','apple fruit'],['🍷','wine'],
+		['🎁','gift present'],['🍽️','restaurant dining'],['💐','flowers bouquet'],['🥂','cheers toast'],['🎊','confetti'],['🎈','balloon'],['🥳','party face'],['💌','love letter'],
+		['🚌','bus'],['🚆','train'],['🏨','hotel'],['🗺️','map'],['🚲','bicycle'],['⛽','gas fuel'],['🧳','luggage suitcase'],['🏖️','beach vacation'],['🌍','earth globe world'],
+		['🌸','cherry blossom flower'],['🌳','tree'],['☀️','sun sunny'],['🌈','rainbow'],['❄️','snowflake cold winter'],['🔥','fire hot'],['🌊','wave ocean'],['⛰️','mountain'],['🌧️','rain'],['🌱','seedling grow'],['🍀','clover luck'],
+		['📷','camera photo'],['🎧','headphones'],['🧩','puzzle'],['🔧','wrench tool'],['⚙️','gear settings'],['🏆','trophy winner'],['🚨','siren urgent alert'],['🔄','refresh sync'],['❌','cross cancel'],
+		['📚','books study'],['🎓','graduation school'],['📖','book reading'],['🗣️','speaking language'],['🎒','backpack'],['🔬','microscope science'],
+		['💰','money'],['💳','credit card payment'],['🏦','bank'],['🧾','receipt bill'],['💵','dollar cash'],
+		['👶','baby'],['🏫','school building'],['🎨','art painting'],['🎭','theater drama'],['🧸','teddy bear toy'],['🧒','child kid'],['👦','boy'],['👧','girl'],['👨‍👩‍👧','family'],['🍼','baby bottle'],
+		['🐕','dog'],['🐱','cat'],['🐾','paw pet'],['🐟','fish'],['🐴','horse'],['🐰','rabbit bunny'],['🐦','bird']
+	];
+
+	const emojiByCategory: { name: string; emojis: [string, string][] }[] = [
+		{ name: 'Suggested', emojis: emojiData.slice(0, 30) },
+		{ name: 'Routine & Home', emojis: emojiData.slice(30, 43) },
+		{ name: 'Work', emojis: emojiData.slice(43, 61) },
+		{ name: 'Health', emojis: emojiData.slice(61, 71) },
+		{ name: 'Fitness', emojis: emojiData.slice(71, 81) },
+		{ name: 'Food', emojis: emojiData.slice(81, 92) },
+		{ name: 'Social', emojis: emojiData.slice(92, 100) },
+		{ name: 'Travel', emojis: emojiData.slice(100, 109) },
+		{ name: 'Nature', emojis: emojiData.slice(109, 120) },
+		{ name: 'Objects', emojis: emojiData.slice(120, 129) },
+		{ name: 'Education', emojis: emojiData.slice(129, 135) },
+		{ name: 'Finance', emojis: emojiData.slice(135, 140) },
+		{ name: 'Kids & Family', emojis: emojiData.slice(140, 150) },
+		{ name: 'Pets', emojis: emojiData.slice(150) }
+	];
+
+	const filteredEmojiCategories = $derived(
+		emojiSearch
+			? (() => {
+				const q = emojiSearch.toLowerCase();
+				const matched = emojiData.filter(([, name]) => name.includes(q));
+				return matched.length > 0 ? [{ name: 'Results', emojis: matched }] : [];
+			})()
+			: emojiByCategory
+	);
 
 	function openCreateModal() {
 		editingCategory = null;
 		name = '';
 		color = categoriesStore.getNextColor();
 		icon = '';
+		emojiSearch = '';
 		showModal = true;
 	}
 
@@ -28,6 +75,7 @@
 		name = category.name;
 		color = category.color;
 		icon = category.icon || '';
+		emojiSearch = '';
 		showModal = true;
 	}
 
@@ -155,7 +203,7 @@
 </div>
 
 <!-- Create/Edit Modal -->
-<Modal bind:open={showModal} title={editingCategory ? $t('category.edit') : $t('category.create')} size="sm">
+<Modal bind:open={showModal} title={editingCategory ? $t('category.edit') : $t('category.create')} size="md">
 	<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4">
 		<div>
 			<label for="name" class="block text-sm font-medium text-neutral-700 mb-1">
@@ -169,18 +217,52 @@
 			/>
 		</div>
 
-		<div class="flex gap-4">
-			<div class="flex-1">
-				<label class="block text-sm font-medium text-neutral-700 mb-2">
-					{$t('event.color')}
-				</label>
-				<ColorPicker bind:value={color} />
-			</div>
-			<div>
-				<label class="block text-sm font-medium text-neutral-700 mb-2">
-					{$t('category.icon') || 'Icon'}
-				</label>
-				<EmojiPicker value={icon} onSelect={(emoji) => icon = emoji} />
+		<div>
+			<label class="block text-sm font-medium text-neutral-700 mb-2">
+				{$t('event.color')}
+			</label>
+			<ColorPicker bind:value={color} />
+		</div>
+
+		<div>
+			<label class="block text-sm font-medium text-neutral-700 mb-2">
+				{$t('category.icon') || 'Icon'}
+				{#if icon}
+					<button type="button" onclick={() => icon = ''} class="ml-2 text-xs text-neutral-400 hover:text-neutral-600">({$t('event.removeIcon')})</button>
+				{/if}
+			</label>
+			{#if icon}
+				<div class="flex items-center gap-2 mb-2">
+					<span class="text-2xl">{icon}</span>
+				</div>
+			{/if}
+			<div class="max-h-60 overflow-y-auto border border-neutral-200 dark:border-neutral-600 rounded-lg p-2">
+				<input
+					type="text"
+					bind:value={emojiSearch}
+					placeholder={$t('common.search')}
+					class="w-full px-3 py-1.5 mb-2 text-sm bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+				/>
+				{#each filteredEmojiCategories as category}
+					<div class="mb-2">
+						<h4 class="text-xs font-semibold text-neutral-500 dark:text-neutral-400 mb-1 px-1">{category.name}</h4>
+						<div class="grid grid-cols-8 gap-1">
+							{#each category.emojis as [emoji, emojiName]}
+								<button
+									type="button"
+									onclick={() => icon = emoji}
+									title={emojiName}
+									class={cn(
+										'w-8 h-8 flex items-center justify-center text-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded transition-colors',
+										icon === emoji ? 'bg-primary-100 ring-2 ring-primary-400' : ''
+									)}
+								>
+									{emoji}
+								</button>
+							{/each}
+						</div>
+					</div>
+				{/each}
 			</div>
 		</div>
 

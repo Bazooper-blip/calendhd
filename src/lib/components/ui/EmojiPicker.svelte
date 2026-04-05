@@ -4,10 +4,11 @@
 	interface Props {
 		value?: string;
 		onSelect?: (emoji: string) => void;
+		direction?: 'down' | 'up';
 		class?: string;
 	}
 
-	let { value = '', onSelect, class: className }: Props = $props();
+	let { value = '', onSelect, direction = 'down', class: className }: Props = $props();
 
 	let isOpen = $state(false);
 	let searchQuery = $state('');
@@ -129,7 +130,10 @@
 
 	<!-- Dropdown -->
 	{#if isOpen}
-		<div class="absolute z-50 mt-2 w-full sm:w-96 bg-white dark:bg-neutral-800 rounded-xl shadow-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden">
+		<div class={cn(
+			'absolute z-50 w-full sm:w-96 bg-white dark:bg-neutral-800 rounded-xl shadow-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden',
+			direction === 'up' ? 'bottom-full mb-2' : 'mt-2'
+		)}>
 			<!-- Search -->
 			<div class="p-2 border-b border-neutral-100 dark:border-neutral-700">
 				<input

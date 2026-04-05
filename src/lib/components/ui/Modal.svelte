@@ -67,7 +67,7 @@
 	>
 		<div
 			class={cn(
-				'w-full bg-white rounded-xl shadow-lg overflow-hidden',
+				'w-full max-h-[90vh] overflow-y-auto bg-white rounded-xl shadow-lg',
 				sizes[size]
 			)}
 			role="dialog"
@@ -90,7 +90,7 @@
 				</div>
 			{/if}
 
-			<div class="px-6 py-4 max-h-[70vh] overflow-y-auto">
+			<div class="px-6 py-4">
 				{@render children?.()}
 			</div>
 
