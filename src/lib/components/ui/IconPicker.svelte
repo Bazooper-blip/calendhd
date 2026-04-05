@@ -25,36 +25,68 @@
 	// Same emoji categories as EmojiPicker
 	const emojiCategories = [
 		{
-			name: 'Common',
-			emojis: ['📅', '📆', '🗓️', '⏰', '🔔', '✅', '❌', '⭐', '💡', '📝', '📌', '🎯', '🏠', '💼', '📧', '📞']
+			name: 'Suggested',
+			emojis: ['🌅', '💊', '🍽️', '🌙', '🧹', '🚿', '💤', '💼', '💻', '📞', '📝', '🎯', '📅', '🏥', '🦷', '🧠', '🏃', '🧘', '☕', '🎂', '🎉', '🎮', '🎵', '👥', '🚗', '✈️', '🛒', '📦', '⚡', '⭐']
 		},
 		{
-			name: 'Activities',
-			emojis: ['🏃', '🚶', '🧘', '💪', '🏋️', '🚴', '🏊', '⚽', '🎾', '🎮', '🎬', '🎵', '📚', '✈️', '🚗', '🛒']
+			name: 'Routine & Home',
+			emojis: ['🏠', '🧹', '🚿', '💤', '🛏️', '🪴', '🔑', '🧺', '🪥', '🚰', '🛁', '🧴', '🪞', '💡', '🔒', '🏡', '🧸', '🕯️', '🧊', '📱']
 		},
 		{
-			name: 'Health',
-			emojis: ['💊', '🏥', '🩺', '🧠', '❤️', '😴', '🥗', '🍎', '💧', '🧘‍♀️', '🦷', '👁️', '💉', '🩹', '🧪', '🌡️']
+			name: 'Work & Productivity',
+			emojis: ['💼', '💻', '📞', '📧', '📝', '📅', '📊', '📋', '✅', '🎯', '📌', '🗓️', '📈', '✏️', '🖊️', '📎', '🗂️', '📁', '🖥️', '⏰', '🔔', '📢', '🤝', '👔']
 		},
 		{
-			name: 'Work',
-			emojis: ['💻', '📊', '📈', '💰', '🏦', '📁', '📋', '✏️', '🖊️', '📎', '🗂️', '💳', '🎓', '👔', '🤝', '📢']
+			name: 'Health & Medical',
+			emojis: ['🏥', '🦷', '🩺', '💊', '💉', '🧠', '❤️', '🩹', '🌡️', '🧪', '👁️', '🩻', '🏨', '🩸', '😷', '🤒', '🧬', '♿', '🩼', '🫀']
 		},
 		{
-			name: 'People',
-			emojis: ['👨‍👩‍👧', '👶', '🧒', '👦', '👧', '🧑', '👨', '👩', '🧓', '👴', '👵', '🐕', '🐈', '🎂', '🎉', '🎁']
+			name: 'Fitness & Wellness',
+			emojis: ['🏃', '🧘', '🏋️', '🚴', '🏊', '⚽', '🎾', '🧘‍♀️', '💪', '🚶', '🤸', '🏄', '🧗', '🏌️', '⛷️', '🏓', '🥊', '🏸', '💧', '🧖']
 		},
 		{
-			name: 'Food',
-			emojis: ['☕', '🍵', '🥤', '🍔', '🍕', '🍜', '🍱', '🥡', '🍳', '🥐', '🍰', '🍪', '🥛', '🍺', '🍷', '🧁']
+			name: 'Food & Drink',
+			emojis: ['☕', '🍵', '🥤', '🍔', '🍕', '🍜', '🍱', '🥡', '🍳', '🥐', '🍰', '🍪', '🥛', '🍺', '🍷', '🧁', '🥗', '🍎', '🍝', '🥘', '🍣', '🌮', '🥪', '🧇']
 		},
 		{
-			name: 'Nature',
-			emojis: ['🌸', '🌺', '🌻', '🌳', '🌴', '🌊', '⛰️', '🌙', '☀️', '🌈', '❄️', '🔥', '💨', '🌍', '🌵', '🍀']
+			name: 'Social & Celebrations',
+			emojis: ['🎂', '🎉', '🎁', '👥', '🤝', '☕', '🍽️', '💐', '🥂', '🎊', '💒', '🎈', '🥳', '🎀', '💌', '🫂', '🤗', '🙋', '👋', '🎆']
 		},
 		{
-			name: 'Objects',
-			emojis: ['🔑', '🔒', '💎', '🎀', '🧸', '🎈', '🎨', '🔧', '🔨', '💡', '🔋', '📷', '🎥', '🎧', '🕹️', '🧩']
+			name: 'Travel & Transport',
+			emojis: ['✈️', '🚗', '🚌', '🚆', '🏨', '🗺️', '🚕', '📦', '🚲', '🛵', '🚢', '🚁', '🛫', '🛬', '⛽', '🅿️', '🚏', '🧳', '🏖️', '🗼', '🎡', '🏕️', '🌍', '🧭']
+		},
+		{
+			name: 'Education',
+			emojis: ['📚', '🎓', '✏️', '📖', '🧪', '🗣️', '🎒', '💡', '📐', '🔬', '🧮', '📓', '🖍️', '🎨', '🌐', '📝']
+		},
+		{
+			name: 'Nature & Weather',
+			emojis: ['🌸', '🌺', '🌻', '🌳', '🌴', '🌊', '⛰️', '🌙', '☀️', '🌈', '❄️', '🔥', '💨', '🌍', '🌵', '🍀', '🌧️', '⛈️', '🌤️', '🌪️', '🌱', '🍂', '🦋', '🌾']
+		},
+		{
+			name: 'Finance',
+			emojis: ['💰', '💳', '🏦', '📊', '🧾', '💵', '💲', '📉', '📈', '🪙', '💎', '🏧', '🤑', '💸', '📒', '🧮']
+		},
+		{
+			name: 'Kids & Family',
+			emojis: ['👶', '🏫', '🎨', '⚽', '🎵', '🎭', '🧸', '🎠', '🎪', '🧒', '👦', '👧', '👨‍👩‍👧', '🍼', '🎮', '📚']
+		},
+		{
+			name: 'Pets',
+			emojis: ['🐕', '🐱', '🐾', '🐟', '🐴', '🐰', '🐦', '🐢', '🦜', '🐹', '🐍', '🦎']
+		},
+		{
+			name: 'Objects & Symbols',
+			emojis: ['🔑', '🔒', '💎', '🎀', '📷', '🎧', '🧩', '🔧', '🔨', '🔋', '🎥', '🕹️', '📻', '⚙️', '🧲', '🔭', '📡', '🪄', '🎲', '🏆', '🚨', '🔄', '❌', '🚫']
+		},
+		{
+			name: 'Flags',
+			emojis: ['🏁', '🚩', '🏳️', '🇺🇸', '🇬🇧', '🇸🇪', '🇩🇪', '🇫🇷', '🇪🇸', '🇮🇹', '🇯🇵', '🇰🇷', '🇨🇳', '🇧🇷', '🇨🇦', '🇦🇺', '🇮🇳', '🇲🇽', '🇳🇴', '🇫🇮']
+		},
+		{
+			name: 'Smileys & Expressions',
+			emojis: ['😊', '😴', '🤔', '😤', '🥳', '🤒', '😎', '😅', '🥰', '😢', '😡', '🤯', '😱', '🫠', '😌', '🙄', '😬', '🤓', '😇', '🥱', '😶', '🫡', '😮', '🤩']
 		}
 	];
 
@@ -62,28 +94,48 @@
 	// Note: 'home' renamed to 'house', 'bar-chart-3' to 'chart-bar' in lucide v0.4+
 	const lucideCategories = [
 		{
+			name: 'Suggested',
+			icons: ['calendar', 'clock', 'bell', 'heart', 'pill', 'brain', 'target', 'zap', 'briefcase', 'house', 'check', 'star', 'coffee', 'car', 'plane', 'book-open', 'dumbbell', 'users', 'shopping-cart', 'mail']
+		},
+		{
 			name: 'Common',
 			icons: ['calendar', 'clock', 'bell', 'check', 'star', 'heart', 'house', 'briefcase', 'mail', 'phone', 'map-pin', 'bookmark', 'flag', 'target', 'zap', 'award']
 		},
 		{
 			name: 'Activities',
-			icons: ['bike', 'dumbbell', 'music', 'gamepad-2', 'film', 'book-open', 'plane', 'car', 'shopping-cart', 'utensils', 'coffee', 'wine', 'palette', 'camera', 'headphones', 'ticket']
+			icons: ['bike', 'dumbbell', 'music', 'gamepad-2', 'film', 'book-open', 'plane', 'car', 'shopping-cart', 'utensils', 'coffee', 'wine', 'palette', 'camera', 'headphones', 'ticket', 'theater', 'clapperboard', 'dice-5', 'tent']
 		},
 		{
 			name: 'Health',
-			icons: ['pill', 'stethoscope', 'brain', 'heart-pulse', 'apple', 'droplets', 'moon', 'sun', 'thermometer', 'eye', 'shield', 'activity', 'salad', 'bed', 'bath', 'leaf']
+			icons: ['pill', 'stethoscope', 'brain', 'heart-pulse', 'apple', 'droplets', 'moon', 'sun', 'thermometer', 'eye', 'shield', 'activity', 'salad', 'bed', 'bath', 'leaf', 'syringe', 'bandage', 'scan', 'accessibility']
 		},
 		{
 			name: 'Work',
-			icons: ['laptop', 'monitor', 'code', 'presentation', 'chart-bar', 'wallet', 'file-text', 'clipboard', 'pen-tool', 'paperclip', 'folder', 'credit-card', 'graduation-cap', 'users', 'handshake', 'megaphone']
+			icons: ['laptop', 'monitor', 'code', 'presentation', 'chart-bar', 'wallet', 'file-text', 'clipboard', 'pen-tool', 'paperclip', 'folder', 'credit-card', 'graduation-cap', 'users', 'handshake', 'megaphone', 'calculator', 'archive', 'inbox', 'printer']
 		},
 		{
 			name: 'People',
-			icons: ['user', 'users', 'baby', 'dog', 'cat', 'cake', 'party-popper', 'gift', 'smile', 'laugh', 'hand-heart', 'crown', 'person-standing', 'accessibility', 'glasses', 'shirt']
+			icons: ['user', 'users', 'baby', 'dog', 'cat', 'cake', 'party-popper', 'gift', 'smile', 'laugh', 'hand-heart', 'crown', 'person-standing', 'glasses', 'shirt', 'flower-2', 'heart-handshake', 'message-circle', 'phone-call', 'video']
 		},
 		{
 			name: 'Travel',
-			icons: ['map', 'compass', 'navigation', 'train-front', 'bus', 'ship', 'rocket', 'globe', 'mountain', 'tent', 'trees', 'umbrella', 'luggage', 'fuel', 'anchor', 'sunrise']
+			icons: ['map', 'compass', 'navigation', 'train-front', 'bus', 'ship', 'rocket', 'globe', 'mountain', 'tent', 'trees', 'umbrella', 'luggage', 'fuel', 'anchor', 'sunrise', 'car-taxi-front', 'parking-meter', 'signpost', 'highway']
+		},
+		{
+			name: 'Weather',
+			icons: ['cloud', 'cloud-rain', 'cloud-snow', 'sun', 'moon', 'snowflake', 'wind', 'rainbow', 'thermometer-sun', 'cloud-lightning', 'cloud-drizzle', 'cloud-fog', 'haze', 'cloudy', 'sun-moon', 'waves']
+		},
+		{
+			name: 'Home & Routine',
+			icons: ['bed', 'bath', 'lamp', 'sofa', 'alarm-clock', 'key', 'lock', 'door-open', 'washing-machine', 'microwave', 'refrigerator', 'cooking-pot', 'shirt', 'spray-can', 'trash-2', 'recycle']
+		},
+		{
+			name: 'Education',
+			icons: ['book-open', 'notebook-pen', 'pencil', 'ruler', 'school', 'library', 'languages', 'microscope', 'atom', 'flask-conical', 'calculator', 'backpack', 'pen', 'highlighter', 'notebook', 'square-pen']
+		},
+		{
+			name: 'Finance',
+			icons: ['wallet', 'receipt', 'piggy-bank', 'banknote', 'coins', 'credit-card', 'landmark', 'trending-up', 'trending-down', 'circle-dollar-sign', 'hand-coins', 'chart-line']
 		}
 	];
 
@@ -202,7 +254,7 @@
 
 	<!-- Dropdown -->
 	{#if isOpen}
-		<div class="absolute z-50 mt-2 w-80 bg-white dark:bg-neutral-800 rounded-xl shadow-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden">
+		<div class="absolute z-50 mt-2 w-full sm:w-96 bg-white dark:bg-neutral-800 rounded-xl shadow-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden">
 			<!-- Tabs -->
 			<div class="flex border-b border-neutral-200 dark:border-neutral-700">
 				<button
@@ -242,16 +294,16 @@
 			</div>
 
 			<!-- Content -->
-			<div class="max-h-64 overflow-y-auto p-2">
+			<div class="max-h-80 overflow-y-auto p-2">
 				{#if activeTab === 'emoji'}
 					<!-- Emoji tab -->
 					{#if filteredEmojis}
-						<div class="grid grid-cols-8 gap-1">
+						<div class="grid grid-cols-6 sm:grid-cols-8 gap-1">
 							{#each filteredEmojis as emoji}
 								<button
 									type="button"
 									onclick={() => selectEmoji(emoji)}
-									class="w-8 h-8 flex items-center justify-center text-xl hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded transition-colors"
+									class="w-10 h-10 flex items-center justify-center text-xl hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded transition-colors"
 								>
 									{emoji}
 								</button>
@@ -264,12 +316,12 @@
 						{#each emojiCategories as category}
 							<div class="mb-3">
 								<h4 class="text-xs font-semibold text-neutral-500 dark:text-neutral-400 mb-1 px-1">{category.name}</h4>
-								<div class="grid grid-cols-8 gap-1">
+								<div class="grid grid-cols-6 sm:grid-cols-8 gap-1">
 									{#each category.emojis as emoji}
 										<button
 											type="button"
 											onclick={() => selectEmoji(emoji)}
-											class="w-8 h-8 flex items-center justify-center text-xl hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded transition-colors"
+											class="w-10 h-10 flex items-center justify-center text-xl hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded transition-colors"
 										>
 											{emoji}
 										</button>
@@ -283,7 +335,7 @@
 					{#if !lucideLoaded}
 						<p class="text-center text-neutral-500 py-4 text-sm">Loading icons...</p>
 					{:else if filteredLucideIcons}
-						<div class="grid grid-cols-8 gap-1">
+						<div class="grid grid-cols-6 sm:grid-cols-8 gap-1">
 							{#each filteredLucideIcons as iconName}
 								{#if lucideComponents[iconName]}
 									{@const IconComp = lucideComponents[iconName]}
@@ -291,7 +343,7 @@
 										type="button"
 										onclick={() => selectLucideIcon(iconName)}
 										title={iconName}
-										class="w-8 h-8 flex items-center justify-center text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded transition-colors"
+										class="w-10 h-10 flex items-center justify-center text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded transition-colors"
 									>
 										<IconComp class="w-4 h-4" />
 									</button>
@@ -305,7 +357,7 @@
 						{#each lucideCategories as category}
 							<div class="mb-3">
 								<h4 class="text-xs font-semibold text-neutral-500 dark:text-neutral-400 mb-1 px-1">{category.name}</h4>
-								<div class="grid grid-cols-8 gap-1">
+								<div class="grid grid-cols-6 sm:grid-cols-8 gap-1">
 									{#each category.icons as iconName}
 										{#if lucideComponents[iconName]}
 											{@const IconComp = lucideComponents[iconName]}
@@ -313,7 +365,7 @@
 												type="button"
 												onclick={() => selectLucideIcon(iconName)}
 												title={iconName}
-												class="w-8 h-8 flex items-center justify-center text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded transition-colors"
+												class="w-10 h-10 flex items-center justify-center text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded transition-colors"
 											>
 												<IconComp class="w-4 h-4" />
 											</button>
