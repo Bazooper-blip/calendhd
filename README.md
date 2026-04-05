@@ -12,7 +12,7 @@ A calm, ADHD-friendly calendar PWA designed for neurodivergent minds.
 - **Recurrence**: Daily, weekly, monthly, and yearly repeating events
 - **Reminders**: Configurable push notification reminders
 - **Calendar Subscriptions**: Subscribe to external iCal/ICS feeds (Google Calendar, Outlook, etc.)
-- **Offline Support**: Works offline with automatic sync
+- **Offline Support**: Local-first with IndexedDB
 - **PWA**: Install on any device, including iOS
 - **Multi-language**: English and Swedish support
 - **Timezone Support**: Full timezone-aware date handling
@@ -23,8 +23,6 @@ A calm, ADHD-friendly calendar PWA designed for neurodivergent minds.
 - **Local Storage**: Dexie.js (IndexedDB)
 - **Backend**: PocketBase
 - **Date Handling**: date-fns + date-fns-tz
-- **ICS Parsing**: ical-expander (with recurring event support)
-- **Forms**: Zod + Superforms
 - **i18n**: svelte-i18n
 
 ## Getting Started
@@ -38,7 +36,7 @@ A calm, ADHD-friendly calendar PWA designed for neurodivergent minds.
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/calendhd.git
+   git clone https://github.com/Bazooper-blip/calendhd.git
    cd calendhd
    ```
 
@@ -104,7 +102,6 @@ calendhd/
 │   │   ├── stores/       # Svelte 5 rune stores
 │   │   ├── db/           # Dexie IndexedDB
 │   │   ├── api/          # PocketBase client
-│   │   ├── ical/         # ICS parser (ical-expander)
 │   │   ├── i18n/         # Internationalization
 │   │   ├── utils/        # Utilities
 │   │   └── types/        # TypeScript types
@@ -112,13 +109,12 @@ calendhd/
 │   └── service-worker.ts # PWA service worker
 │
 ├── pocketbase/
+│   ├── pb_hooks/         # Server hooks (reminders, cleanup, notifications)
 │   └── pb_migrations/    # Database schema
 │
-├── static/
-│   └── manifest.json     # PWA manifest
-│
+├── push-service/         # Web Push notification service
+├── static/               # PWA manifest + icons
 ├── ha-addon/             # Home Assistant Add-on
-│
 └── docker/               # Docker configuration
 ```
 
