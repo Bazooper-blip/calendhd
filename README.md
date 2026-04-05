@@ -30,7 +30,7 @@ A calm, ADHD-friendly calendar PWA designed for neurodivergent minds.
 ### Prerequisites
 
 - Node.js 20+
-- PocketBase 0.25+ (for backend)
+- PocketBase 0.36+ (for backend)
 
 ### Development
 
