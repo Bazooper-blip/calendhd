@@ -1,0 +1,14 @@
+{
+  "name": "calendhd-push-service",
+  "version": "1.0.0",
+  "description": "Web Push notification service for calenDHD",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "generate-vapid": "node generate-vapid.js"
+  },
+  "dependencies": {
+    "web-push": "^3.6.7"
+  }
+}

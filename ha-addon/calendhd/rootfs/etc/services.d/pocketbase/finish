@@ -1,0 +1,13 @@
+#!/usr/bin/with-contenv bashio
+# ==============================================================================
+# calenDHD PocketBase service finish script
+# ==============================================================================
+
+# Exit if the service should be restarted
+if [ "$1" -eq 256 ]; then
+    exit 0
+fi
+
+# Otherwise stop the add-on
+bashio::log.error "PocketBase crashed, stopping add-on..."
+exec /run/s6/basedir/bin/halt

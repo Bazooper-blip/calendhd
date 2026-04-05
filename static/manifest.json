@@ -1,0 +1,102 @@
+{
+	"name": "calenDHD",
+	"short_name": "calenDHD",
+	"description": "A calm, ADHD-friendly calendar for neurodivergent minds",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#fafaf9",
+	"theme_color": "#7C9885",
+	"orientation": "portrait-primary",
+	"scope": "/",
+	"categories": ["productivity", "utilities"],
+	"icons": [
+		{
+			"src": "/icons/icon-72.png",
+			"sizes": "72x72",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "/icons/icon-96.png",
+			"sizes": "96x96",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "/icons/icon-128.png",
+			"sizes": "128x128",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "/icons/icon-144.png",
+			"sizes": "144x144",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "/icons/icon-152.png",
+			"sizes": "152x152",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "/icons/icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "/icons/icon-384.png",
+			"sizes": "384x384",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "/icons/icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "/icons/maskable-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		}
+	],
+	"screenshots": [
+		{
+			"src": "/screenshots/week-view.png",
+			"sizes": "1280x720",
+			"type": "image/png",
+			"form_factor": "wide",
+			"label": "Week view of calenDHD calendar"
+		},
+		{
+			"src": "/screenshots/day-view-mobile.png",
+			"sizes": "390x844",
+			"type": "image/png",
+			"form_factor": "narrow",
+			"label": "Day view on mobile"
+		}
+	],
+	"shortcuts": [
+		{
+			"name": "New Event",
+			"short_name": "Add",
+			"description": "Create a new calendar event",
+			"url": "/event/new",
+			"icons": [{ "src": "/icons/shortcut-add.png", "sizes": "96x96" }]
+		},
+		{
+			"name": "Today",
+			"short_name": "Today",
+			"description": "View today's schedule",
+			"url": "/calendar/day",
+			"icons": [{ "src": "/icons/shortcut-today.png", "sizes": "96x96" }]
+		}
+	],
+	"prefer_related_applications": false,
+	"related_applications": []
+}

@@ -1,0 +1,13 @@
+configuration:
+  log_level:
+    name: Log Level
+    description: The log level for the add-on. Set to debug for troubleshooting.
+  vapid_public_key:
+    name: VAPID Public Key
+    description: The public key for Web Push (VAPID). Generate a key pair with `npx web-push generate-vapid-keys`.
+  vapid_private_key:
+    name: VAPID Private Key
+    description: The private key for Web Push (VAPID). Keep this secret.
+  vapid_email:
+    name: VAPID Email
+    description: Contact email for the push service (e.g. mailto:you@example.com). Required by the Web Push protocol.

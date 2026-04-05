@@ -1,0 +1,20 @@
+PLACEHOLDER: Create a 256x256 PNG icon for the add-on
+
+Suggested design:
+- Background: Rounded square with #7C9885 (sage green)
+- Icon: White calendar symbol
+- Style: Simple, clean, matches Home Assistant aesthetic
+
+You can create this using:
+1. Any image editor (Figma, Photoshop, GIMP)
+2. Online tools like Canva
+3. Use the SVG below and convert to PNG
+
+SVG source for the icon:
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <rect width="256" height="256" rx="48" fill="#7C9885"/>
+  <path d="M64 96h128M64 136h128M64 176h128M80 56v24M176 56v24M56 80h144a16 16 0 0116 16v104a16 16 0 01-16 16H56a16 16 0 01-16-16V96a16 16 0 0116-16z"
+        fill="none" stroke="white" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+
+Save as: icon.png (256x256 pixels)

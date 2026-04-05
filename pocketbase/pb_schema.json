@@ -1,0 +1,694 @@
+[
+  {
+    "id": "calendhd_categories",
+    "name": "categories",
+    "type": "base",
+    "system": false,
+    "fields": [
+      {
+        "id": "cat_user",
+        "name": "user",
+        "type": "relation",
+        "required": true,
+        "options": {
+          "collectionId": "_pb_users_auth_",
+          "cascadeDelete": true,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "id": "cat_name",
+        "name": "name",
+        "type": "text",
+        "required": true,
+        "options": {
+          "min": 1,
+          "max": 100
+        }
+      },
+      {
+        "id": "cat_color",
+        "name": "color",
+        "type": "text",
+        "required": true,
+        "options": {
+          "min": 4,
+          "max": 9,
+          "pattern": "^#[0-9A-Fa-f]{3,8}$"
+        }
+      },
+      {
+        "id": "cat_icon",
+        "name": "icon",
+        "type": "text",
+        "required": false,
+        "options": {
+          "max": 50
+        }
+      },
+      {
+        "id": "cat_sort",
+        "name": "sort_order",
+        "type": "number",
+        "required": true,
+        "options": {
+          "min": 0
+        }
+      }
+    ],
+    "listRule": "@request.auth.id = user",
+    "viewRule": "@request.auth.id = user",
+    "createRule": "@request.auth.id != \"\"",
+    "updateRule": "@request.auth.id = user",
+    "deleteRule": "@request.auth.id = user"
+  },
+  {
+    "id": "calendhd_templates",
+    "name": "templates",
+    "type": "base",
+    "system": false,
+    "fields": [
+      {
+        "id": "tpl_user",
+        "name": "user",
+        "type": "relation",
+        "required": true,
+        "options": {
+          "collectionId": "_pb_users_auth_",
+          "cascadeDelete": true,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "id": "tpl_name",
+        "name": "name",
+        "type": "text",
+        "required": true,
+        "options": {
+          "min": 1,
+          "max": 200
+        }
+      },
+      {
+        "id": "tpl_category",
+        "name": "category",
+        "type": "relation",
+        "required": false,
+        "options": {
+          "collectionId": "calendhd_categories",
+          "cascadeDelete": false,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "id": "tpl_duration",
+        "name": "default_duration_minutes",
+        "type": "number",
+        "required": true,
+        "options": {
+          "min": 0,
+          "max": 10080
+        }
+      },
+      {
+        "id": "tpl_allday",
+        "name": "default_is_all_day",
+        "type": "bool",
+        "required": false,
+        "options": {}
+      },
+      {
+        "id": "tpl_reminders",
+        "name": "default_reminders",
+        "type": "json",
+        "required": false,
+        "options": {}
+      },
+      {
+        "id": "tpl_desc",
+        "name": "description",
+        "type": "text",
+        "required": false,
+        "options": {
+          "max": 5000
+        }
+      },
+      {
+        "id": "tpl_image",
+        "name": "image",
+        "type": "file",
+        "required": false,
+        "options": {
+          "maxSelect": 1,
+          "maxSize": 5242880,
+          "mimeTypes": ["image/jpeg", "image/png", "image/webp"]
+        }
+      },
+      {
+        "id": "tpl_color",
+        "name": "color_override",
+        "type": "text",
+        "required": false,
+        "options": {
+          "max": 9,
+          "pattern": "^#[0-9A-Fa-f]{3,8}$"
+        }
+      }
+    ],
+    "listRule": "@request.auth.id = user",
+    "viewRule": "@request.auth.id = user",
+    "createRule": "@request.auth.id != \"\"",
+    "updateRule": "@request.auth.id = user",
+    "deleteRule": "@request.auth.id = user"
+  },
+  {
+    "id": "calendhd_events",
+    "name": "events",
+    "type": "base",
+    "system": false,
+    "fields": [
+      {
+        "id": "evt_user",
+        "name": "user",
+        "type": "relation",
+        "required": true,
+        "options": {
+          "collectionId": "_pb_users_auth_",
+          "cascadeDelete": true,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "id": "evt_template",
+        "name": "template",
+        "type": "relation",
+        "required": false,
+        "options": {
+          "collectionId": "calendhd_templates",
+          "cascadeDelete": false,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "id": "evt_category",
+        "name": "category",
+        "type": "relation",
+        "required": false,
+        "options": {
+          "collectionId": "calendhd_categories",
+          "cascadeDelete": false,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "id": "evt_title",
+        "name": "title",
+        "type": "text",
+        "required": true,
+        "options": {
+          "min": 1,
+          "max": 500
+        }
+      },
+      {
+        "id": "evt_desc",
+        "name": "description",
+        "type": "text",
+        "required": false,
+        "options": {
+          "max": 10000
+        }
+      },
+      {
+        "id": "evt_start",
+        "name": "start_time",
+        "type": "date",
+        "required": true,
+        "options": {}
+      },
+      {
+        "id": "evt_end",
+        "name": "end_time",
+        "type": "date",
+        "required": false,
+        "options": {}
+      },
+      {
+        "id": "evt_allday",
+        "name": "is_all_day",
+        "type": "bool",
+        "required": false,
+        "options": {}
+      },
+      {
+        "id": "evt_image",
+        "name": "image",
+        "type": "file",
+        "required": false,
+        "options": {
+          "maxSelect": 1,
+          "maxSize": 5242880,
+          "mimeTypes": ["image/jpeg", "image/png", "image/webp"]
+        }
+      },
+      {
+        "id": "evt_color",
+        "name": "color_override",
+        "type": "text",
+        "required": false,
+        "options": {
+          "max": 9,
+          "pattern": "^#[0-9A-Fa-f]{3,8}$"
+        }
+      },
+      {
+        "id": "evt_recurrence",
+        "name": "recurrence_rule",
+        "type": "json",
+        "required": false,
+        "options": {}
+      },
+      {
+        "id": "evt_parent",
+        "name": "recurrence_parent",
+        "type": "relation",
+        "required": false,
+        "options": {
+          "collectionId": "calendhd_events",
+          "cascadeDelete": true,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "id": "evt_reminders",
+        "name": "reminders",
+        "type": "json",
+        "required": false,
+        "options": {}
+      },
+      {
+        "id": "evt_completed",
+        "name": "completed_at",
+        "type": "date",
+        "required": false,
+        "options": {}
+      },
+      {
+        "id": "evt_localid",
+        "name": "local_id",
+        "type": "text",
+        "required": false,
+        "options": {
+          "max": 100
+        }
+      },
+      {
+        "id": "evt_synced",
+        "name": "last_synced",
+        "type": "date",
+        "required": false,
+        "options": {}
+      }
+    ],
+    "listRule": "@request.auth.id = user",
+    "viewRule": "@request.auth.id = user",
+    "createRule": "@request.auth.id != \"\"",
+    "updateRule": "@request.auth.id = user",
+    "deleteRule": "@request.auth.id = user"
+  },
+  {
+    "id": "calendhd_subscriptions",
+    "name": "calendar_subscriptions",
+    "type": "base",
+    "system": false,
+    "fields": [
+      {
+        "id": "sub_user",
+        "name": "user",
+        "type": "relation",
+        "required": true,
+        "options": {
+          "collectionId": "_pb_users_auth_",
+          "cascadeDelete": true,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "id": "sub_name",
+        "name": "name",
+        "type": "text",
+        "required": true,
+        "options": {
+          "min": 1,
+          "max": 200
+        }
+      },
+      {
+        "id": "sub_url",
+        "name": "url",
+        "type": "url",
+        "required": true,
+        "options": {}
+      },
+      {
+        "id": "sub_color",
+        "name": "color_override",
+        "type": "text",
+        "required": false,
+        "options": {
+          "max": 9,
+          "pattern": "^#[0-9A-Fa-f]{3,8}$"
+        }
+      },
+      {
+        "id": "sub_refresh",
+        "name": "refresh_interval_minutes",
+        "type": "number",
+        "required": true,
+        "options": {
+          "min": 15,
+          "max": 10080
+        }
+      },
+      {
+        "id": "sub_lastref",
+        "name": "last_refreshed",
+        "type": "date",
+        "required": false,
+        "options": {}
+      },
+      {
+        "id": "sub_active",
+        "name": "is_active",
+        "type": "bool",
+        "required": false,
+        "options": {}
+      },
+      {
+        "id": "sub_error",
+        "name": "error_message",
+        "type": "text",
+        "required": false,
+        "options": {
+          "max": 1000
+        }
+      }
+    ],
+    "listRule": "@request.auth.id = user",
+    "viewRule": "@request.auth.id = user",
+    "createRule": "@request.auth.id != \"\"",
+    "updateRule": "@request.auth.id = user",
+    "deleteRule": "@request.auth.id = user"
+  },
+  {
+    "id": "calendhd_ext_events",
+    "name": "external_events",
+    "type": "base",
+    "system": false,
+    "fields": [
+      {
+        "id": "ext_user",
+        "name": "user",
+        "type": "relation",
+        "required": true,
+        "options": {
+          "collectionId": "_pb_users_auth_",
+          "cascadeDelete": true,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "id": "ext_sub",
+        "name": "subscription",
+        "type": "relation",
+        "required": true,
+        "options": {
+          "collectionId": "calendhd_subscriptions",
+          "cascadeDelete": true,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "id": "ext_uid",
+        "name": "uid",
+        "type": "text",
+        "required": true,
+        "options": {
+          "max": 500
+        }
+      },
+      {
+        "id": "ext_title",
+        "name": "title",
+        "type": "text",
+        "required": true,
+        "options": {
+          "max": 500
+        }
+      },
+      {
+        "id": "ext_desc",
+        "name": "description",
+        "type": "text",
+        "required": false,
+        "options": {
+          "max": 10000
+        }
+      },
+      {
+        "id": "ext_start",
+        "name": "start_time",
+        "type": "date",
+        "required": true,
+        "options": {}
+      },
+      {
+        "id": "ext_end",
+        "name": "end_time",
+        "type": "date",
+        "required": false,
+        "options": {}
+      },
+      {
+        "id": "ext_allday",
+        "name": "is_all_day",
+        "type": "bool",
+        "required": false,
+        "options": {}
+      },
+      {
+        "id": "ext_location",
+        "name": "location",
+        "type": "text",
+        "required": false,
+        "options": {
+          "max": 500
+        }
+      },
+      {
+        "id": "ext_recurrence",
+        "name": "recurrence_rule",
+        "type": "json",
+        "required": false,
+        "options": {}
+      },
+      {
+        "id": "ext_raw",
+        "name": "raw_ics",
+        "type": "text",
+        "required": false,
+        "options": {}
+      }
+    ],
+    "listRule": "@request.auth.id = user",
+    "viewRule": "@request.auth.id = user",
+    "createRule": "@request.auth.id != \"\"",
+    "updateRule": "@request.auth.id = user",
+    "deleteRule": "@request.auth.id = user"
+  },
+  {
+    "id": "calendhd_settings",
+    "name": "user_settings",
+    "type": "base",
+    "system": false,
+    "fields": [
+      {
+        "id": "set_user",
+        "name": "user",
+        "type": "relation",
+        "required": true,
+        "options": {
+          "collectionId": "_pb_users_auth_",
+          "cascadeDelete": true,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "id": "set_view",
+        "name": "default_view",
+        "type": "select",
+        "required": true,
+        "options": {
+          "values": ["day", "week", "month"]
+        }
+      },
+      {
+        "id": "set_weekstart",
+        "name": "week_starts_on",
+        "type": "number",
+        "required": true,
+        "options": {
+          "min": 0,
+          "max": 6
+        }
+      },
+      {
+        "id": "set_timeformat",
+        "name": "time_format",
+        "type": "select",
+        "required": true,
+        "options": {
+          "values": ["12h", "24h"]
+        }
+      },
+      {
+        "id": "set_theme",
+        "name": "theme",
+        "type": "select",
+        "required": true,
+        "options": {
+          "values": ["light", "dark", "system"]
+        }
+      },
+      {
+        "id": "set_palette",
+        "name": "color_palette",
+        "type": "select",
+        "required": true,
+        "options": {
+          "values": ["default", "muted", "vibrant"]
+        }
+      },
+      {
+        "id": "set_reminders",
+        "name": "default_reminders",
+        "type": "json",
+        "required": false,
+        "options": {}
+      },
+      {
+        "id": "set_sound",
+        "name": "notification_sound",
+        "type": "bool",
+        "required": false,
+        "options": {}
+      },
+      {
+        "id": "set_anim",
+        "name": "reduce_animations",
+        "type": "bool",
+        "required": false,
+        "options": {}
+      },
+      {
+        "id": "set_contrast",
+        "name": "high_contrast",
+        "type": "bool",
+        "required": false,
+        "options": {}
+      },
+      {
+        "id": "set_tz",
+        "name": "timezone",
+        "type": "text",
+        "required": true,
+        "options": {
+          "max": 100
+        }
+      },
+      {
+        "id": "set_push",
+        "name": "push_subscription",
+        "type": "json",
+        "required": false,
+        "options": {}
+      }
+    ],
+    "listRule": "@request.auth.id = user",
+    "viewRule": "@request.auth.id = user",
+    "createRule": "@request.auth.id != \"\"",
+    "updateRule": "@request.auth.id = user",
+    "deleteRule": "@request.auth.id = user"
+  },
+  {
+    "id": "calendhd_reminders",
+    "name": "scheduled_reminders",
+    "type": "base",
+    "system": false,
+    "fields": [
+      {
+        "id": "rem_user",
+        "name": "user",
+        "type": "relation",
+        "required": true,
+        "options": {
+          "collectionId": "_pb_users_auth_",
+          "cascadeDelete": true,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "id": "rem_event",
+        "name": "event",
+        "type": "relation",
+        "required": true,
+        "options": {
+          "collectionId": "calendhd_events",
+          "cascadeDelete": true,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "id": "rem_scheduled",
+        "name": "scheduled_for",
+        "type": "date",
+        "required": true,
+        "options": {}
+      },
+      {
+        "id": "rem_type",
+        "name": "reminder_type",
+        "type": "select",
+        "required": true,
+        "options": {
+          "values": ["notification", "email"]
+        }
+      },
+      {
+        "id": "rem_sent",
+        "name": "sent_at",
+        "type": "date",
+        "required": false,
+        "options": {}
+      }
+    ],
+    "listRule": "@request.auth.id = user",
+    "viewRule": "@request.auth.id = user",
+    "createRule": "@request.auth.id != \"\"",
+    "updateRule": "@request.auth.id = user",
+    "deleteRule": "@request.auth.id = user"
+  }
+]

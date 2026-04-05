@@ -1,0 +1,63 @@
+# Dependencies
+node_modules
+
+# Build output
+.svelte-kit
+build
+dist
+ha-deploy
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# PocketBase
+pocketbase/pb_data
+pocketbase/pocketbase
+pocketbase/pocketbase.exe
+pocketbase/pocketbase.exe.old
+pocketbase/*.db
+pocketbase/*.db-shm
+pocketbase/*.db-wal
+
+# Test
+coverage
+test-results
+playwright-report
+.playwright
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Project-specific temporary files
+instruction-for-calendar-app.txt
+language.txt
+overlap.png
+
+# Docker
+docker/data
+docker/.env
+
+# Claude Code
+.claude/

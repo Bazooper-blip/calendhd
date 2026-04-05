@@ -1,0 +1,34 @@
+name: calenDHD
+version: "1.0.0"
+slug: calendhd
+description: "A calm, ADHD-friendly calendar PWA with offline support"
+url: "https://github.com/USERNAME/calendhd"
+arch:
+  - aarch64
+  - amd64
+  - armv7
+init: false
+startup: services
+boot: auto
+ingress: true
+ingress_port: 8090
+ingress_stream: false
+panel_icon: mdi:calendar-heart
+panel_title: calenDHD
+ports:
+  8090/tcp: 8090
+ports_description:
+  8090/tcp: "calenDHD Web UI & API"
+map:
+  - config:rw
+webui: http://[HOST]:[PORT:8090]
+options:
+  log_level: info
+  vapid_public_key: ""
+  vapid_private_key: ""
+  vapid_email: "mailto:admin@calendhd.local"
+schema:
+  log_level: list(trace|debug|info|warn|error)
+  vapid_public_key: str
+  vapid_private_key: password
+  vapid_email: str

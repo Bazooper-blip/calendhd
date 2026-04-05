@@ -1,0 +1,64 @@
+{
+  "name": "calendhd",
+  "version": "1.0.0",
+  "description": "A calm, ADHD-friendly calendar PWA for neurodivergent minds",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "author": "",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "keywords": [
+    "calendar",
+    "pwa",
+    "adhd",
+    "neurodivergent",
+    "svelte",
+    "sveltekit",
+    "pocketbase"
+  ],
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+    "test": "vitest",
+    "test:e2e": "playwright test",
+    "lint": "svelte-check --tsconfig ./tsconfig.json"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.45.0",
+    "@sveltejs/adapter-auto": "^7.0.0",
+    "@sveltejs/adapter-static": "^3.0.0",
+    "@sveltejs/kit": "^2.0.0",
+    "@sveltejs/vite-plugin-svelte": "^5.0.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/node": "^25.5.0",
+    "@vite-pwa/sveltekit": "^1.1.0",
+    "svelte": "^5.0.0",
+    "svelte-check": "^4.0.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^6.0.0",
+    "vitest": "^4.1.0",
+    "workbox-window": "^7.4.0"
+  },
+  "dependencies": {
+    "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
+    "dexie": "^4.0.0",
+    "ical-expander": "^3.2.0",
+    "lucide-svelte": "^0.577.0",
+    "pocketbase": "^0.26.8",
+    "svelte-i18n": "^4.0.1",
+    "svelte-sonner": "^1.0.7",
+    "sveltekit-superforms": "^2.29.1",
+    "zod": "^4.3.6"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
