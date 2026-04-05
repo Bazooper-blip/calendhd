@@ -146,6 +146,15 @@
 			toast.error($_('errors.saveSettings'));
 		}
 	}
+
+	const accentPalettes = [
+		{ value: 'sage', color: '#5f8069' },
+		{ value: 'ocean', color: '#5b85a6' },
+		{ value: 'lavender', color: '#8b7bab' },
+		{ value: 'rose', color: '#b07a8a' },
+		{ value: 'amber', color: '#a68b5b' },
+		{ value: 'teal', color: '#5b9e96' }
+	] as const;
 </script>
 
 <div class="h-full overflow-y-auto">
@@ -180,6 +189,38 @@
 							value={settingsStore.locale}
 							onchange={(e) => handleChange('locale', (e.target as HTMLSelectElement).value)}
 						/>
+					</div>
+
+					<div>
+						<span class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+							{$_('settings.accentColor')}
+						</span>
+						<div class="flex flex-wrap gap-3">
+							{#each accentPalettes as palette}
+								<button
+									type="button"
+									onclick={() => handleChange('color_palette', palette.value)}
+									aria-label={$_(`settings.accent${palette.value.charAt(0).toUpperCase() + palette.value.slice(1)}`)}
+									class="group flex flex-col items-center gap-1.5"
+								>
+									<div
+										class="w-10 h-10 rounded-full flex items-center justify-center transition-all {settingsStore.colorPalette === palette.value
+											? 'ring-2 ring-offset-2 ring-offset-white dark:ring-offset-neutral-800 ring-primary-500 scale-110'
+											: 'hover:scale-105'}"
+										style:background-color={palette.color}
+									>
+										{#if settingsStore.colorPalette === palette.value}
+											<svg class="w-5 h-5 text-white drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+												<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+											</svg>
+										{/if}
+									</div>
+									<span class="text-xs text-neutral-500 dark:text-neutral-400 group-hover:text-neutral-700 dark:group-hover:text-neutral-200 transition-colors">
+										{$_(`settings.accent${palette.value.charAt(0).toUpperCase() + palette.value.slice(1)}`)}
+									</span>
+								</button>
+							{/each}
+						</div>
 					</div>
 				</div>
 			</section>

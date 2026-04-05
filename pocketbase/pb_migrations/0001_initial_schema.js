@@ -86,7 +86,7 @@ migrate((app) => {
       { type: "text", name: "locale", required: false, max: 10, min: 2,
         pattern: "^[a-z]{2}(-[A-Z]{2})?$" },
       { type: "select", name: "color_palette", required: false,
-        values: ["default", "muted", "vibrant"], maxSelect: 1 },
+        values: ["sage", "ocean", "lavender", "rose", "amber", "teal"], maxSelect: 1 },
       { type: "json", name: "default_reminders", required: false },
       { type: "bool", name: "notification_sound", required: false },
       { type: "bool", name: "reduce_animations", required: false },

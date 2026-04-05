@@ -293,7 +293,7 @@ export function getDefaultSettings(): Omit<UserSettings, 'id' | 'created' | 'upd
 		time_format: '12h',
 		theme: 'system',
 		locale: 'en',
-		color_palette: 'default',
+		color_palette: 'sage',
 		default_reminders: [{ minutes_before: 10, type: 'notification' }],
 		notification_sound: true,
 		reduce_animations: false,

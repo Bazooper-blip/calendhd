@@ -107,7 +107,7 @@ export interface UserSettings extends BaseRecord {
 	time_format: '12h' | '24h';
 	theme: 'light' | 'dark' | 'system';
 	locale: string; // e.g., 'en', 'sv'
-	color_palette: 'default' | 'muted' | 'vibrant';
+	color_palette: 'sage' | 'ocean' | 'lavender' | 'rose' | 'amber' | 'teal';
 	default_reminders: ReminderConfig[];
 	notification_sound: boolean;
 	reduce_animations: boolean;

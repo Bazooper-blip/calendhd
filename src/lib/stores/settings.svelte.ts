@@ -49,6 +49,13 @@ function createSettingsStore() {
 		get highContrast() {
 			return settings?.high_contrast ?? defaults.high_contrast;
 		},
+		get colorPalette(): 'sage' | 'ocean' | 'lavender' | 'rose' | 'amber' | 'teal' {
+			const val = settings?.color_palette;
+			if (val === 'sage' || val === 'ocean' || val === 'lavender' || val === 'rose' || val === 'amber' || val === 'teal') {
+				return val;
+			}
+			return 'sage';
+		},
 		get timezone() {
 			return settings?.timezone ?? defaults.timezone;
 		},

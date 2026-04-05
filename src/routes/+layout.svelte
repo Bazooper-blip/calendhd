@@ -68,6 +68,13 @@
 			} else {
 				html.classList.remove('high-contrast');
 			}
+
+			// Accent color
+			const accents = ['accent-sage', 'accent-ocean', 'accent-lavender', 'accent-rose', 'accent-amber', 'accent-teal'];
+			html.classList.remove(...accents);
+			if (settingsStore.colorPalette !== 'sage') {
+				html.classList.add(`accent-${settingsStore.colorPalette}`);
+			}
 		}
 	});
 

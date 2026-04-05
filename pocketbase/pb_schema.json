@@ -619,7 +619,7 @@
         "type": "select",
         "required": false,
         "options": {
-          "values": ["default", "muted", "vibrant"]
+          "values": ["sage", "ocean", "lavender", "rose", "amber", "teal"]
         }
       },
       {
