@@ -52,10 +52,10 @@
 		label: r.label
 	}));
 
-	const recurrenceOptions = RECURRENCE_PRESETS.map((r, i) => ({
+	const recurrenceOptions = $derived(RECURRENCE_PRESETS.map((r, i) => ({
 		value: i.toString(),
-		label: r.label
-	}));
+		label: $t(r.i18nKey)
+	})));
 
 	// Apply template
 	function applyTemplate(templateId: string) {

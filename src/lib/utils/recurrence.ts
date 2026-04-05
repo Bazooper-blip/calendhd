@@ -38,13 +38,13 @@ export function formatRecurrenceRule(rule: RecurrenceRule): string {
 	}
 }
 
-// Recurrence presets for UI
-export const RECURRENCE_PRESETS: { value: RecurrenceRule | null; label: string }[] = [
-	{ value: null, label: 'Does not repeat' },
-	{ value: { frequency: 'daily' }, label: 'Daily' },
-	{ value: { frequency: 'every_other_day' }, label: 'Every other day' },
-	{ value: { frequency: 'weekly' }, label: 'Weekly' },
-	{ value: { frequency: 'biweekly' }, label: 'Every 2 weeks' },
-	{ value: { frequency: 'monthly' }, label: 'Monthly' },
-	{ value: { frequency: 'yearly' }, label: 'Yearly' }
+// Recurrence presets for UI (i18n keys under "recurrence.*")
+export const RECURRENCE_PRESETS: { value: RecurrenceRule | null; i18nKey: string }[] = [
+	{ value: null, i18nKey: 'recurrence.none' },
+	{ value: { frequency: 'daily' }, i18nKey: 'recurrence.daily' },
+	{ value: { frequency: 'every_other_day' }, i18nKey: 'recurrence.everyOtherDay' },
+	{ value: { frequency: 'weekly' }, i18nKey: 'recurrence.weekly' },
+	{ value: { frequency: 'biweekly' }, i18nKey: 'recurrence.biweekly' },
+	{ value: { frequency: 'monthly' }, i18nKey: 'recurrence.monthly' },
+	{ value: { frequency: 'yearly' }, i18nKey: 'recurrence.yearly' }
 ];
