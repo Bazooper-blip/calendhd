@@ -71,17 +71,24 @@ Organized into 11 categories:
 
 ### UI Changes
 
+**Responsive Picker Sizing:**
+- Desktop (>=640px): 384px wide (w-96), max-height-80 (320px scroll area), 8-column grid
+- Mobile (<640px): full parent width, max-height-80, 6-column grid for larger tap targets
+- Icon/emoji buttons: 40x40px (up from ~32px) for better touch targets
+- Meets WCAG 2.5.8 target size recommendation with gap included
+
 **IconPicker.svelte:**
 - "Suggested" category appears first in both emoji and icon tabs
 - All existing categories retained, new categories added below
-- Grid layout stays at 8 columns
-- Picker width stays at 320px (w-80)
+- Responsive grid: 8 columns desktop, 6 columns mobile
+- Picker width: w-96 desktop, full-width mobile
+- Scroll area: max-h-80 (320px, up from 256px)
 - Search works across the full expanded set
 - Lazy loading of Lucide icons preserved (tab activation)
 
 **EmojiPicker.svelte:**
-- Same expansion applied — "Suggested" first, then full categories
-- Grid layout and sizing unchanged
+- Same expansion and responsive sizing applied
+- "Suggested" first, then full categories
 
 **EventIcon.svelte:**
 - No changes needed — rendering logic handles any emoji or `lucide:name` string
