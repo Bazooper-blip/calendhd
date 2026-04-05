@@ -125,17 +125,6 @@ export interface PushSubscriptionData {
 	};
 }
 
-// Scheduled reminder (for backend processing)
-export interface ScheduledReminder extends BaseRecord {
-	user: string;
-	event: string;
-	scheduled_for: string;
-	reminder_type: 'notification' | 'email';
-	sent_at?: string;
-	delivery_method?: 'web_push';
-	error_message?: string;
-}
-
 // Local-only types for Dexie/IndexedDB
 
 export interface LocalEvent extends Omit<CalendarEvent, 'id' | 'created' | 'updated'> {
@@ -182,13 +171,6 @@ export interface DisplayEvent {
 	original_event: CalendarEvent | ExternalEvent;
 }
 
-// Time block for day/week view
-export interface TimeBlock {
-	start: Date;
-	end: Date;
-	events: DisplayEvent[];
-}
-
 // Form data types
 export interface EventFormData {
 	title: string;
@@ -207,42 +189,3 @@ export interface EventFormData {
 	recurrence_rule?: RecurrenceRule;
 }
 
-export interface CategoryFormData {
-	name: string;
-	color: string;
-	icon?: string;
-}
-
-export interface TemplateFormData {
-	name: string;
-	category?: string;
-	default_duration_minutes: number;
-	default_is_all_day: boolean;
-	default_reminders: ReminderConfig[];
-	description?: string;
-	color_override?: string;
-	icon?: string;
-}
-
-export interface SubscriptionFormData {
-	name: string;
-	url: string;
-	color_override?: string;
-	refresh_interval_minutes: number;
-}
-
-// API response types
-export interface PaginatedResponse<T> {
-	page: number;
-	perPage: number;
-	totalItems: number;
-	totalPages: number;
-	items: T[];
-}
-
-// Error types
-export interface ApiError {
-	code: number;
-	message: string;
-	data?: Record<string, unknown>;
-}

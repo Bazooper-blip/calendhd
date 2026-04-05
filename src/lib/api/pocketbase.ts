@@ -6,8 +6,7 @@ import type {
 	CalendarEvent,
 	CalendarSubscription,
 	ExternalEvent,
-	UserSettings,
-	ScheduledReminder
+	UserSettings
 } from '$types';
 
 // PocketBase client singleton
@@ -28,7 +27,7 @@ export function getPocketBase(): PocketBase {
 }
 
 // Type-safe collection helpers
-export const collections = {
+const collections = {
 	users: () => getPocketBase().collection('users'),
 	categories: () => getPocketBase().collection('categories'),
 	templates: () => getPocketBase().collection('templates'),
@@ -61,18 +60,10 @@ export async function signUpWithEmail(
 	return user as unknown as User;
 }
 
-export function signOut(): void {
-	getPocketBase().authStore.clear();
-}
-
 export function getCurrentUser(): User | null {
 	const pb = getPocketBase();
 	if (!pb.authStore.isValid) return null;
 	return pb.authStore.record as unknown as User;
-}
-
-export function isAuthenticated(): boolean {
-	return getPocketBase().authStore.isValid;
 }
 
 export function getAuthToken(): string | null {

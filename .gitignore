@@ -50,11 +50,6 @@ yarn-error.log*
 *.temp
 *.bak
 
-# Project-specific temporary files
-instruction-for-calendar-app.txt
-language.txt
-overlap.png
-
 # Docker
 docker/data
 docker/.env

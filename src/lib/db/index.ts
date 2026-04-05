@@ -58,10 +58,6 @@ export async function getLocalEvent(localId: string): Promise<LocalEvent | undef
 	return db.events.get(localId);
 }
 
-export async function getLocalEventById(serverId: string): Promise<LocalEvent | undefined> {
-	return db.events.where('id').equals(serverId).first();
-}
-
 export async function createLocalEvent(event: Omit<LocalEvent, 'local_id' | 'sync_status'>): Promise<LocalEvent> {
 	const localEvent: LocalEvent = {
 		...event,
@@ -187,19 +183,6 @@ export async function getLocalExternalEvents(
 		.toArray();
 }
 
-export async function clearExternalEventsForSubscription(subscriptionId: string): Promise<void> {
-	await db.external_events.where('subscription').equals(subscriptionId).delete();
-}
-
-// Subscriptions
-export async function setSubscriptions(subscriptions: CalendarSubscription[]): Promise<void> {
-	await db.subscriptions.bulkPut(subscriptions);
-}
-
-export async function getLocalSubscriptions(userId: string): Promise<CalendarSubscription[]> {
-	return db.subscriptions.where('user').equals(userId).toArray();
-}
-
 // Settings
 export async function getLocalSettings(userId: string): Promise<UserSettings | undefined> {
 	return db.settings.where('user').equals(userId).first();
@@ -218,15 +201,3 @@ export async function setSyncMeta(meta: SyncMeta): Promise<void> {
 	await db.sync_meta.put(meta);
 }
 
-// Clear all local data (for logout)
-export async function clearAllData(): Promise<void> {
-	await Promise.all([
-		db.events.clear(),
-		db.categories.clear(),
-		db.templates.clear(),
-		db.subscriptions.clear(),
-		db.external_events.clear(),
-		db.settings.clear(),
-		db.sync_meta.clear()
-	]);
-}

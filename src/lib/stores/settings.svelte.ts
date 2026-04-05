@@ -37,9 +37,6 @@ function createSettingsStore() {
 		get locale() {
 			return settings?.locale ?? defaults.locale;
 		},
-		get colorPalette() {
-			return settings?.color_palette ?? defaults.color_palette;
-		},
 		get defaultReminders() {
 			return settings?.default_reminders ?? defaults.default_reminders;
 		},
@@ -55,13 +52,6 @@ function createSettingsStore() {
 		get timezone() {
 			return settings?.timezone ?? defaults.timezone;
 		},
-		get pushSubscription() {
-			return settings?.push_subscription ?? null;
-		},
-		get hasPushConfigured() {
-			return !!settings?.push_subscription?.endpoint;
-		},
-
 		async load() {
 			if (!browser) return;
 

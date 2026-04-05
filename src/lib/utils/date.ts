@@ -9,15 +9,11 @@ import {
 	differenceInHours,
 	differenceInDays,
 	differenceInSeconds,
-	addMinutes,
 	setHours,
 	setMinutes,
 	startOfDay,
 	endOfDay,
-	eachDayOfInterval,
-	eachHourOfInterval,
-	getHours,
-	getMinutes
+	eachDayOfInterval
 } from 'date-fns';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import { enUS, sv } from 'date-fns/locale';
@@ -38,24 +34,9 @@ export function setTimezone(tz: string): void {
 	currentTimezone = tz;
 }
 
-// Get the current timezone
-export function getTimezone(): string {
-	return currentTimezone;
-}
-
 // Set the locale for date formatting (e.g., 'en', 'sv')
 export function setDateLocale(localeCode: string): void {
 	currentLocale = locales[localeCode] || enUS;
-}
-
-// Get the current locale
-export function getDateLocale(): Locale {
-	return currentLocale;
-}
-
-// Convert a UTC date to the user's timezone
-export function toUserTimezone(date: Date): Date {
-	return toZonedTime(date, currentTimezone);
 }
 
 // Format time based on user preference and timezone
@@ -65,7 +46,6 @@ export function formatTime(date: Date, format24h: boolean = false): string {
 }
 
 // Format date with smart relative formatting (timezone-aware)
-// Note: Returns localized "Today", "Tomorrow", "Yesterday" when available
 export function formatDateSmart(date: Date, translations?: { today?: string; tomorrow?: string; yesterday?: string }): string {
 	const zonedDate = toZonedTime(date, currentTimezone);
 
@@ -81,12 +61,6 @@ export function formatDateSmart(date: Date, translations?: { today?: string; tom
 	return formatInTimeZone(date, currentTimezone, 'MMM d, yyyy', { locale: currentLocale });
 }
 
-// Format date for display
-export function formatDate(date: Date, includeYear: boolean = true): string {
-	const formatStr = includeYear ? 'MMMM d, yyyy' : 'MMMM d';
-	return formatInTimeZone(date, currentTimezone, formatStr, { locale: currentLocale });
-}
-
 // Format date for month view header
 export function formatMonthYear(date: Date): string {
 	return formatInTimeZone(date, currentTimezone, 'MMMM yyyy', { locale: currentLocale });
@@ -96,11 +70,6 @@ export function formatMonthYear(date: Date): string {
 export function formatDayOfWeek(date: Date, short: boolean = false): string {
 	const formatStr = short ? 'EEE' : 'EEEE';
 	return formatInTimeZone(date, currentTimezone, formatStr, { locale: currentLocale });
-}
-
-// Format day number
-export function formatDayNumber(date: Date): string {
-	return formatInTimeZone(date, currentTimezone, 'd');
 }
 
 // Format time range
@@ -124,36 +93,6 @@ export function formatDuration(minutes: number): string {
 	return `${hours}h ${mins}m`;
 }
 
-// Calculate duration between two dates in minutes
-export function getDurationMinutes(start: Date, end: Date): number {
-	return differenceInMinutes(end, start);
-}
-
-// Get time slots for a day (for time picker)
-export function getTimeSlots(
-	intervalMinutes: number = 30,
-	startHour: number = 0,
-	endHour: number = 24
-): { value: string; label: string }[] {
-	const slots: { value: string; label: string }[] = [];
-	const today = new Date();
-
-	let current = setHours(setMinutes(today, 0), startHour);
-	const end = setHours(setMinutes(today, 0), endHour);
-
-	while (current < end) {
-		const hours = getHours(current);
-		const minutes = getMinutes(current);
-		const value = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-		const label = formatTime(current, false);
-
-		slots.push({ value, label });
-		current = addMinutes(current, intervalMinutes);
-	}
-
-	return slots;
-}
-
 // Parse time string to date (for a given date)
 export function parseTimeToDate(dateStr: string, timeStr: string): Date {
 	const [hours, minutes] = timeStr.split(':').map(Number);
@@ -164,14 +103,6 @@ export function parseTimeToDate(dateStr: string, timeStr: string): Date {
 // Get array of days in a range
 export function getDaysInRange(start: Date, end: Date): Date[] {
 	return eachDayOfInterval({ start, end });
-}
-
-// Get array of hours in a day
-export function getHoursInDay(date: Date): Date[] {
-	return eachHourOfInterval({
-		start: startOfDay(date),
-		end: endOfDay(date)
-	}).slice(0, 24); // Exclude the 25th hour
 }
 
 // Calculate position and height for time-based event display
@@ -198,14 +129,6 @@ export function getEventPosition(
 	};
 }
 
-// Check if event spans multiple days (timezone-aware)
-export function isMultiDayEvent(start: Date, end?: Date): boolean {
-	if (!end) return false;
-	const startZoned = toZonedTime(start, currentTimezone);
-	const endZoned = toZonedTime(end, currentTimezone);
-	return format(startZoned, 'yyyy-MM-dd') !== format(endZoned, 'yyyy-MM-dd');
-}
-
 // Timezone-aware isToday check
 export function isToday(date: Date): boolean {
 	const zonedDate = toZonedTime(date, currentTimezone);
@@ -224,19 +147,6 @@ export function isSameMonth(date1: Date, date2: Date): boolean {
 	const zoned1 = toZonedTime(date1, currentTimezone);
 	const zoned2 = toZonedTime(date2, currentTimezone);
 	return format(zoned1, 'yyyy-MM') === format(zoned2, 'yyyy-MM');
-}
-
-// Get reminder time description
-export function formatReminderTime(minutesBefore: number): string {
-	if (minutesBefore === 0) return 'At time of event';
-	if (minutesBefore < 60) return `${minutesBefore} minutes before`;
-	if (minutesBefore === 60) return '1 hour before';
-	if (minutesBefore < 1440) {
-		const hours = Math.floor(minutesBefore / 60);
-		return `${hours} hour${hours > 1 ? 's' : ''} before`;
-	}
-	const days = Math.floor(minutesBefore / 1440);
-	return `${days} day${days > 1 ? 's' : ''} before`;
 }
 
 // Common reminder options
@@ -292,37 +202,4 @@ export function formatRelativeTime(date: Date): string {
 
 	const years = Math.floor(daysAgo / 365);
 	return years === 1 ? '1 year ago' : `${years} years ago`;
-}
-
-// Get list of common timezones for picker
-export function getCommonTimezones(): { value: string; label: string }[] {
-	return [
-		{ value: 'America/New_York', label: 'Eastern Time (US & Canada)' },
-		{ value: 'America/Chicago', label: 'Central Time (US & Canada)' },
-		{ value: 'America/Denver', label: 'Mountain Time (US & Canada)' },
-		{ value: 'America/Los_Angeles', label: 'Pacific Time (US & Canada)' },
-		{ value: 'America/Anchorage', label: 'Alaska' },
-		{ value: 'Pacific/Honolulu', label: 'Hawaii' },
-		{ value: 'America/Toronto', label: 'Eastern Time (Canada)' },
-		{ value: 'America/Vancouver', label: 'Pacific Time (Canada)' },
-		{ value: 'Europe/London', label: 'London' },
-		{ value: 'Europe/Paris', label: 'Paris' },
-		{ value: 'Europe/Berlin', label: 'Berlin' },
-		{ value: 'Europe/Amsterdam', label: 'Amsterdam' },
-		{ value: 'Europe/Rome', label: 'Rome' },
-		{ value: 'Europe/Madrid', label: 'Madrid' },
-		{ value: 'Europe/Zurich', label: 'Zurich' },
-		{ value: 'Europe/Moscow', label: 'Moscow' },
-		{ value: 'Asia/Dubai', label: 'Dubai' },
-		{ value: 'Asia/Kolkata', label: 'Mumbai, Kolkata' },
-		{ value: 'Asia/Singapore', label: 'Singapore' },
-		{ value: 'Asia/Hong_Kong', label: 'Hong Kong' },
-		{ value: 'Asia/Shanghai', label: 'Shanghai' },
-		{ value: 'Asia/Tokyo', label: 'Tokyo' },
-		{ value: 'Asia/Seoul', label: 'Seoul' },
-		{ value: 'Australia/Sydney', label: 'Sydney' },
-		{ value: 'Australia/Melbourne', label: 'Melbourne' },
-		{ value: 'Pacific/Auckland', label: 'Auckland' },
-		{ value: 'UTC', label: 'UTC' }
-	];
 }

@@ -19,8 +19,6 @@ const config = {
 			$stores: 'src/lib/stores',
 			$db: 'src/lib/db',
 			$api: 'src/lib/api',
-			$sync: 'src/lib/sync',
-			$ical: 'src/lib/ical',
 			$utils: 'src/lib/utils',
 			$types: 'src/lib/types'
 		}
