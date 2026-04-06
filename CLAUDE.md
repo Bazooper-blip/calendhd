@@ -149,8 +149,48 @@ src/lib/components/
 ### Deployment Targets
 
 - **Docker**: `docker/` — docker-compose with PocketBase + frontend + push-service + optional nginx reverse proxy
-- **Home Assistant Add-on**: `ha-addon/` — Full add-on with PocketBase hooks for reminders, migrations, and build automation
+- **Home Assistant Add-on**: `ha-addon/` — Full HA add-on (see details below)
 - **Push Service**: `push-service/` — Standalone Node.js web-push notification service
+
+### Home Assistant Add-on
+
+The HA add-on lives in `ha-addon/calendhd/` and bundles PocketBase + frontend + push-service into a single container.
+
+**Structure:**
+```
+ha-addon/calendhd/
+├── config.yaml              # HA addon config (ingress on 8090, panel_icon: mdi:calendar-heart)
+├── build.yaml               # Docker build args (PB_VERSION, base image per arch)
+├── Dockerfile               # Multi-arch build: base image + PocketBase + frontend + push-service
+├── pb_hooks/                # Copied from pocketbase/pb_hooks/ (must stay in sync)
+├── pb_migrations/           # Copied from pocketbase/pb_migrations/ (must stay in sync)
+├── pb_schema_import.json    # Full schema export for manual import
+├── translations/en.yaml     # HA config UI translations
+├── rootfs/
+│   ├── run.sh               # Startup: launches PocketBase on 0.0.0.0:8090
+│   ├── etc/cont-init.d/calendhd-init.sh   # Init: copies files to /config/calendhd/, sets env vars
+│   ├── etc/services.d/pocketbase/          # s6-overlay service definition
+│   └── opt/calendhd/public/index.html      # Pre-built frontend placeholder
+├── DOCS.md, CHANGELOG.md
+└── push-service/            # Copied from push-service/ by build script (not checked in)
+```
+
+**Key details:**
+- **PocketBase version**: Defined in `build.yaml` (`PB_VERSION` arg), must match `Dockerfile` default
+- **Architectures**: aarch64, amd64, armv7
+- **Ingress**: Port 8090, PocketBase serves both API and static frontend
+- **Persistence**: All data stored at `/config/calendhd/` (HA config volume)
+- **Options**: `log_level`, `vapid_public_key`, `vapid_private_key`, `vapid_email`
+- **Init script** copies hooks, migrations, and frontend to the config volume on each start
+
+**Keeping the addon in sync:**
+The `build-for-ha.cmd` script (Windows) and `ha-addon/build-local.sh` (Linux/Mac) automate syncing from the main repo:
+- Builds frontend → copies to addon
+- Copies `pocketbase/pb_hooks/*` → `ha-addon/calendhd/pb_hooks/`
+- Copies `pocketbase/pb_migrations/*` → `ha-addon/calendhd/pb_migrations/`
+- Copies `push-service/` → `ha-addon/calendhd/push-service/`
+
+**When adding new hooks or migrations**, always run the build script or manually copy files to `ha-addon/calendhd/` to keep the addon in sync.
 
 ## Testing
 

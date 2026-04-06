@@ -1,0 +1,155 @@
+// Shared helpers for routine event generation (loaded via require() inside hooks)
+
+// PB JSVM returns JSON fields as byte arrays from record.get().
+// Decode UTF-8 byte arrays properly (String.fromCharCode treats each byte
+// as a code point, mangling multi-byte chars like ä, ö, å).
+function utf8Decode(bytes) {
+    var str = '';
+    var i = 0;
+    while (i < bytes.length) {
+        var b = bytes[i];
+        if (b < 0x80) {
+            str += String.fromCharCode(b);
+            i++;
+        } else if (b < 0xE0) {
+            str += String.fromCharCode(((b & 0x1F) << 6) | (bytes[i+1] & 0x3F));
+            i += 2;
+        } else if (b < 0xF0) {
+            str += String.fromCharCode(((b & 0x0F) << 12) | ((bytes[i+1] & 0x3F) << 6) | (bytes[i+2] & 0x3F));
+            i += 3;
+        } else {
+            var cp = ((b & 0x07) << 18) | ((bytes[i+1] & 0x3F) << 12) | ((bytes[i+2] & 0x3F) << 6) | (bytes[i+3] & 0x3F);
+            cp -= 0x10000;
+            str += String.fromCharCode(0xD800 + (cp >> 10), 0xDC00 + (cp & 0x3FF));
+            i += 4;
+        }
+    }
+    return str;
+}
+
+function parseJsonField(value) {
+    if (!value) return null;
+    if (typeof value === "string") {
+        try { return JSON.parse(value); } catch (e) { return null; }
+    }
+    if (typeof value === "object" && !Array.isArray(value)) return value;
+    if (Array.isArray(value) || (typeof value === "object" && typeof value.length === "number")) {
+        try {
+            var str = utf8Decode(value);
+            return JSON.parse(str);
+        } catch (e) { return null; }
+    }
+    return value;
+}
+
+module.exports = {
+    deleteRoutineEventsForDate: function(routineId, targetDate) {
+        var dayStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 0, 0, 0);
+        var dayEnd = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 23, 59, 59);
+
+        var events;
+        try {
+            events = $app.findRecordsByFilter("events",
+                "routine_template = {:rid} && start_time >= {:start} && start_time <= {:end}",
+                "", 100, 0,
+                { rid: routineId, start: dayStart.toISOString(), end: dayEnd.toISOString() }
+            );
+        } catch (err) {
+            return;
+        }
+
+        for (var i = 0; i < events.length; i++) {
+            try { $app.delete(events[i]); } catch (err) { /* ignore */ }
+        }
+    },
+
+    generateEventsForRoutine: function(routine, targetDate) {
+        var now = targetDate || new Date();
+
+        var schedule = parseJsonField(routine.get("schedule"));
+        if (!schedule || !schedule.days || !schedule.time) return;
+
+        var dayNames = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+        var targetDayName = dayNames[now.getDay()];
+
+        if (schedule.days.indexOf(targetDayName) === -1) return;
+
+        var steps = parseJsonField(routine.get("steps"));
+        if (!steps || !steps.length) return;
+
+        var routineId = routine.id;
+        var userId = routine.get("user");
+        var timeParts = schedule.time.split(":");
+        var startHour = parseInt(timeParts[0], 10);
+        var startMinute = parseInt(timeParts[1], 10);
+        var currentTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startHour, startMinute, 0);
+
+        for (var stepIdx = 0; stepIdx < steps.length; stepIdx++) {
+            var step = steps[stepIdx];
+            var dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+            var dayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+
+            var existing;
+            try {
+                existing = $app.findRecordsByFilter("events",
+                    "routine_template = {:rid} && routine_step_index = {:idx} && start_time >= {:start} && start_time <= {:end}",
+                    "", 1, 0,
+                    { rid: routineId, idx: stepIdx, start: dayStart.toISOString(), end: dayEnd.toISOString() }
+                );
+            } catch (err) {
+                existing = [];
+            }
+
+            if (existing && existing.length > 0) {
+                currentTime = new Date(currentTime.getTime() + (step.duration_minutes || 15) * 60000);
+                continue;
+            }
+
+            var endTime = new Date(currentTime.getTime() + (step.duration_minutes || 15) * 60000);
+
+            try {
+                var collection = $app.findCollectionByNameOrId("events");
+                var record = new Record(collection);
+                record.set("user", userId);
+                record.set("title", step.title);
+                record.set("start_time", currentTime.toISOString());
+                record.set("end_time", endTime.toISOString());
+                record.set("is_all_day", false);
+                record.set("is_task", true);
+                record.set("icon", step.icon || routine.get("icon") || "");
+                record.set("color_override", routine.get("color") || "");
+                record.set("routine_template", routineId);
+                record.set("routine_step_index", stepIdx);
+                record.set("energy_level", step.energy_level || "medium");
+                record.set("reminders", JSON.stringify([]));
+                if (step.category) {
+                    record.set("category", step.category);
+                }
+                $app.save(record);
+            } catch (err) {
+                console.log("[routine-gen] Failed to create event for step " + stepIdx + ": " + err);
+            }
+
+            currentTime = endTime;
+        }
+    },
+
+    generateAllRoutineEvents: function() {
+        var routines;
+        try {
+            routines = $app.findRecordsByFilter("routine_templates", "is_active = true", "", 100, 0);
+        } catch (err) {
+            return;
+        }
+        if (!routines || routines.length === 0) return;
+
+        var today = new Date();
+        var tomorrow = new Date(today.getTime() + 86400000);
+
+        var self = this;
+        for (var i = 0; i < routines.length; i++) {
+            self.generateEventsForRoutine(routines[i], today);
+            self.generateEventsForRoutine(routines[i], tomorrow);
+        }
+    }
+};
