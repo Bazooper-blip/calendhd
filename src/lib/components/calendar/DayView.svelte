@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
-	import { calendar } from '$stores';
+	import { calendar, routinesStore } from '$stores';
 	import {
 		formatDayOfWeek,
 		getEventPosition,
@@ -24,6 +24,7 @@
 		icon?: string;
 		start: Date;
 		end: Date;
+		target_end_time?: string;
 		steps: Array<{
 			id: string;
 			title: string;
@@ -32,6 +33,7 @@
 			icon?: string;
 			energy_level?: EnergyLevel;
 			is_completed: boolean;
+			timing_mode?: 'fixed' | 'flexible';
 		}>;
 	}
 
@@ -95,6 +97,7 @@
 				icon: sorted[0].icon,
 				start: earliest,
 				end: latest,
+				target_end_time: routinesStore.getById(templateId)?.target_end_time,
 				steps: sorted.map((e) => ({
 					id: e.id,
 					title: e.title,
@@ -102,7 +105,10 @@
 					end: e.end,
 					icon: e.icon,
 					energy_level: e.energy_level,
-					is_completed: e.is_completed
+					is_completed: e.is_completed,
+					timing_mode: routinesStore.getById(templateId)?.steps[
+						e.routine_step_index ?? 0
+					]?.timing_mode
 				}))
 			});
 		}
@@ -249,6 +255,7 @@
 							icon={item.icon}
 							steps={item.steps}
 							style="top: {pos.top}%; height: {pos.height}%;"
+							target_end_time={item.target_end_time}
 						/>
 					{/if}
 				{/each}
