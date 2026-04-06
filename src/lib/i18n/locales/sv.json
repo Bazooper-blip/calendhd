@@ -13,7 +13,8 @@
 		"templates": "Mallar",
 		"categories": "Kategorier",
 		"subscriptions": "Prenumerationer",
-		"settings": "Inställningar"
+		"settings": "Inställningar",
+		"routines": "Rutiner"
 	},
 	"event": {
 		"title": "Titel",
@@ -66,6 +67,37 @@
 		"updated": "Mall uppdaterad",
 		"deleted": "Mall borttagen",
 		"deleteConfirm": "Ta bort denna mall?"
+	},
+	"routine": {
+		"title": "Rutiner",
+		"create": "Skapa rutin",
+		"edit": "Redigera rutin",
+		"delete": "Ta bort rutin",
+		"deleteConfirm": "Ta bort denna rutin? Dagens genererade händelser tas också bort.",
+		"created": "Rutin skapad",
+		"updated": "Rutin uppdaterad",
+		"deleted": "Rutin borttagen",
+		"name": "Rutinnamn",
+		"steps": "Steg",
+		"addStep": "Lägg till steg",
+		"removeStep": "Ta bort steg",
+		"stepTitle": "Stegtitel",
+		"stepDuration": "Längd (minuter)",
+		"schedule": "Schema",
+		"scheduleDays": "Dagar",
+		"scheduleTime": "Starttid",
+		"active": "Aktiv",
+		"inactive": "Inaktiv",
+		"noRoutines": "Inga rutiner ännu",
+		"noRoutinesDesc": "Skapa rutiner för att bygga daglig struktur",
+		"timelinePreview": "Tidsöversikt",
+		"completedAll": "Alla steg slutförda"
+	},
+	"energy": {
+		"level": "Energinivå",
+		"low": "Låg energi",
+		"medium": "Medel energi",
+		"high": "Hög energi"
 	},
 	"category": {
 		"title": "Kategorier",
