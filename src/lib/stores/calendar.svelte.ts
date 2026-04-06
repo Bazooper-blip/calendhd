@@ -116,6 +116,7 @@ function createCalendarStore() {
 					icon: event.icon,
 					is_external: false,
 					routine_template: event.routine_template,
+					routine_step_index: event.routine_step_index,
 					energy_level: event.energy_level,
 					routine_group_name: event.routine_template
 						? routinesStore.getById(event.routine_template)?.name

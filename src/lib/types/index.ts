@@ -202,6 +202,7 @@ export interface DisplayEvent {
 	is_external: boolean;
 	subscription_name?: string;
 	routine_template?: string;
+	routine_step_index?: number;
 	routine_group_name?: string;
 	energy_level?: EnergyLevel;
 	original_event: CalendarEvent | ExternalEvent;
