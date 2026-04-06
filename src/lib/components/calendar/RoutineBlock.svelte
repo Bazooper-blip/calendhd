@@ -1,3 +1,9 @@
+<script lang="ts" module>
+	import { SvelteSet } from 'svelte/reactivity';
+	// Module-level state: survives component re-creates
+	const expandedRoutines = new SvelteSet<string>();
+</script>
+
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { cn, getContrastColor, formatTime } from '$utils';
@@ -13,6 +19,7 @@
 		icon?: string;
 		energy_level?: EnergyLevel;
 		is_completed: boolean;
+		timing_mode?: 'fixed' | 'flexible';
 	}
 
 	interface Props {
@@ -23,6 +30,7 @@
 		steps: RoutineStep[];
 		style?: string;
 		compact?: boolean;
+		target_end_time?: string;
 	}
 
 	let {
@@ -32,18 +40,39 @@
 		icon,
 		steps,
 		style = '',
-		compact = false
+		compact = false,
+		target_end_time
 	}: Props = $props();
 
-	let expanded = $state(false);
+	let expanded = $state(expandedRoutines.has(routine_template));
 
 	const format24h = $derived(settingsStore.timeFormat === '24h');
 	const textColor = $derived(getContrastColor(color));
 	const completedCount = $derived(steps.filter((s) => s.is_completed).length);
 	const allDone = $derived(completedCount === steps.length);
 
+	const deadlineStatus = $derived.by(() => {
+		if (!target_end_time || steps.length === 0) return 'on-track';
+		const lastStep = steps[steps.length - 1];
+		if (!lastStep.end) return 'on-track';
+
+		const [h, m] = target_end_time.split(':').map(Number);
+		const targetMin = h * 60 + m;
+		const endMin = lastStep.end.getHours() * 60 + lastStep.end.getMinutes();
+		const overBy = endMin - targetMin;
+
+		if (overBy <= 0) return 'on-track';
+		if (overBy <= 5) return 'warning';
+		return 'over';
+	});
+
 	function toggleExpand() {
 		expanded = !expanded;
+		if (expanded) {
+			expandedRoutines.add(routine_template);
+		} else {
+			expandedRoutines.delete(routine_template);
+		}
 	}
 
 	function handleCheckbox(e: MouseEvent, stepId: string) {
@@ -79,10 +108,22 @@
 			<!-- Progress pill -->
 			<span class={cn(
 				'flex-shrink-0 text-[10px] font-medium rounded-full px-1.5',
-				allDone ? 'bg-white/30' : 'bg-black/10'
+				allDone ? 'bg-white/30'
+					: deadlineStatus === 'over' ? 'bg-red-500/30'
+					: deadlineStatus === 'warning' ? 'bg-amber-500/30'
+					: 'bg-black/10'
 			)}>
 				{completedCount}/{steps.length}
 			</span>
+			{#if target_end_time}
+				<span class={cn(
+					'flex-shrink-0 text-[9px] opacity-60',
+					deadlineStatus === 'over' && 'opacity-90 text-red-200',
+					deadlineStatus === 'warning' && 'opacity-80'
+				)}>
+					by {target_end_time}
+				</span>
+			{/if}
 			<!-- Edit icon -->
 			<!-- svelte-ignore a11y_click_events_have_key_events -->
 			<span
@@ -138,7 +179,7 @@
 							{step.title}
 						</span>
 						<span class="flex-shrink-0 opacity-60 ml-auto">
-							{formatTime(step.start, format24h)}
+							{#if step.timing_mode === 'flexible' && !step.is_completed}~{/if}{formatTime(step.start, format24h)}
 						</span>
 					</div>
 				{/each}
