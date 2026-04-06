@@ -31,9 +31,10 @@
 
 	let scheduleDays = $state<DayKey[]>(['mon', 'tue', 'wed', 'thu', 'fri']);
 	let scheduleTime = $state('07:00');
+	let targetEndTime = $state('');
 
 	let steps = $state<RoutineStep[]>([
-		{ title: '', duration_minutes: 10, energy_level: 'medium' }
+		{ title: '', duration_minutes: 10, energy_level: 'medium', timing_mode: 'fixed' }
 	]);
 
 	let saving = $state(false);
@@ -47,10 +48,11 @@
 			color = routine.color ?? '#7C9885';
 			scheduleDays = (routine.schedule?.days ?? ['mon', 'tue', 'wed', 'thu', 'fri']) as DayKey[];
 			scheduleTime = routine.schedule?.time ?? '07:00';
+			targetEndTime = routine.target_end_time ?? '';
 			steps =
 				routine.steps?.length > 0
 					? routine.steps.map((s) => ({ ...s }))
-					: [{ title: '', duration_minutes: 10, energy_level: 'medium' }];
+					: [{ title: '', duration_minutes: 10, energy_level: 'medium', timing_mode: 'fixed' as const }];
 			initialized = true;
 		}
 	});
@@ -81,7 +83,8 @@
 				title: step.title,
 				start: fmt(startMin),
 				end: fmt(endMin),
-				energy: step.energy_level ?? 'medium'
+				energy: step.energy_level ?? 'medium',
+				timing_mode: step.timing_mode ?? 'fixed'
 			};
 		});
 	});
@@ -111,7 +114,7 @@
 
 	// --- Step management ---
 	function addStep() {
-		steps = [...steps, { title: '', duration_minutes: 10, energy_level: 'medium' }];
+		steps = [...steps, { title: '', duration_minutes: 10, energy_level: 'medium', timing_mode: 'flexible' }];
 	}
 
 	function removeStep(index: number) {
@@ -150,6 +153,12 @@
 		steps = next;
 	}
 
+	function updateStepTimingMode(index: number, value: string) {
+		const next = [...steps];
+		next[index] = { ...next[index], timing_mode: value as 'fixed' | 'flexible' };
+		steps = next;
+	}
+
 	function energyDotClass(energy: string): string {
 		if (energy === 'low') return 'bg-green-400';
 		if (energy === 'high') return 'bg-red-400';
@@ -169,7 +178,8 @@
 					time: scheduleTime
 				},
 				color: color || undefined,
-				icon: icon || undefined
+				icon: icon || undefined,
+				target_end_time: targetEndTime || undefined
 			});
 			toast.success($t('routine.updated'));
 			await goto('/routines');
@@ -351,6 +361,20 @@
 										onchange={(e) => updateStepEnergy(i, (e.target as HTMLSelectElement).value)}
 									/>
 								</div>
+								<div class="flex-1">
+									<label for="step-timing-{i}" class="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">
+										Timing
+									</label>
+									<Select
+										id="step-timing-{i}"
+										options={[
+											{ value: 'fixed', label: 'Fixed' },
+											{ value: 'flexible', label: 'Flexible' }
+										]}
+										value={step.timing_mode ?? 'fixed'}
+										onchange={(e) => updateStepTimingMode(i, (e.target as HTMLSelectElement).value)}
+									/>
+								</div>
 							</div>
 						</li>
 					{/each}
@@ -363,6 +387,19 @@
 				>
 					+ {$t('routine.addStep')}
 				</button>
+			</div>
+
+			<!-- 3b. Target end time -->
+			<div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-neutral-100 dark:border-neutral-700 p-4 space-y-4">
+				<h2 class="text-sm font-semibold text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">
+					Target end time
+				</h2>
+				<div>
+					<label for="target-end-time" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+						Routine should be done by (optional)
+					</label>
+					<Input id="target-end-time" type="time" bind:value={targetEndTime} class="max-w-[10rem]" />
+				</div>
 			</div>
 
 			<!-- 4. Timeline preview -->
@@ -378,7 +415,7 @@
 						{#each timeline as item, i (i)}
 							<li class="flex items-center gap-3">
 								<div class="text-xs font-mono text-neutral-500 dark:text-neutral-400 w-24 shrink-0">
-									{item.start} – {item.end}
+									{#if item.timing_mode === 'flexible'}~{/if}{item.start} – {item.end}
 								</div>
 								<span class="w-2.5 h-2.5 rounded-full shrink-0 {energyDotClass(item.energy)}"></span>
 								<span class="text-sm text-neutral-700 dark:text-neutral-200 truncate">

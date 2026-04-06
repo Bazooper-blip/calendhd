@@ -112,6 +112,7 @@ function createRoutinesStore() {
 			is_active: boolean;
 			color?: string;
 			icon?: string;
+			target_end_time?: string;
 		}) {
 			const userId = auth.user?.id;
 			if (!userId) throw new Error('Not authenticated');
