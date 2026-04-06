@@ -1,15 +1,12 @@
 // Shared helpers for routine event generation (loaded via require() inside hooks)
 
 // PB JSVM returns JSON fields as byte arrays from record.get().
-// This helper converts them to parsed objects.
 function parseJsonField(value) {
     if (!value) return null;
     if (typeof value === "string") {
         try { return JSON.parse(value); } catch (e) { return null; }
     }
-    // Already a proper object with expected properties
     if (typeof value === "object" && !Array.isArray(value)) return value;
-    // Byte array: array of numbers representing ASCII/UTF-8 chars
     if (Array.isArray(value) || (typeof value === "object" && typeof value.length === "number")) {
         try {
             var str = String.fromCharCode.apply(null, value);
@@ -20,15 +17,36 @@ function parseJsonField(value) {
 }
 
 module.exports = {
-    generateEventsForRoutine: function(routine) {
+    deleteRoutineEventsForDate: function(routineId, targetDate) {
+        var dayStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 0, 0, 0);
+        var dayEnd = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 23, 59, 59);
+
+        var events;
+        try {
+            events = $app.findRecordsByFilter("events",
+                "routine_template = {:rid} && start_time >= {:start} && start_time <= {:end}",
+                "", 100, 0,
+                { rid: routineId, start: dayStart.toISOString(), end: dayEnd.toISOString() }
+            );
+        } catch (err) {
+            return;
+        }
+
+        for (var i = 0; i < events.length; i++) {
+            try { $app.delete(events[i]); } catch (err) { /* ignore */ }
+        }
+    },
+
+    generateEventsForRoutine: function(routine, targetDate) {
+        var now = targetDate || new Date();
+
         var schedule = parseJsonField(routine.get("schedule"));
         if (!schedule || !schedule.days || !schedule.time) return;
 
-        var now = new Date();
         var dayNames = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
-        var todayName = dayNames[now.getDay()];
+        var targetDayName = dayNames[now.getDay()];
 
-        if (schedule.days.indexOf(todayName) === -1) return;
+        if (schedule.days.indexOf(targetDayName) === -1) return;
 
         var steps = parseJsonField(routine.get("steps"));
         if (!steps || !steps.length) return;
@@ -42,15 +60,15 @@ module.exports = {
 
         for (var stepIdx = 0; stepIdx < steps.length; stepIdx++) {
             var step = steps[stepIdx];
-            var todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-            var todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+            var dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+            var dayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
 
             var existing;
             try {
                 existing = $app.findRecordsByFilter("events",
                     "routine_template = {:rid} && routine_step_index = {:idx} && start_time >= {:start} && start_time <= {:end}",
                     "", 1, 0,
-                    { rid: routineId, idx: stepIdx, start: todayStart.toISOString(), end: todayEnd.toISOString() }
+                    { rid: routineId, idx: stepIdx, start: dayStart.toISOString(), end: dayEnd.toISOString() }
                 );
             } catch (err) {
                 existing = [];
@@ -99,9 +117,13 @@ module.exports = {
         }
         if (!routines || routines.length === 0) return;
 
+        var today = new Date();
+        var tomorrow = new Date(today.getTime() + 86400000);
+
         var self = this;
         for (var i = 0; i < routines.length; i++) {
-            self.generateEventsForRoutine(routines[i]);
+            self.generateEventsForRoutine(routines[i], today);
+            self.generateEventsForRoutine(routines[i], tomorrow);
         }
     }
 };
