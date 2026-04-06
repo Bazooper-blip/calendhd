@@ -45,6 +45,7 @@ export interface RoutineStep {
 	icon?: string;
 	category?: string;
 	energy_level?: EnergyLevel;
+	timing_mode?: 'fixed' | 'flexible';
 }
 
 // Routine schedule (which days and what time)
@@ -62,6 +63,7 @@ export interface RoutineTemplate extends BaseRecord {
 	is_active: boolean;
 	color?: string;
 	icon?: string;
+	target_end_time?: string;
 }
 
 // Local version for IndexedDB
