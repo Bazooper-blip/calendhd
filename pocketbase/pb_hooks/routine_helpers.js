@@ -1,6 +1,32 @@
 // Shared helpers for routine event generation (loaded via require() inside hooks)
 
 // PB JSVM returns JSON fields as byte arrays from record.get().
+// Decode UTF-8 byte arrays properly (String.fromCharCode treats each byte
+// as a code point, mangling multi-byte chars like ä, ö, å).
+function utf8Decode(bytes) {
+    var str = '';
+    var i = 0;
+    while (i < bytes.length) {
+        var b = bytes[i];
+        if (b < 0x80) {
+            str += String.fromCharCode(b);
+            i++;
+        } else if (b < 0xE0) {
+            str += String.fromCharCode(((b & 0x1F) << 6) | (bytes[i+1] & 0x3F));
+            i += 2;
+        } else if (b < 0xF0) {
+            str += String.fromCharCode(((b & 0x0F) << 12) | ((bytes[i+1] & 0x3F) << 6) | (bytes[i+2] & 0x3F));
+            i += 3;
+        } else {
+            var cp = ((b & 0x07) << 18) | ((bytes[i+1] & 0x3F) << 12) | ((bytes[i+2] & 0x3F) << 6) | (bytes[i+3] & 0x3F);
+            cp -= 0x10000;
+            str += String.fromCharCode(0xD800 + (cp >> 10), 0xDC00 + (cp & 0x3FF));
+            i += 4;
+        }
+    }
+    return str;
+}
+
 function parseJsonField(value) {
     if (!value) return null;
     if (typeof value === "string") {
@@ -9,7 +35,7 @@ function parseJsonField(value) {
     if (typeof value === "object" && !Array.isArray(value)) return value;
     if (Array.isArray(value) || (typeof value === "object" && typeof value.length === "number")) {
         try {
-            var str = String.fromCharCode.apply(null, value);
+            var str = utf8Decode(value);
             return JSON.parse(str);
         } catch (e) { return null; }
     }

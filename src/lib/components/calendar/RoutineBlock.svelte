@@ -89,11 +89,10 @@
 <button
 	type="button"
 	class={cn(
-		'absolute inset-x-1 rounded-lg overflow-hidden text-left transition-all hover:ring-2 hover:ring-primary-500 hover:ring-offset-1 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1',
-		expanded && 'z-10 ring-2 ring-primary-500/30 !h-auto shadow-lg'
+		'absolute inset-x-1 rounded-lg text-left transition-all hover:ring-2 hover:ring-primary-500 hover:ring-offset-1 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1',
+		expanded ? 'z-10 ring-2 ring-primary-500/30 shadow-lg overflow-y-auto' : 'overflow-hidden'
 	)}
-	{style}
-	style:background-color={color}
+	style="{expanded ? style.replace(/height:\s*[^;]+;?/, '') + 'height: auto;' : style} background-color: {color};"
 	onclick={toggleExpand}
 >
 	<div class="px-2 py-1 h-full flex flex-col" style:color={textColor}>
