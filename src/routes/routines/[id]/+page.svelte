@@ -172,7 +172,7 @@
 				icon: icon || undefined
 			});
 			toast.success($t('routine.updated'));
-			goto('/routines');
+			await goto('/routines');
 		} catch (err) {
 			toast.error(err instanceof Error ? err.message : $t('errors.generic'));
 		} finally {

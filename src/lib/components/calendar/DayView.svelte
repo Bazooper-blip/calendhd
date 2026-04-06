@@ -2,21 +2,109 @@
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import { calendar } from '$stores';
-	import { formatDayOfWeek, getEventPosition, isToday, isSameDay } from '$utils';
+	import {
+		formatDayOfWeek,
+		getContrastColor,
+		getEventPosition,
+		isToday,
+		isSameDay
+	} from '$utils';
+	import type { DisplayEvent, EnergyLevel } from '$types';
 	import { format } from 'date-fns';
 	import { EventIcon } from '$components/ui';
 	import EventBlock from './EventBlock.svelte';
 	import DayProgress from './DayProgress.svelte';
 
-	let { date = $bindable(new Date()) }: { date?: Date } = $props();
+	/** A routine group merges multiple routine step events into one visual block. */
+	interface RoutineGroup {
+		kind: 'routine-group';
+		routine_template: string;
+		routine_group_name: string;
+		color: string;
+		icon?: string;
+		start: Date;
+		end: Date;
+		steps: Array<{
+			title: string;
+			start: Date;
+			end?: Date;
+			icon?: string;
+			energy_level?: EnergyLevel;
+		}>;
+	}
 
-	const dayEvents = $derived(
-		calendar.displayEvents.filter((e) => !e.is_all_day && isSameDay(e.start, date))
-	);
+	type ProcessedEvent =
+		| { kind: 'single'; event: DisplayEvent }
+		| RoutineGroup;
+
+	let { date = $bindable(new Date()) }: { date?: Date } = $props();
 
 	const allDayEvents = $derived(
 		calendar.displayEvents.filter((e) => e.is_all_day && isSameDay(e.start, date))
 	);
+
+	const processedDayEvents = $derived.by(() => {
+		const events = calendar.displayEvents.filter((e) => !e.is_all_day && isSameDay(e.start, date));
+
+		// Separate routine events from regular events
+		const routineEvents: DisplayEvent[] = [];
+		const regularEvents: DisplayEvent[] = [];
+
+		for (const event of events) {
+			if (event.routine_template) {
+				routineEvents.push(event);
+			} else {
+				regularEvents.push(event);
+			}
+		}
+
+		// Group routine events by routine_template ID
+		const routineGroups = new Map<string, DisplayEvent[]>();
+		for (const event of routineEvents) {
+			const key = event.routine_template!;
+			const group = routineGroups.get(key);
+			if (group) {
+				group.push(event);
+			} else {
+				routineGroups.set(key, [event]);
+			}
+		}
+
+		// Build merged routine group entries
+		const processed: ProcessedEvent[] = regularEvents.map((event) => ({
+			kind: 'single' as const,
+			event
+		}));
+
+		for (const [templateId, group] of routineGroups) {
+			// Sort steps by start time
+			const sorted = group.toSorted((a, b) => a.start.getTime() - b.start.getTime());
+			const earliest = sorted[0].start;
+			const latest = sorted.reduce(
+				(max, e) => (e.end && e.end.getTime() > max.getTime() ? e.end : max),
+				sorted[0].end ?? sorted[0].start
+			);
+
+			processed.push({
+				kind: 'routine-group',
+				routine_template: templateId,
+				routine_group_name: sorted[0].routine_group_name ?? 'Routine',
+				color: sorted[0].color,
+				icon: sorted[0].icon,
+				start: earliest,
+				end: latest,
+				steps: sorted.map((e) => ({
+					title: e.title,
+					start: e.start,
+					end: e.end,
+					icon: e.icon,
+					energy_level: e.energy_level
+				}))
+			});
+		}
+
+		return processed;
+	});
 
 	// Current time indicator position
 	let now = $state(new Date());
@@ -46,12 +134,16 @@
 		}
 	});
 
-	function handleEventClick(event: import('$types').DisplayEvent) {
+	function handleEventClick(event: DisplayEvent) {
 		if (event.is_external) {
 			// External events are read-only, don't navigate to edit page
 			return;
 		}
 		goto(`/event/${event.id}`);
+	}
+
+	function handleRoutineClick(routineTemplate: string) {
+		goto(`/routines/${routineTemplate}`);
 	}
 </script>
 
@@ -139,13 +231,38 @@
 
 			<!-- Events -->
 			<div class="absolute left-16 right-2 top-0 bottom-0">
-				{#each dayEvents as event}
-					{@const pos = getEventPosition(event.start, event.end, date)}
-					<EventBlock
-						{event}
-						style="top: {pos.top}%; height: {pos.height}%;"
-						onclick={() => handleEventClick(event)}
-					/>
+				{#each processedDayEvents as item (item.kind === 'single' ? item.event.id : item.routine_template)}
+					{#if item.kind === 'single'}
+						{@const pos = getEventPosition(item.event.start, item.event.end, date)}
+						<EventBlock
+							event={item.event}
+							style="top: {pos.top}%; height: {pos.height}%;"
+							onclick={() => handleEventClick(item.event)}
+						/>
+					{:else}
+						{@const pos = getEventPosition(item.start, item.end, date)}
+						{@const textColor = getContrastColor(item.color)}
+						<button
+							type="button"
+							class="absolute inset-x-1 rounded-lg overflow-hidden text-left transition-all hover:ring-2 hover:ring-primary-500 hover:ring-offset-1 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1"
+							style="top: {pos.top}%; height: {pos.height}%; background-color: {item.color};"
+							onclick={() => handleRoutineClick(item.routine_template)}
+						>
+							<div class="px-2 py-1 h-full flex flex-col" style:color={textColor}>
+								<!-- Routine header -->
+								<span class="text-xs font-semibold truncate flex items-center gap-1">
+									{#if item.icon}
+										<EventIcon icon={item.icon} size="sm" />
+									{/if}
+									{item.routine_group_name}
+								</span>
+								<!-- First step + more -->
+								<span class="text-[11px] opacity-80 truncate">
+									{item.steps[0].title}{#if item.steps.length > 1}&ensp;<span class="opacity-70">(+{item.steps.length - 1} more)</span>{/if}
+								</span>
+							</div>
+						</button>
+					{/if}
 				{/each}
 			</div>
 		</div>

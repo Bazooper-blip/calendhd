@@ -132,11 +132,15 @@ function createRoutinesStore() {
 
 			try {
 				const serverRoutine = await createRoutineTemplate(data);
-				routines = routines
-					.map((r) => (r.id === localRoutine.local_id ? serverRoutine : r))
-					.sort((a, b) => a.name.localeCompare(b.name));
-			} catch {
-				// Offline, keep local version
+				// Remove temp record and any realtime-subscription duplicate, then add server version
+				routines = [
+					...routines.filter(
+						(r) => r.id !== localRoutine.local_id && r.id !== serverRoutine.id
+					),
+					serverRoutine
+				].sort((a, b) => a.name.localeCompare(b.name));
+			} catch (err) {
+				console.warn('[routines] Failed to sync routine to server:', err);
 			}
 
 			return tempRoutine;

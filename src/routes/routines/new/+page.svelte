@@ -155,7 +155,7 @@
 				icon: icon || undefined
 			});
 			toast.success($t('routine.created'));
-			goto('/routines');
+			await goto('/routines');
 		} catch (err) {
 			toast.error(err instanceof Error ? err.message : $t('errors.generic'));
 		} finally {

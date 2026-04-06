@@ -5,14 +5,39 @@
 	import {
 		formatDayOfWeek,
 		getDaysInRange,
+		getContrastColor,
 		getEventPosition,
 		isToday,
 		isSameDay,
 		startOfWeek,
 		endOfWeek
 	} from '$utils';
+	import type { DisplayEvent, EnergyLevel } from '$types';
 	import { format } from 'date-fns';
 	import EventBlock from './EventBlock.svelte';
+	import { EventIcon } from '$components/ui';
+
+	/** A routine group merges multiple routine step events into one visual block. */
+	interface RoutineGroup {
+		kind: 'routine-group';
+		routine_template: string;
+		routine_group_name: string;
+		color: string;
+		icon?: string;
+		start: Date;
+		end: Date;
+		steps: Array<{
+			title: string;
+			start: Date;
+			end?: Date;
+			icon?: string;
+			energy_level?: EnergyLevel;
+		}>;
+	}
+
+	type ProcessedEvent =
+		| { kind: 'single'; event: DisplayEvent }
+		| RoutineGroup;
 
 	let { date = $bindable(new Date()) }: { date?: Date } = $props();
 
@@ -25,16 +50,80 @@
 		)
 	);
 
-	// Group events by day
+	// Get raw events for a day
 	function getEventsForDay(day: Date, allDay: boolean) {
 		return calendar.displayEvents.filter(
 			(e) => e.is_all_day === allDay && isSameDay(e.start, day)
 		);
 	}
 
+	// Get processed events: routine steps grouped into single blocks
+	function getProcessedEventsForDay(day: Date, allDay: boolean): ProcessedEvent[] {
+		const events = getEventsForDay(day, allDay);
+
+		// Separate routine events from regular events
+		const routineEvents: DisplayEvent[] = [];
+		const regularEvents: DisplayEvent[] = [];
+
+		for (const event of events) {
+			if (event.routine_template) {
+				routineEvents.push(event);
+			} else {
+				regularEvents.push(event);
+			}
+		}
+
+		// Group routine events by routine_template ID
+		const routineGroups = new Map<string, DisplayEvent[]>();
+		for (const event of routineEvents) {
+			const key = event.routine_template!;
+			const group = routineGroups.get(key);
+			if (group) {
+				group.push(event);
+			} else {
+				routineGroups.set(key, [event]);
+			}
+		}
+
+		// Build merged routine group entries
+		const processed: ProcessedEvent[] = regularEvents.map((event) => ({
+			kind: 'single' as const,
+			event
+		}));
+
+		for (const [templateId, group] of routineGroups) {
+			// Sort steps by start time
+			const sorted = group.toSorted((a, b) => a.start.getTime() - b.start.getTime());
+			const earliest = sorted[0].start;
+			const latest = sorted.reduce(
+				(max, e) => (e.end && e.end.getTime() > max.getTime() ? e.end : max),
+				sorted[0].end ?? sorted[0].start
+			);
+
+			processed.push({
+				kind: 'routine-group',
+				routine_template: templateId,
+				routine_group_name: sorted[0].routine_group_name ?? 'Routine',
+				color: sorted[0].color,
+				icon: sorted[0].icon,
+				start: earliest,
+				end: latest,
+				steps: sorted.map((e) => ({
+					title: e.title,
+					start: e.start,
+					end: e.end,
+					icon: e.icon,
+					energy_level: e.energy_level
+				}))
+			});
+		}
+
+		return processed;
+	}
+
 	// Current time indicator
 	let now = $state(new Date());
-	const nowPosition = $derived(() => {
+	const nowPosition = $derived.by(() => {
 		const minutes = now.getHours() * 60 + now.getMinutes();
 		return (minutes / 1440) * 100;
 	});
@@ -52,17 +141,20 @@
 	let timeGridRef: HTMLDivElement | undefined = $state();
 	$effect(() => {
 		if (browser && timeGridRef && hasToday) {
-			const scrollTarget = nowPosition() / 100 * 1440 - 200;
+			const scrollTarget = nowPosition / 100 * 1440 - 200;
 			timeGridRef.scrollTop = Math.max(0, scrollTarget);
 		}
 	});
 
-	function handleEventClick(event: import('$types').DisplayEvent) {
+	function handleEventClick(event: DisplayEvent) {
 		if (event.is_external) {
-			// External events are read-only, don't navigate to edit page
 			return;
 		}
 		goto(`/event/${event.id}`);
+	}
+
+	function handleRoutineClick(routineTemplate: string) {
+		goto(`/routines/${routineTemplate}`);
 	}
 </script>
 
@@ -70,7 +162,7 @@
 	<!-- Week header -->
 	<div class="flex-shrink-0 border-b border-neutral-100">
 		<div class="grid grid-cols-7 gap-px">
-			{#each days as day}
+			{#each days as day (day.getTime())}
 				<div class="px-2 py-2 text-center">
 					<span class="text-xs text-neutral-500">{formatDayOfWeek(day, true)}</span>
 					<button
@@ -91,9 +183,9 @@
 
 		<!-- All-day events row -->
 		<div class="grid grid-cols-7 gap-px border-t border-neutral-100">
-			{#each days as day}
+			{#each days as day (day.getTime())}
 				<div class="min-h-[2rem] p-1 space-y-0.5">
-					{#each getEventsForDay(day, true) as event}
+					{#each getEventsForDay(day, true) as event (event.id)}
 						<button
 							type="button"
 							class="w-full px-1 py-0.5 rounded text-left text-xs font-medium text-white truncate"
@@ -127,7 +219,7 @@
 			{#if hasToday}
 				<div
 					class="absolute left-0 z-30 pointer-events-none"
-					style="top: {nowPosition()}%"
+					style="top: {nowPosition}%"
 				>
 					<span class="absolute -top-2 left-0 text-[10px] font-semibold text-red-500 bg-red-50 px-1 rounded">
 						{nowTimeString}
@@ -137,13 +229,13 @@
 
 			<!-- Day columns -->
 			<div class="absolute left-14 right-0 top-0 bottom-0 grid grid-cols-7 gap-px">
-				{#each days as day, dayIndex}
+				{#each days as day, dayIndex (day.getTime())}
 					<div class="relative border-l border-neutral-100">
 						<!-- Current time indicator -->
 						{#if isToday(day)}
 							<div
 								class="absolute left-0 right-0 z-20 pointer-events-none"
-								style="top: {nowPosition()}%"
+								style="top: {nowPosition}%"
 							>
 								<div class="flex items-center">
 									<!-- Dot with pulse -->
@@ -158,14 +250,39 @@
 						{/if}
 
 						<!-- Events -->
-						{#each getEventsForDay(day, false) as event}
-							{@const pos = getEventPosition(event.start, event.end, day)}
-							<EventBlock
-								{event}
-								style="top: {pos.top}%; height: {pos.height}%;"
-								compact={true}
-								onclick={() => handleEventClick(event)}
-							/>
+						{#each getProcessedEventsForDay(day, false) as item (item.kind === 'single' ? item.event.id : item.routine_template)}
+							{#if item.kind === 'single'}
+								{@const pos = getEventPosition(item.event.start, item.event.end, day)}
+								<EventBlock
+									event={item.event}
+									style="top: {pos.top}%; height: {pos.height}%;"
+									compact={true}
+									onclick={() => handleEventClick(item.event)}
+								/>
+							{:else}
+								{@const pos = getEventPosition(item.start, item.end, day)}
+								{@const textColor = getContrastColor(item.color)}
+								<button
+									type="button"
+									class="absolute inset-x-1 rounded-lg overflow-hidden text-left transition-all hover:ring-2 hover:ring-primary-500 hover:ring-offset-1 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1"
+									style="top: {pos.top}%; height: {pos.height}%; background-color: {item.color};"
+									onclick={() => handleRoutineClick(item.routine_template)}
+								>
+									<div class="px-2 py-1 h-full flex flex-col" style:color={textColor}>
+										<!-- Routine header -->
+										<span class="text-xs font-semibold truncate flex items-center gap-1">
+											{#if item.icon}
+												<EventIcon icon={item.icon} size="sm" />
+											{/if}
+											{item.routine_group_name}
+										</span>
+										<!-- First step + more -->
+										<span class="text-[10px] opacity-80 truncate">
+											{item.steps[0].title}{#if item.steps.length > 1}&ensp;<span class="opacity-70">(+{item.steps.length - 1} more)</span>{/if}
+										</span>
+									</div>
+								</button>
+							{/if}
 						{/each}
 					</div>
 				{/each}
