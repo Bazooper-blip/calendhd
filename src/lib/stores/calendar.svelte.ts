@@ -405,13 +405,82 @@ function createCalendarStore() {
 			}
 		},
 
-		// Toggle task completion
+		// Toggle task completion with flexible timing cascade
 		async toggleTaskComplete(id: string) {
 			const event = events.find((e) => e.id === id);
 			if (!event || !event.is_task) return;
 
 			const completed_at = event.completed_at ? undefined : new Date().toISOString();
 			await this.updateEvent(id, { completed_at });
+
+			// Flexible timing cascade for routine steps
+			if (event.routine_template && event.routine_step_index !== undefined) {
+				const routineTemplate = routinesStore.getById(event.routine_template);
+				if (!routineTemplate) return;
+
+				const routineSteps = routineTemplate.steps;
+				const currentStepIdx = event.routine_step_index;
+
+				// Find all events for this routine today, sorted by step index
+				const routineEvents = events
+					.filter((e) =>
+						e.routine_template === event.routine_template &&
+						e.start_time &&
+						new Date(e.start_time).toDateString() === new Date(event.start_time).toDateString()
+					)
+					.sort((a, b) => (a.routine_step_index ?? 0) - (b.routine_step_index ?? 0));
+
+				if (completed_at) {
+					// Completing: shift subsequent flexible steps from completion time
+					let cursor = new Date(completed_at);
+
+					for (let i = currentStepIdx + 1; i < routineSteps.length; i++) {
+						const step = routineSteps[i];
+						if (step.timing_mode !== 'flexible') break;
+
+						const nextEvent = routineEvents.find((e) => e.routine_step_index === i);
+						if (!nextEvent) continue;
+
+						const duration = (step.duration_minutes || 15) * 60000;
+						const newStart = cursor.toISOString();
+						const newEnd = new Date(cursor.getTime() + duration).toISOString();
+
+						await this.updateEvent(nextEvent.id, {
+							start_time: newStart,
+							end_time: newEnd
+						});
+
+						cursor = new Date(cursor.getTime() + duration);
+					}
+				} else {
+					// Uncompleting: revert subsequent flexible steps to original calculated times
+					const scheduleTime = routineTemplate.schedule.time;
+					const [hStr, mStr] = scheduleTime.split(':');
+					const baseDate = new Date(event.start_time);
+					let cursor = new Date(
+						baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(),
+						parseInt(hStr, 10), parseInt(mStr, 10), 0
+					);
+
+					// Walk from step 0 to rebuild original times
+					for (let i = 0; i < routineSteps.length; i++) {
+						const step = routineSteps[i];
+						const duration = (step.duration_minutes || 15) * 60000;
+
+						if (i > currentStepIdx && step.timing_mode === 'flexible') {
+							const nextEvent = routineEvents.find((e) => e.routine_step_index === i);
+							if (nextEvent) {
+								await this.updateEvent(nextEvent.id, {
+									start_time: cursor.toISOString(),
+									end_time: new Date(cursor.getTime() + duration).toISOString()
+								});
+							}
+						}
+
+						cursor = new Date(cursor.getTime() + duration);
+					}
+				}
+			}
 		}
 	};
 }
