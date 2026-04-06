@@ -4,3 +4,4 @@ export { calendar } from './calendar.svelte';
 export type { ViewType } from './calendar.svelte';
 export { categoriesStore } from './categories.svelte';
 export { templatesStore } from './templates.svelte';
+export { routinesStore } from './routines.svelte';
