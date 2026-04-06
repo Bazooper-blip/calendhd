@@ -36,6 +36,7 @@ import {
 } from '$db';
 import { auth } from './auth.svelte';
 import { settingsStore } from './settings.svelte';
+import { routinesStore } from './routines.svelte';
 import type { CalendarEvent, CalendarSubscription, ExternalEvent, DisplayEvent, LocalEvent } from '$types';
 
 export type ViewType = 'day' | 'week' | 'month';
@@ -114,6 +115,11 @@ function createCalendarStore() {
 					color: event.color_override || '#7C9885', // default sage green
 					icon: event.icon,
 					is_external: false,
+					routine_template: event.routine_template,
+					energy_level: event.energy_level,
+					routine_group_name: event.routine_template
+						? routinesStore.getById(event.routine_template)?.name
+						: undefined,
 					original_event: event
 				});
 			}
