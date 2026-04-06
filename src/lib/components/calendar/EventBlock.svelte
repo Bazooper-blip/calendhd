@@ -60,6 +60,9 @@
 			</span>
 		{/if}
 		<div class="flex-1 min-w-0 flex flex-col justify-center">
+			{#if event.routine_group_name}
+				<span class="text-[10px] opacity-70 truncate block" style:color={textColor}>{event.routine_group_name}</span>
+			{/if}
 			<span class={cn(
 				'font-medium truncate flex items-center gap-1',
 				compact ? 'text-xs' : 'text-sm leading-tight',
@@ -69,6 +72,14 @@
 					<EventIcon icon={event.icon} size="md" />
 				{/if}
 				{event.title}
+				{#if event.energy_level}
+					<span
+						class="flex-shrink-0 w-1.5 h-1.5 rounded-full"
+						class:bg-green-400={event.energy_level === 'low'}
+						class:bg-amber-400={event.energy_level === 'medium'}
+						class:bg-red-400={event.energy_level === 'high'}
+					></span>
+				{/if}
 			</span>
 			{#if !event.is_all_day}
 				<span class={cn('opacity-80 truncate', compact ? 'text-[10px]' : 'text-xs')}>

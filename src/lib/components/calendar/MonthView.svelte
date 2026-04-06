@@ -13,6 +13,21 @@
 		startOfMonth,
 		endOfMonth
 	} from '$utils';
+	import type { DisplayEvent } from '$types';
+
+	interface MonthRoutineGroup {
+		kind: 'routine-group';
+		routine_template: string;
+		name: string;
+		color: string;
+		icon?: string;
+		stepCount: number;
+		start: Date;
+	}
+
+	type MonthItem =
+		| { kind: 'single'; event: DisplayEvent }
+		| MonthRoutineGroup;
 
 	let { date = $bindable(new Date()) }: { date?: Date } = $props();
 
@@ -44,14 +59,59 @@
 		return result;
 	});
 
-	// Get events for a specific day
-	function getEventsForDay(day: Date) {
-		return calendar.displayEvents.filter((e) => isSameDay(e.start, day)).slice(0, 3);
-	}
+	// Get processed items for a day (routine steps grouped into one entry)
+	function getItemsForDay(day: Date): { items: MonthItem[]; moreCount: number } {
+		const events = calendar.displayEvents.filter((e) => isSameDay(e.start, day));
 
-	function hasMoreEvents(day: Date): number {
-		const count = calendar.displayEvents.filter((e) => isSameDay(e.start, day)).length;
-		return count > 3 ? count - 3 : 0;
+		const routineEvents: DisplayEvent[] = [];
+		const regularEvents: DisplayEvent[] = [];
+		for (const event of events) {
+			if (event.routine_template) {
+				routineEvents.push(event);
+			} else {
+				regularEvents.push(event);
+			}
+		}
+
+		// Group routine events by template
+		const routineGroups = new Map<string, DisplayEvent[]>();
+		for (const event of routineEvents) {
+			const key = event.routine_template!;
+			const group = routineGroups.get(key);
+			if (group) {
+				group.push(event);
+			} else {
+				routineGroups.set(key, [event]);
+			}
+		}
+
+		const allItems: MonthItem[] = regularEvents.map((event) => ({
+			kind: 'single' as const,
+			event
+		}));
+
+		for (const [templateId, group] of routineGroups) {
+			const sorted = group.toSorted((a, b) => a.start.getTime() - b.start.getTime());
+			allItems.push({
+				kind: 'routine-group',
+				routine_template: templateId,
+				name: sorted[0].routine_group_name ?? 'Routine',
+				color: sorted[0].color,
+				icon: sorted[0].icon,
+				stepCount: group.length,
+				start: sorted[0].start
+			});
+		}
+
+		// Sort by start time
+		allItems.sort((a, b) => {
+			const aStart = a.kind === 'single' ? a.event.start : a.start;
+			const bStart = b.kind === 'single' ? b.event.start : b.start;
+			return aStart.getTime() - bStart.getTime();
+		});
+
+		const moreCount = allItems.length > 3 ? allItems.length - 3 : 0;
+		return { items: allItems.slice(0, 3), moreCount };
 	}
 
 	function handleDayClick(day: Date) {
@@ -84,8 +144,7 @@
 			<div class="grid grid-cols-7 border-b border-neutral-100 last:border-b-0 min-h-0">
 				{#each week as day}
 					{@const inCurrentMonth = isSameMonth(day, date)}
-					{@const dayEvents = getEventsForDay(day)}
-					{@const moreCount = hasMoreEvents(day)}
+					{@const dayData = getItemsForDay(day)}
 
 					<button
 						type="button"
@@ -109,32 +168,46 @@
 
 						<!-- Events preview -->
 						<div class="space-y-0.5 overflow-hidden">
-							{#each dayEvents as event}
+							{#each dayData.items as item}
 								<!-- svelte-ignore a11y_click_events_have_key_events -->
 								<!-- svelte-ignore a11y_no_static_element_interactions -->
-								<div
-									class="px-1 py-0.5 rounded text-xs font-medium text-white truncate cursor-pointer hover:ring-1 hover:ring-white/50"
-									style:background-color={event.color}
-									onclick={(e) => { e.stopPropagation(); handleEventClick(event); }}
-								>
-									{#if event.is_all_day}
+								{#if item.kind === 'single'}
+									<div
+										class="px-1 py-0.5 rounded text-xs font-medium text-white truncate cursor-pointer hover:ring-1 hover:ring-white/50"
+										style:background-color={item.event.color}
+										onclick={(e) => { e.stopPropagation(); handleEventClick(item.event); }}
+									>
+										{#if item.event.is_all_day}
+											<span class="inline-flex items-center gap-0.5">
+												{#if item.event.icon}<EventIcon icon={item.event.icon} size="sm" />{/if}
+												{item.event.title}
+											</span>
+										{:else}
+											<span class="inline-flex items-center gap-0.5">
+												<span class="opacity-70">{item.event.start.getHours()}:{item.event.start.getMinutes().toString().padStart(2, '0')}</span>
+												{#if item.event.icon}<EventIcon icon={item.event.icon} size="sm" />{/if}
+												{item.event.title}
+											</span>
+										{/if}
+									</div>
+								{:else}
+									<div
+										class="px-1 py-0.5 rounded text-xs font-medium text-white truncate cursor-pointer hover:ring-1 hover:ring-white/50"
+										style:background-color={item.color}
+										onclick={(e) => { e.stopPropagation(); goto(`/routines/${item.routine_template}`); }}
+									>
 										<span class="inline-flex items-center gap-0.5">
-											{#if event.icon}<EventIcon icon={event.icon} size="sm" />{/if}
-											{event.title}
+											{#if item.icon}<EventIcon icon={item.icon} size="sm" />{/if}
+											{item.name}
+											<span class="opacity-70">({item.stepCount})</span>
 										</span>
-									{:else}
-										<span class="inline-flex items-center gap-0.5">
-											<span class="opacity-70">{event.start.getHours()}:{event.start.getMinutes().toString().padStart(2, '0')}</span>
-											{#if event.icon}<EventIcon icon={event.icon} size="sm" />{/if}
-											{event.title}
-										</span>
-									{/if}
-								</div>
+									</div>
+								{/if}
 							{/each}
 
-							{#if moreCount > 0}
+							{#if dayData.moreCount > 0}
 								<div class="px-1 text-xs text-neutral-500">
-									+{moreCount} more
+									+{dayData.moreCount} more
 								</div>
 							{/if}
 						</div>

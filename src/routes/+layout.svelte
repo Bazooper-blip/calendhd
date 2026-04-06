@@ -1,7 +1,7 @@
 <script lang="ts">
 	import '../app.css';
 	import { browser } from '$app/environment';
-	import { auth, settingsStore, categoriesStore, templatesStore, calendar } from '$stores';
+	import { auth, settingsStore, categoriesStore, templatesStore, calendar, routinesStore } from '$stores';
 	import { Sidebar, Header } from '$components/layout';
 	import { OfflineIndicator } from '$components/ui';
 	import { Toaster } from 'svelte-sonner';
@@ -28,11 +28,13 @@
 			settingsStore.load();
 			categoriesStore.load();
 			templatesStore.load();
+			routinesStore.load();
 			calendar.loadEvents();
 
 			// Subscribe to realtime updates
 			calendar.subscribeToUpdates();
 			categoriesStore.subscribeToUpdates();
+			routinesStore.subscribeToUpdates();
 		}
 	});
 
@@ -83,6 +85,7 @@
 		return () => {
 			calendar.unsubscribeFromUpdates();
 			categoriesStore.unsubscribeFromUpdates();
+			routinesStore.unsubscribeFromUpdates();
 		};
 	});
 </script>

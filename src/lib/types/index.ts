@@ -35,6 +35,42 @@ export interface Template extends BaseRecord {
 	color_override?: string;
 }
 
+// Energy level for events and routine steps
+export type EnergyLevel = 'low' | 'medium' | 'high';
+
+// Individual step within a routine template
+export interface RoutineStep {
+	title: string;
+	duration_minutes: number;
+	icon?: string;
+	category?: string;
+	energy_level?: EnergyLevel;
+}
+
+// Routine schedule (which days and what time)
+export interface RoutineSchedule {
+	days: ('mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun')[];
+	time: string; // HH:mm format (24h)
+}
+
+// Routine template (PocketBase server record)
+export interface RoutineTemplate extends BaseRecord {
+	user: string;
+	name: string;
+	steps: RoutineStep[];
+	schedule: RoutineSchedule;
+	is_active: boolean;
+	color?: string;
+	icon?: string;
+}
+
+// Local version for IndexedDB
+export interface LocalRoutineTemplate extends Omit<RoutineTemplate, 'id' | 'created' | 'updated'> {
+	id?: string;
+	local_id: string;
+	sync_status: 'synced' | 'pending' | 'conflict';
+}
+
 // Event recurrence configuration
 export interface RecurrenceRule {
 	frequency: 'daily' | 'every_other_day' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
@@ -66,6 +102,9 @@ export interface CalendarEvent extends BaseRecord {
 	color_override?: string;
 	recurrence_rule?: RecurrenceRule;
 	recurrence_parent?: string; // self-relation for recurrence instances
+	routine_template?: string; // relation to routine_templates
+	routine_step_index?: number; // 0-based index of the step within the routine
+	energy_level?: EnergyLevel;
 	reminders: ReminderConfig[];
 	completed_at?: string; // when task was completed
 	local_id?: string; // for offline sync
@@ -160,6 +199,9 @@ export interface DisplayEvent {
 	category_name?: string;
 	is_external: boolean;
 	subscription_name?: string;
+	routine_template?: string;
+	routine_group_name?: string;
+	energy_level?: EnergyLevel;
 	original_event: CalendarEvent | ExternalEvent;
 }
 

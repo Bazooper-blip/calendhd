@@ -13,7 +13,8 @@
 		"templates": "Templates",
 		"categories": "Categories",
 		"subscriptions": "Subscriptions",
-		"settings": "Settings"
+		"settings": "Settings",
+		"routines": "Routines"
 	},
 	"event": {
 		"title": "Title",
@@ -66,6 +67,37 @@
 		"updated": "Template updated",
 		"deleted": "Template deleted",
 		"deleteConfirm": "Delete this template?"
+	},
+	"routine": {
+		"title": "Routines",
+		"create": "Create Routine",
+		"edit": "Edit Routine",
+		"delete": "Delete Routine",
+		"deleteConfirm": "Delete this routine? Today's generated events will also be removed.",
+		"created": "Routine created",
+		"updated": "Routine updated",
+		"deleted": "Routine deleted",
+		"name": "Routine name",
+		"steps": "Steps",
+		"addStep": "Add step",
+		"removeStep": "Remove step",
+		"stepTitle": "Step title",
+		"stepDuration": "Duration (minutes)",
+		"schedule": "Schedule",
+		"scheduleDays": "Days",
+		"scheduleTime": "Start time",
+		"active": "Active",
+		"inactive": "Inactive",
+		"noRoutines": "No routines yet",
+		"noRoutinesDesc": "Create routines to build daily structure",
+		"timelinePreview": "Timeline preview",
+		"completedAll": "All steps completed"
+	},
+	"energy": {
+		"level": "Energy level",
+		"low": "Low energy",
+		"medium": "Medium energy",
+		"high": "High energy"
 	},
 	"category": {
 		"title": "Categories",

@@ -33,7 +33,7 @@
 	aria-label={label || 'Toggle'}
 	{disabled}
 	onclick={toggle}
-	class={cn('flex items-start gap-3 text-left w-full', className)}
+	class={cn('flex items-start gap-3 text-left', label || description ? 'w-full' : '', className)}
 >
 	<span
 		class={cn(
