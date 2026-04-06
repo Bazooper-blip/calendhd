@@ -3,6 +3,7 @@ import type {
 	LocalEvent,
 	LocalCategory,
 	LocalTemplate,
+	LocalRoutineTemplate,
 	CalendarSubscription,
 	ExternalEvent,
 	UserSettings
@@ -16,17 +17,19 @@ class CalendHDDatabase extends Dexie {
 	subscriptions!: EntityTable<CalendarSubscription, 'id'>;
 	external_events!: EntityTable<ExternalEvent, 'id'>;
 	settings!: EntityTable<UserSettings, 'id'>;
+	routine_templates!: EntityTable<LocalRoutineTemplate, 'local_id'>;
 
 	constructor() {
 		super('CalendHD');
 
-		this.version(1).stores({
+		this.version(2).stores({
 			events: 'local_id, id, user, start_time, end_time, category, template, sync_status, [user+start_time]',
 			categories: 'local_id, id, user, sort_order, sync_status',
 			templates: 'local_id, id, user, name, category, sync_status',
 			subscriptions: 'id, user, name, is_active',
 			external_events: 'id, user, subscription, uid, start_time, [user+start_time]',
-			settings: 'id, user'
+			settings: 'id, user',
+			routine_templates: 'local_id, id, user, name, is_active, sync_status'
 		});
 	}
 }
