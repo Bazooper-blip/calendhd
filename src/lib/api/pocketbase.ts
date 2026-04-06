@@ -3,6 +3,7 @@ import type {
 	User,
 	Category,
 	Template,
+	RoutineTemplate,
 	CalendarEvent,
 	CalendarSubscription,
 	ExternalEvent,
@@ -35,7 +36,8 @@ const collections = {
 	calendar_subscriptions: () => getPocketBase().collection('calendar_subscriptions'),
 	external_events: () => getPocketBase().collection('external_events'),
 	user_settings: () => getPocketBase().collection('user_settings'),
-	scheduled_reminders: () => getPocketBase().collection('scheduled_reminders')
+	scheduled_reminders: () => getPocketBase().collection('scheduled_reminders'),
+	routine_templates: () => getPocketBase().collection('routine_templates')
 };
 
 // Auth helpers
@@ -132,6 +134,55 @@ export async function updateTemplate(id: string, data: Partial<Template>): Promi
 
 export async function deleteTemplate(id: string): Promise<void> {
 	await collections.templates().delete(id);
+}
+
+// Routine Template API
+export async function getRoutineTemplates(): Promise<RoutineTemplate[]> {
+	const records = await collections.routine_templates().getFullList({
+		sort: 'name'
+	});
+	return records as unknown as RoutineTemplate[];
+}
+
+export async function createRoutineTemplate(
+	data: Omit<RoutineTemplate, 'id' | 'created' | 'updated' | 'user'>
+): Promise<RoutineTemplate> {
+	const user = getCurrentUser();
+	if (!user) throw new Error('Not authenticated');
+
+	const record = await collections.routine_templates().create({
+		...data,
+		user: user.id
+	});
+	return record as unknown as RoutineTemplate;
+}
+
+export async function updateRoutineTemplate(
+	id: string,
+	data: Partial<RoutineTemplate>
+): Promise<RoutineTemplate> {
+	const record = await collections.routine_templates().update(id, data);
+	return record as unknown as RoutineTemplate;
+}
+
+export async function deleteRoutineTemplate(id: string): Promise<void> {
+	await collections.routine_templates().delete(id);
+}
+
+// Realtime subscription for routines
+export function subscribeToRoutineTemplates(
+	callback: (action: 'create' | 'update' | 'delete', record: RoutineTemplate) => void
+): () => void {
+	collections.routine_templates().subscribe('*', (e) => {
+		callback(
+			e.action as 'create' | 'update' | 'delete',
+			e.record as unknown as RoutineTemplate
+		);
+	});
+
+	return () => {
+		collections.routine_templates().unsubscribe('*');
+	};
 }
 
 // Event API
