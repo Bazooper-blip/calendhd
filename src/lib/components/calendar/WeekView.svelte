@@ -5,7 +5,6 @@
 	import {
 		formatDayOfWeek,
 		getDaysInRange,
-		getContrastColor,
 		getEventPosition,
 		isToday,
 		isSameDay,
@@ -15,7 +14,7 @@
 	import type { DisplayEvent, EnergyLevel } from '$types';
 	import { format } from 'date-fns';
 	import EventBlock from './EventBlock.svelte';
-	import { EventIcon } from '$components/ui';
+	import RoutineBlock from './RoutineBlock.svelte';
 
 	/** A routine group merges multiple routine step events into one visual block. */
 	interface RoutineGroup {
@@ -157,9 +156,6 @@
 		goto(`/event/${event.id}`);
 	}
 
-	function handleRoutineClick(routineTemplate: string) {
-		goto(`/routines/${routineTemplate}`);
-	}
 </script>
 
 <div class="flex flex-col h-full">
@@ -265,27 +261,15 @@
 								/>
 							{:else}
 								{@const pos = getEventPosition(item.start, item.end, day)}
-								{@const textColor = getContrastColor(item.color)}
-								<button
-									type="button"
-									class="absolute inset-x-1 rounded-lg overflow-hidden text-left transition-all hover:ring-2 hover:ring-primary-500 hover:ring-offset-1 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1"
-									style="top: {pos.top}%; height: {pos.height}%; background-color: {item.color};"
-									onclick={() => handleRoutineClick(item.routine_template)}
-								>
-									<div class="px-2 py-1 h-full flex flex-col" style:color={textColor}>
-										<!-- Routine header -->
-										<span class="text-xs font-semibold truncate flex items-center gap-1">
-											{#if item.icon}
-												<EventIcon icon={item.icon} size="sm" />
-											{/if}
-											{item.routine_group_name}
-										</span>
-										<!-- First step + more -->
-										<span class="text-[10px] opacity-80 truncate">
-											{item.steps[0].title}{#if item.steps.length > 1}&ensp;<span class="opacity-70">(+{item.steps.length - 1} more)</span>{/if}
-										</span>
-									</div>
-								</button>
+								<RoutineBlock
+									routine_template={item.routine_template}
+									routine_group_name={item.routine_group_name}
+									color={item.color}
+									icon={item.icon}
+									steps={item.steps}
+									style="top: {pos.top}%; height: {pos.height}%;"
+									compact={true}
+								/>
 							{/if}
 						{/each}
 					</div>
