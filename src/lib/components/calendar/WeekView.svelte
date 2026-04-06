@@ -27,11 +27,13 @@
 		start: Date;
 		end: Date;
 		steps: Array<{
+			id: string;
 			title: string;
 			start: Date;
 			end?: Date;
 			icon?: string;
 			energy_level?: EnergyLevel;
+			is_completed: boolean;
 		}>;
 	}
 
@@ -109,11 +111,13 @@
 				start: earliest,
 				end: latest,
 				steps: sorted.map((e) => ({
+					id: e.id,
 					title: e.title,
 					start: e.start,
 					end: e.end,
 					icon: e.icon,
-					energy_level: e.energy_level
+					energy_level: e.energy_level,
+					is_completed: e.is_completed
 				}))
 			});
 		}
