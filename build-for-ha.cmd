@@ -54,6 +54,11 @@ REM Copy PB hooks from root to HA addon
 echo Copying PocketBase hooks to HA addon...
 xcopy /s /e /y "pocketbase\pb_hooks\*" "ha-addon\calendhd\pb_hooks\" > nul
 
+REM Copy PB migrations to HA addon build context (needed by Dockerfile COPY)
+echo Copying PocketBase migrations to HA addon...
+if not exist "ha-addon\calendhd\pb_migrations" mkdir ha-addon\calendhd\pb_migrations
+xcopy /s /e /y "pocketbase\pb_migrations\*" "ha-addon\calendhd\pb_migrations\" > nul
+
 echo.
 echo ==========================================
 echo Build complete!
