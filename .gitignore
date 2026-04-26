@@ -32,6 +32,9 @@ pocketbase/pocketbase.exe.old
 pocketbase/*.db
 pocketbase/*.db-shm
 pocketbase/*.db-wal
+# Files from the PocketBase release zip (not part of this project)
+pocketbase/CHANGELOG.md
+pocketbase/LICENSE.md
 
 # Test
 coverage

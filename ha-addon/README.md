@@ -24,12 +24,10 @@ Features:
 
 1. In Home Assistant, go to **Settings** → **Add-ons** → **Add-on Store**
 2. Click the **⋮** menu (top right) → **Repositories**
-3. Add this repository URL: `https://github.com/USERNAME/calendhd-ha-addon`
+3. Add this repository URL: `https://github.com/Bazooper-blip/calendhd`
 4. Click **Add** → **Close**
 5. Find "calenDHD" in the add-on store and click **Install**
 6. Start the add-on and open the Web UI
-
-> **Note**: Replace `USERNAME` with the actual GitHub username where this repo is hosted.
 
 ## First-Time Setup
 
@@ -43,8 +41,8 @@ Your calendar data is stored in `/config/calendhd/` and will be included in Home
 
 ## Support
 
-- [GitHub Issues](https://github.com/USERNAME/calendhd-ha-addon/issues)
-- [calenDHD Main Repository](https://github.com/USERNAME/calendhd)
+- [GitHub Issues](https://github.com/Bazooper-blip/calendhd/issues)
+- [calenDHD Main Repository](https://github.com/Bazooper-blip/calendhd)
 
 ## License
 

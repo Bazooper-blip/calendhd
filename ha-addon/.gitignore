@@ -10,7 +10,3 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
-
-# Local testing
-calendhd/rootfs/opt/calendhd/public/*
-!calendhd/rootfs/opt/calendhd/public/index.html

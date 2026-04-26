@@ -179,5 +179,5 @@ Common issues:
 
 ## Support
 
-- [GitHub Issues](https://github.com/USERNAME/calendhd-ha-addon/issues)
+- [GitHub Issues](https://github.com/Bazooper-blip/calendhd/issues)
 - [Home Assistant Community](https://community.home-assistant.io/)

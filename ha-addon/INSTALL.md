@@ -17,11 +17,9 @@ This guide walks you through installing calenDHD on your Home Assistant installa
 4. Select **Repositories**
 5. Paste the repository URL:
    ```
-   https://github.com/USERNAME/calendhd-ha-addon
+   https://github.com/Bazooper-blip/calendhd
    ```
 6. Click **Add** → **Close**
-
-> **Note**: Replace `USERNAME` with the actual GitHub username where this repo is hosted.
 
 ### Step 2: Install the Add-on
 
@@ -194,5 +192,5 @@ Manual backup:
 
 ## Support
 
-- **Issues**: https://github.com/USERNAME/calendhd-ha-addon/issues
+- **Issues**: https://github.com/Bazooper-blip/calendhd/issues
 - **Discussions**: https://community.home-assistant.io/

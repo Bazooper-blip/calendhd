@@ -2,7 +2,7 @@ name: calenDHD
 version: "1.0.0"
 slug: calendhd
 description: "A calm, ADHD-friendly calendar PWA with offline support"
-url: "https://github.com/USERNAME/calendhd"
+url: "https://github.com/Bazooper-blip/calendhd"
 arch:
   - aarch64
   - amd64
@@ -10,15 +10,10 @@ arch:
 init: false
 startup: services
 boot: auto
-ingress: true
-ingress_port: 8090
-ingress_stream: false
-panel_icon: mdi:calendar-heart
-panel_title: calenDHD
 ports:
   8090/tcp: 8090
 ports_description:
-  8090/tcp: "calenDHD Web UI & API"
+  8090/tcp: "calenDHD Web UI & API (expose via Cloudflare Tunnel for HTTPS)"
 map:
   - config:rw
 webui: http://[HOST]:[PORT:8090]

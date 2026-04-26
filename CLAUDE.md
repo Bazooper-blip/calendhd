@@ -19,15 +19,19 @@ npm run test:e2e     # Run Playwright end-to-end tests
 npm run lint         # Same as check (svelte-check)
 ```
 
-PocketBase must be running separately for backend features:
+PocketBase must be running separately for backend features (requires PocketBase 0.37+):
 ```bash
 cd pocketbase && ./pocketbase serve   # Starts on http://127.0.0.1:8090
 ```
 
-Home Assistant deployment build:
+Environment variables are documented in `.env.example` (PocketBase URL, optional VAPID keys for push, optional Apple OAuth).
+
+Home Assistant addon release build (commits go to git for HA to pull):
 ```bash
-./build-for-ha.cmd   # Builds frontend + copies to ha-deploy/
+./build-for-ha.sh    # Linux/macOS — builds frontend, syncs hooks/migrations/push-service into ha-addon/calendhd/
+./build-for-ha.cmd   # Windows equivalent (legacy; also writes ha-deploy/ staging dir)
 ```
+Bump `version:` in `ha-addon/calendhd/config.yaml` before each release so HA detects the update.
 
 ## Architecture
 
@@ -131,6 +135,7 @@ src/lib/components/
 - `040_notification_test.pb.js` — Test notification endpoint
 - `050_subscription_sync.pb.js` — Sync external iCal feeds
 - `060_routine_generator.pb.js` — Daily cron generates events from active routines; regenerates on routine create/update; cascades delete
+- `routine_helpers.js` — Shared module `require()`'d by routine hooks; provides UTF-8 decoding for PB JSVM JSON byte-array fields (must be copied to addon alongside hooks)
 
 ### Service Worker
 
@@ -159,7 +164,7 @@ The HA add-on lives in `ha-addon/calendhd/` and bundles PocketBase + frontend + 
 **Structure:**
 ```
 ha-addon/calendhd/
-├── config.yaml              # HA addon config (ingress on 8090, panel_icon: mdi:calendar-heart)
+├── config.yaml              # HA addon config (port 8090 exposed; ingress disabled — SPA absolute paths conflict with ingress token prefix)
 ├── build.yaml               # Docker build args (PB_VERSION, base image per arch)
 ├── Dockerfile               # Multi-arch build: base image + PocketBase + frontend + push-service
 ├── pb_hooks/                # Copied from pocketbase/pb_hooks/ (must stay in sync)
@@ -178,23 +183,25 @@ ha-addon/calendhd/
 **Key details:**
 - **PocketBase version**: Defined in `build.yaml` (`PB_VERSION` arg), must match `Dockerfile` default
 - **Architectures**: aarch64, amd64, armv7
-- **Ingress**: Port 8090, PocketBase serves both API and static frontend
+- **Networking**: Port 8090 exposed directly; HA ingress is disabled because the SvelteKit app uses absolute paths (`goto('/calendar/...')`) that escape the dynamic ingress token prefix. Front the addon with a reverse proxy (Cloudflare Tunnel, NGINX SSL Proxy) for HTTPS.
 - **Persistence**: All data stored at `/config/calendhd/` (HA config volume)
 - **Options**: `log_level`, `vapid_public_key`, `vapid_private_key`, `vapid_email`
 - **Init script** copies hooks, migrations, and frontend to the config volume on each start
 
 **Keeping the addon in sync:**
-The `build-for-ha.cmd` script (Windows) and `ha-addon/build-local.sh` (Linux/Mac) automate syncing from the main repo:
-- Builds frontend → copies to addon
-- Copies `pocketbase/pb_hooks/*` → `ha-addon/calendhd/pb_hooks/`
-- Copies `pocketbase/pb_migrations/*` → `ha-addon/calendhd/pb_migrations/`
-- Copies `push-service/` → `ha-addon/calendhd/push-service/`
+- `build-for-ha.sh` (Linux/macOS) — builds frontend, copies hooks/migrations/push-service into `ha-addon/calendhd/` for committing.
+- `build-for-ha.cmd` (Windows, legacy) — same job plus a `ha-deploy/` staging dir for manual Samba copy.
+- `ha-addon/build-local.sh` — builds the addon Docker image locally for testing (does not sync hooks/migrations).
+
+**Release flow:** the Dockerfile (`ha-addon/calendhd/Dockerfile`) does not run `npm run build` itself — its build context is limited to `ha-addon/calendhd/`, so the frontend at `rootfs/opt/calendhd/public/` must be pre-built and committed. `.gitignore` only excludes the top-level `build/`, so the addon's `rootfs/opt/calendhd/public/` is tracked normally.
+
+**Repo metadata:** [`repository.yaml`](repository.yaml) at the repo root marks this as an HA add-on repository. Users add `https://github.com/Bazooper-blip/calendhd` in HA → Add-on Store → Repositories.
 
 **When adding new hooks or migrations**, always run the build script or manually copy files to `ha-addon/calendhd/` to keep the addon in sync.
 
 ## Testing
 
-- **Unit tests**: Vitest with `fake-indexeddb` polyfill (setup in `src/tests/setup.ts`)
+- **Unit tests**: Vitest in `node` environment (not jsdom) with `fake-indexeddb` polyfill (setup in `src/tests/setup.ts`)
 - **Test files**: `src/lib/db/index.test.ts`, `src/lib/db/routines.test.ts`, `src/lib/utils/date.test.ts`, `src/lib/utils/recurrence.test.ts`, `src/lib/utils/index.test.ts`
 - **E2E tests**: Playwright (via `npm run test:e2e`)
 - **No ESLint/Prettier config** — linting is `svelte-check` only
