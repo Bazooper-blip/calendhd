@@ -1,10 +1,10 @@
 /// <reference path="../pb_data/types.d.ts" />
 
-// Push service URL (configurable via environment variable)
-var PUSH_SERVICE_URL = $os.getenv("PUSH_SERVICE_URL") || "http://localhost:3001";
-
 // GET /api/calendhd/vapid-public-key - Get VAPID public key for Web Push subscription
 routerAdd("GET", "/api/calendhd/vapid-public-key", function(e) {
+    // PB JSVM runs callbacks in an isolated goja runtime — read env vars inside.
+    var PUSH_SERVICE_URL = $os.getenv("PUSH_SERVICE_URL") || "http://localhost:3001";
+
     try {
         var res = $http.send({
             url: PUSH_SERVICE_URL + "/vapid-public-key",
@@ -26,6 +26,9 @@ routerAdd("GET", "/api/calendhd/vapid-public-key", function(e) {
 
 // POST /api/calendhd/test-notification - Send a test push notification
 routerAdd("POST", "/api/calendhd/test-notification", function(e) {
+    // PB JSVM runs callbacks in an isolated goja runtime — read env vars inside.
+    var PUSH_SERVICE_URL = $os.getenv("PUSH_SERVICE_URL") || "http://localhost:3001";
+
     var authRecord = e.auth;
     if (!authRecord) {
         return e.json(401, { error: "Authentication required" });

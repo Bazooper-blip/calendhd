@@ -1,10 +1,10 @@
 /// <reference path="../pb_data/types.d.ts" />
 
-// Push service URL (configurable via environment variable)
-var PUSH_SERVICE_URL = $os.getenv("PUSH_SERVICE_URL") || "http://localhost:3001";
-
 // Cron job: check for due reminders every minute
 cronAdd("reminder_sender", "* * * * *", function() {
+    // PB JSVM runs callbacks in an isolated goja runtime — read env vars inside.
+    var PUSH_SERVICE_URL = $os.getenv("PUSH_SERVICE_URL") || "http://localhost:3001";
+
     var now = new Date();
     var nowISO = now.toISOString();
 
