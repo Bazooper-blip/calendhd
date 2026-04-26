@@ -37,6 +37,8 @@ RUN chmod +x \
     /etc/cont-init.d/calendhd-init.sh \
     /etc/services.d/pocketbase/run \
     /etc/services.d/pocketbase/finish \
+    /etc/services.d/push-service/run \
+    /etc/services.d/push-service/finish \
     /run.sh
 
 # Copy PocketBase schema for import

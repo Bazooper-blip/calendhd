@@ -1,0 +1,8 @@
+#!/usr/bin/with-contenv bashio
+# ==============================================================================
+# calenDHD push-service finish — never halt the addon on push-service crash;
+# push notifications are optional and PocketBase must keep serving.
+# ==============================================================================
+
+bashio::log.warning "push-service exited with code $1, s6 will restart it"
+exit 0

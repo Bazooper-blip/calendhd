@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.1] - 2026-04-26
+
+### Fixed
+
+- Push-service is now actually started by s6-overlay. Previously the Dockerfile installed `node /opt/push-service/index.js` but no service definition existed, so PocketBase hooks calling `http://localhost:3001` got `connection refused`. Added `rootfs/etc/services.d/push-service/{run,finish}` and finish-script lets the addon keep running if push-service crashes (PocketBase must stay up).
+
 ## [1.1.0] - 2026-04-26
 
 ### Changed
