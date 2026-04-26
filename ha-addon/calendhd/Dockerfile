@@ -29,8 +29,15 @@ RUN ARCH="$(uname -m)" && \
     rm /tmp/pb.zip && \
     chmod +x /opt/pocketbase/pocketbase
 
-# Copy calenDHD frontend (pre-built)
+# Copy calenDHD frontend (pre-built) and s6 service scripts
 COPY rootfs /
+
+# Ensure s6-overlay scripts are executable (exec bits can be lost via Windows/Samba/Git on non-Linux)
+RUN chmod +x \
+    /etc/cont-init.d/calendhd-init.sh \
+    /etc/services.d/pocketbase/run \
+    /etc/services.d/pocketbase/finish \
+    /run.sh
 
 # Copy PocketBase schema for import
 COPY pb_schema_import.json /opt/pocketbase/pb_schema_import.json
