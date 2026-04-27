@@ -37,6 +37,9 @@ import {
 import { auth } from './auth.svelte';
 import { settingsStore } from './settings.svelte';
 import { routinesStore } from './routines.svelte';
+import { toast } from 'svelte-sonner';
+import { get } from 'svelte/store';
+import { _ } from 'svelte-i18n';
 import type { CalendarEvent, CalendarSubscription, ExternalEvent, DisplayEvent, LocalEvent } from '$types';
 
 export type ViewType = 'day' | 'week' | 'month';
@@ -411,7 +414,25 @@ function createCalendarStore() {
 			if (!event || !event.is_task) return;
 
 			const completed_at = event.completed_at ? undefined : new Date().toISOString();
+			const justCompleted = !!completed_at;
 			await this.updateEvent(id, { completed_at });
+
+			// Celebrate: if this completion finished today's last open step of a
+			// routine, fire a one-shot toast (when enabled in settings).
+			if (justCompleted && event.routine_template && settingsStore.streakCelebrationEnabled) {
+				const dayKey = new Date(event.start_time).toDateString();
+				const sameRoutineToday = events.filter(
+					(e) =>
+						e.routine_template === event.routine_template &&
+						e.start_time &&
+						new Date(e.start_time).toDateString() === dayKey
+				);
+				const stillOpen = sameRoutineToday.filter((e) => e.id !== id && !e.completed_at).length;
+				if (sameRoutineToday.length > 1 && stillOpen === 0) {
+					const t = get(_);
+					toast.success(`✨ ${t('routine.completedToday')}`);
+				}
+			}
 
 			// Flexible timing cascade for routine steps
 			if (event.routine_template && event.routine_step_index !== undefined) {

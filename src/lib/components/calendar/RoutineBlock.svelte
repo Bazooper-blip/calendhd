@@ -57,6 +57,11 @@
 	const completedCount = $derived(steps.filter((s) => s.is_completed).length);
 	const allDone = $derived(completedCount === steps.length);
 	const isHappeningNow = $derived(!!(now && start && end && start <= now && now < end));
+	const streak = $derived(
+		settingsStore.streakCelebrationEnabled
+			? computeRoutineStreak(routine_template, calendar.events as CalendarEvent[])
+			: 0
+	);
 
 	const deadlineStatus = $derived.by(() => {
 		if (!target_end_time || steps.length === 0) return 'on-track';
@@ -114,7 +119,12 @@
 				{#if isHappeningNow}
 					<span class="flex-shrink-0 inline-flex items-center gap-1 rounded-full bg-white/30 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide">
 						<span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
-						Now
+						{$_('event.now')}
+					</span>
+				{/if}
+				{#if streak > 0}
+					<span class="flex-shrink-0 inline-flex items-center gap-0.5 rounded-full bg-white/30 px-1.5 py-0.5 text-[9px] font-semibold" title={$_('routine.streakLabel', { values: { count: streak } })}>
+						🔥 {streak}
 					</span>
 				{/if}
 			</span>
