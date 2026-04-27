@@ -19,11 +19,29 @@ echo -n "http://localhost:3001" > /var/run/s6/container_environment/PUSH_SERVICE
 mkdir -p /config/calendhd/pb_data
 mkdir -p /config/calendhd/pb_public
 
-# Copy frontend files to public directory if not present
-if [ ! -f /config/calendhd/pb_public/index.html ]; then
-    bashio::log.info "Copying calenDHD frontend files..."
-    cp -r /opt/calendhd/public/* /config/calendhd/pb_public/ 2>/dev/null || true
+# Generate a per-deployment random password for the singleton account.
+# This replaces the hardcoded password from earlier versions; the singleton-init
+# hook (005_singleton_init.pb.js) rotates the stored user to match on bootstrap.
+if [ ! -f /config/calendhd/.singleton-password ]; then
+    bashio::log.info "Generating singleton account password..."
+    if command -v openssl >/dev/null 2>&1; then
+        openssl rand -hex 32 > /config/calendhd/.singleton-password
+    else
+        head -c 32 /dev/urandom | od -A n -t x1 | tr -d ' \n' > /config/calendhd/.singleton-password
+    fi
+    chmod 600 /config/calendhd/.singleton-password
 fi
+SINGLETON_PASSWORD=$(cat /config/calendhd/.singleton-password)
+echo -n "${SINGLETON_PASSWORD}" > /var/run/s6/container_environment/SINGLETON_PASSWORD
+
+# Copy frontend from the image to the config volume on every start so HA
+# add-on "Update" actually delivers a new bundle. Previously this was a
+# first-run-only copy, which left existing deployments stuck on the original
+# frontend. We rsync-style overwrite; if you hot-swap a custom build into
+# /config/calendhd/pb_public/ it will be replaced on next addon start.
+bashio::log.info "Syncing calenDHD frontend to /config/calendhd/pb_public/..."
+rm -rf /config/calendhd/pb_public/*
+cp -r /opt/calendhd/public/. /config/calendhd/pb_public/ 2>/dev/null || true
 
 # Copy schema file for manual import if not present
 if [ ! -f /config/calendhd/pb_schema_import.json ]; then

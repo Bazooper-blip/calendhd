@@ -50,7 +50,7 @@ routerAdd("POST", "/api/calendhd/test-notification", function(e) {
     }
 
     // PB JSVM returns json fields as byte arrays — use the shared decoder.
-    var helpers = require(`${__hooks}/routine_helpers.js`);
+    var helpers = require(`${__hooks}/pb_helpers.js`);
     var pushSubscription = helpers.parseJsonField(userSettings.get("push_subscription"));
 
     if (!pushSubscription) {

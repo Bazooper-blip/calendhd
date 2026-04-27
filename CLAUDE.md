@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 calenDHD is a calm, ADHD-friendly calendar PWA for neurodivergent minds. It's a client-only SvelteKit app backed by PocketBase, with IndexedDB (Dexie) as the local data store. Each instance serves as a singleton calendar for a single household — there is no multi-user authentication or household sharing; the app auto-logs in a home account (`home@calendhd.local`).
 
+**Security model:** the network perimeter is the trust boundary. Anyone who can reach the URL has full access to the calendar. The singleton-account password is generated per-deployment by the addon init script (`/config/calendhd/.singleton-password`) and exposed to the frontend via `GET /api/calendhd/bootstrap` — there is **no** hardcoded password in the static bundle. Front the addon with Cloudflare Access, an SSL reverse proxy with auth, or LAN-only access for non-public deployments. See `pocketbase/pb_hooks/005_singleton_init.pb.js`.
+
 ## Commands
 
 ```bash
@@ -204,7 +206,7 @@ ha-addon/calendhd/
 - **Unit tests**: Vitest in `node` environment (not jsdom) with `fake-indexeddb` polyfill (setup in `src/tests/setup.ts`)
 - **Test files**: `src/lib/db/index.test.ts`, `src/lib/db/routines.test.ts`, `src/lib/utils/date.test.ts`, `src/lib/utils/recurrence.test.ts`, `src/lib/utils/index.test.ts`
 - **E2E tests**: Playwright (via `npm run test:e2e`)
-- **No ESLint/Prettier config** — linting is `svelte-check` only
+- **Code style**: Biome (`biome.json` at repo root) for `src/**/*.{ts,js}` — `npm run format` writes, `npm run format:check` verifies. `npm run lint` runs Biome + svelte-check. `.svelte` files aren't formatted by Biome yet (Svelte 5 support is partial); rely on svelte-check for those.
 
 ## Conventions
 

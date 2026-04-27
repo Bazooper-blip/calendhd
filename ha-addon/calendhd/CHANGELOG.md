@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.2.0] - 2026-04-27
+
+### Security
+
+- Removed the hardcoded singleton-account password from the frontend bundle. The addon init script now generates a per-deployment random password at `/config/calendhd/.singleton-password` (mode 600) and exposes it via the `SINGLETON_PASSWORD` env var. A new `005_singleton_init.pb.js` hook creates the singleton user on bootstrap and rotates its stored password to match. The frontend fetches credentials from a same-origin `GET /api/calendhd/bootstrap` endpoint at login. Documented the perimeter-trust security model in `DOCS.md` and `CLAUDE.md`.
+
+### Fixed
+
+- `event.reminders` (json field) was not being decoded properly in `010_reminder_scheduler.pb.js`, mirroring the push-subscription bug fixed in 1.1.2. Reminders may have been silently dropped when scheduling. Both create and update paths now route through the shared `parseJsonField()` helper.
+
+### Changed
+
+- Renamed `routine_helpers.js` → `pb_helpers.js` and exported `parseJsonField` for use across all hooks. The helper handles all three forms PB JSVM may return for json fields (string, plain object, byte array).
+
+### Tooling
+
+- Added Biome 2.4 for formatting and linting `src/**/*.{ts,js}`. New scripts: `npm run format`, `npm run format:check`, and `npm run lint` now runs Biome + svelte-check. `.svelte` files are not formatted by Biome (partial Svelte 5 support upstream); svelte-check still owns Svelte type/style validation.
+
 ## [1.1.3] - 2026-04-27
 
 ### Documentation

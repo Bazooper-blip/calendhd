@@ -4,10 +4,9 @@
 onRecordAfterCreateSuccess("events", function(e) {
     var event = e.record;
 
-    var reminders = event.get("reminders");
-    if (typeof reminders === "string") {
-        try { reminders = JSON.parse(reminders); } catch (err) { reminders = null; }
-    }
+    // PB JSVM returns json fields as byte arrays — decode via shared helper.
+    var helpers = require(`${__hooks}/pb_helpers.js`);
+    var reminders = helpers.parseJsonField(event.get("reminders"));
     if (!reminders || !Array.isArray(reminders) || reminders.length === 0) {
         return;
     }
@@ -67,10 +66,8 @@ onRecordAfterUpdateSuccess("events", function(e) {
     }
 
     // Create new reminders
-    var reminders = event.get("reminders");
-    if (typeof reminders === "string") {
-        try { reminders = JSON.parse(reminders); } catch (err) { reminders = null; }
-    }
+    var helpers = require(`${__hooks}/pb_helpers.js`);
+    var reminders = helpers.parseJsonField(event.get("reminders"));
     if (!reminders || !Array.isArray(reminders) || reminders.length === 0) {
         return;
     }

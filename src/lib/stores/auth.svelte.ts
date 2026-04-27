@@ -3,14 +3,18 @@ import {
 	getCurrentUser,
 	getPocketBase,
 	onAuthChange,
-	signInWithEmail,
-	signUpWithEmail
+	signInWithEmail
 } from '$api/pocketbase';
 import type { User } from '$types';
 
-const SINGLETON_EMAIL = 'home@calendhd.local';
-const SINGLETON_PASSWORD = 'calendhd-home-2024';
-const SINGLETON_NAME = 'Home';
+// The singleton-init hook on the server creates the user and rotates its
+// password to whatever was generated at deploy time; we fetch credentials
+// from /api/calendhd/bootstrap rather than hardcoding them in the bundle.
+async function fetchSingletonCredentials(): Promise<{ email: string; password: string }> {
+	const res = await fetch('/api/calendhd/bootstrap');
+	if (!res.ok) throw new Error(`bootstrap returned ${res.status}`);
+	return res.json();
+}
 
 function createAuthStore() {
 	let user = $state<User | null>(null);
@@ -22,7 +26,7 @@ function createAuthStore() {
 		if (existing) {
 			try {
 				// Validate the token with the server — this catches stale tokens
-				// from previous database resets or credential changes
+				// from previous database resets or credential rotations
 				await getPocketBase().collection('users').authRefresh();
 				user = getCurrentUser();
 				console.log('[auth] Verified session for user:', user?.id);
@@ -35,23 +39,20 @@ function createAuthStore() {
 			}
 		}
 
+		let creds;
 		try {
-			user = await signInWithEmail(SINGLETON_EMAIL, SINGLETON_PASSWORD);
+			creds = await fetchSingletonCredentials();
+		} catch (err) {
+			console.error('[auth] failed to fetch bootstrap credentials:', err);
+			loading = false;
+			return;
+		}
+
+		try {
+			user = await signInWithEmail(creds.email, creds.password);
 			console.log('[auth] Signed in as:', user.id);
 		} catch (loginError) {
-			// User doesn't exist yet — create it
-			try {
-				user = await signUpWithEmail(SINGLETON_EMAIL, SINGLETON_PASSWORD, SINGLETON_NAME);
-				console.log('[auth] Created and signed in as:', user.id);
-			} catch (signupError) {
-				// User might have been created by another tab — retry login
-				try {
-					user = await signInWithEmail(SINGLETON_EMAIL, SINGLETON_PASSWORD);
-					console.log('[auth] Retry login succeeded:', user.id);
-				} catch (retryError) {
-					console.error('[auth] All login attempts failed:', retryError);
-				}
-			}
+			console.error('[auth] login failed:', loginError);
 		}
 		loading = false;
 	}

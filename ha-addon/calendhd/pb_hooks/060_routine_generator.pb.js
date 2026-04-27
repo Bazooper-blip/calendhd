@@ -2,13 +2,13 @@
 
 // Daily cron: generate events from active routine templates (today + tomorrow)
 cronAdd("routine_generator", "0 4 * * *", () => {
-    const helpers = require(`${__hooks}/routine_helpers.js`);
+    const helpers = require(`${__hooks}/pb_helpers.js`);
     helpers.generateAllRoutineEvents();
 });
 
 // Generate on routine create (today + tomorrow)
 onRecordAfterCreateSuccess("routine_templates", (e) => {
-    const helpers = require(`${__hooks}/routine_helpers.js`);
+    const helpers = require(`${__hooks}/pb_helpers.js`);
     const routine = e.record;
     if (routine.get("is_active")) {
         const today = new Date();
@@ -20,7 +20,7 @@ onRecordAfterCreateSuccess("routine_templates", (e) => {
 
 // Delete + regenerate on routine update (today + tomorrow)
 onRecordAfterUpdateSuccess("routine_templates", (e) => {
-    const helpers = require(`${__hooks}/routine_helpers.js`);
+    const helpers = require(`${__hooks}/pb_helpers.js`);
     const routine = e.record;
     const today = new Date();
     const tomorrow = new Date(today.getTime() + 86400000);

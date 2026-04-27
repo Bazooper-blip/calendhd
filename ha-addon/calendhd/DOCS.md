@@ -28,6 +28,7 @@ A calm, ADHD-friendly calendar Progressive Web App (PWA) for Home Assistant.
 ### Single-Household Calendar
 - Each addon instance is a single calendar for one household — no sign-up, no per-user accounts.
 - The app auto-logs in to a built-in `home@calendhd.local` account, so anyone who can reach the URL can use the calendar. Gate it appropriately (LAN only, Cloudflare Access, etc.).
+- The singleton account's password is generated per-deployment on first start and stored at `/config/calendhd/.singleton-password` (mode 600). It is **not** hardcoded in the frontend bundle; the frontend fetches it from a same-origin `/api/calendhd/bootstrap` endpoint at startup. Restarting the addon after deleting that file rotates the password.
 
 ### External Calendars
 - Subscribe to iCal/ICS feeds
