@@ -428,7 +428,7 @@ function createCalendarStore() {
 						new Date(e.start_time).toDateString() === dayKey
 				);
 				const stillOpen = sameRoutineToday.filter((e) => e.id !== id && !e.completed_at).length;
-				if (sameRoutineToday.length > 1 && stillOpen === 0) {
+				if (sameRoutineToday.length >= 1 && stillOpen === 0) {
 					const t = get(_);
 					toast.success(`✨ ${t('routine.completedToday')}`);
 				}

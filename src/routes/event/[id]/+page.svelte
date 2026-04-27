@@ -122,13 +122,13 @@
 			</div>
 		{:else if event}
 			<div class="flex items-center justify-between mb-6">
-				<h1 class="text-2xl font-bold text-neutral-800">{$t('event.edit')}</h1>
+				<h1 class="text-2xl font-bold text-neutral-800 dark:text-neutral-100">{$t('event.edit')}</h1>
 				<Button variant="danger" size="sm" onclick={() => (showDeleteModal = true)}>
 					{$t('common.delete')}
 				</Button>
 			</div>
 
-			<div class="bg-white rounded-xl shadow-sm border border-neutral-100 p-6">
+			<div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-neutral-100 dark:border-neutral-700 p-6">
 				<EventForm
 					initialData={initialData()}
 					onsubmit={handleSubmit}
