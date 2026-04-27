@@ -20,7 +20,7 @@
 		| { kind: 'next'; event: DisplayEvent; minutesAway: number }
 		| { kind: 'idle' };
 
-	const state = $derived.by((): NowState => {
+	const nowState = $derived.by((): NowState => {
 		const todays = calendar.displayEvents.filter(
 			(e) => !e.is_all_day && isSameDay(e.start, now)
 		);
@@ -61,7 +61,7 @@
 
 <div class="h-full overflow-y-auto bg-neutral-50 dark:bg-neutral-900">
 	<div class="max-w-2xl mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-full">
-		{#if state.kind === 'happening'}
+		{#if nowState.kind === 'happening'}
 			<div class="w-full text-center">
 				<p class="text-xs uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2 font-semibold">
 					{$_('now.happeningNow')}
@@ -71,69 +71,69 @@
 				>
 					<span class="w-2 h-2 rounded-full bg-primary-500 animate-pulse"></span>
 					<span class="text-sm text-primary-700 dark:text-primary-300 font-medium">
-						{formatRelative(state.minutesLeft)} {$_('now.left')}
+						{formatRelative(nowState.minutesLeft)} {$_('now.left')}
 					</span>
 				</div>
 
 				<div
 					class="w-full rounded-2xl shadow-sm border border-neutral-100 dark:border-neutral-700 p-8 mb-6"
-					style:background-color={state.event.color}
+					style:background-color={nowState.event.color}
 				>
-					{#if state.event.icon}
+					{#if nowState.event.icon}
 						<div class="text-5xl mb-3 leading-none">
-							<EventIcon icon={state.event.icon} size="lg" />
+							<EventIcon icon={nowState.event.icon} size="lg" />
 						</div>
 					{/if}
 					<h1 class="text-3xl md:text-4xl font-semibold text-white drop-shadow-sm break-words">
-						{state.event.title}
+						{nowState.event.title}
 					</h1>
-					{#if state.event.end}
+					{#if nowState.event.end}
 						<p class="text-white/80 mt-3 text-sm">
-							{format(state.event.start, 'HH:mm')} – {format(state.event.end, 'HH:mm')}
+							{format(nowState.event.start, 'HH:mm')} – {format(nowState.event.end, 'HH:mm')}
 						</p>
 					{/if}
 				</div>
 
 				<div class="flex flex-col sm:flex-row gap-3 justify-center">
-					{#if state.event.is_task && !state.event.is_completed}
-						<Button onclick={() => handleComplete(state.event)}>
+					{#if nowState.event.is_task && !nowState.event.is_completed}
+						<Button onclick={() => handleComplete(nowState.event)}>
 							✓ {$_('now.markDone')}
 						</Button>
 					{/if}
-					{#if !state.event.is_external}
-						<Button variant="ghost" onclick={() => handleStart(state.event)}>
+					{#if !nowState.event.is_external}
+						<Button variant="ghost" onclick={() => handleStart(nowState.event)}>
 							{$_('now.openEvent')}
 						</Button>
 					{/if}
 				</div>
 			</div>
-		{:else if state.kind === 'next'}
+		{:else if nowState.kind === 'next'}
 			<div class="w-full text-center">
 				<p class="text-xs uppercase tracking-widest text-neutral-500 dark:text-neutral-400 mb-2 font-semibold">
 					{$_('now.upNext')}
 				</p>
 				<p class="text-2xl md:text-3xl font-medium text-neutral-700 dark:text-neutral-200 mb-6">
-					{$_('now.in')} {formatRelative(state.minutesAway)}
+					{$_('now.in')} {formatRelative(nowState.minutesAway)}
 				</p>
 
 				<div
 					class="w-full rounded-2xl shadow-sm border border-neutral-100 dark:border-neutral-700 p-8 mb-6"
-					style:background-color={state.event.color}
+					style:background-color={nowState.event.color}
 				>
-					{#if state.event.icon}
+					{#if nowState.event.icon}
 						<div class="text-5xl mb-3 leading-none">
-							<EventIcon icon={state.event.icon} size="lg" />
+							<EventIcon icon={nowState.event.icon} size="lg" />
 						</div>
 					{/if}
 					<h1 class="text-3xl md:text-4xl font-semibold text-white drop-shadow-sm break-words">
-						{state.event.title}
+						{nowState.event.title}
 					</h1>
 					<p class="text-white/80 mt-3 text-sm">
-						{format(state.event.start, 'HH:mm')}
+						{format(nowState.event.start, 'HH:mm')}
 					</p>
 				</div>
 
-				<Button variant="ghost" onclick={() => handleStart(state.event)}>
+				<Button variant="ghost" onclick={() => handleStart(nowState.event)}>
 					{$_('now.openEvent')}
 				</Button>
 			</div>

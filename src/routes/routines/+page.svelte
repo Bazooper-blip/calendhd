@@ -131,9 +131,11 @@
 				<h3 class="text-lg font-medium text-neutral-800 dark:text-neutral-100 mb-1">
 					{$t('routine.noRoutines')}
 				</h3>
-				<p class="text-neutral-500 dark:text-neutral-400 mb-2">
-					{$t('routine.noRoutinesDesc') || ''}
-				</p>
+				{#if $t('routine.noRoutinesDesc')}
+					<p class="text-neutral-500 dark:text-neutral-400 mb-2">
+						{$t('routine.noRoutinesDesc')}
+					</p>
+				{/if}
 				<p class="text-xs text-neutral-400 dark:text-neutral-500 mb-4">
 					{$t('routine.addStarterPackDesc')}
 				</p>

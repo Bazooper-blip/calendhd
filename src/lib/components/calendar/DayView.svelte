@@ -94,7 +94,7 @@
 			processed.push({
 				kind: 'routine-group',
 				routine_template: templateId,
-				routine_group_name: sorted[0].routine_group_name ?? 'Routine',
+				routine_group_name: sorted[0].routine_group_name ?? $_('calendar.routineFallback'),
 				color: sorted[0].color,
 				icon: sorted[0].icon,
 				start: earliest,
@@ -192,7 +192,7 @@
 			const m = min % 60;
 			return m === 0 ? `${h}h` : `${h}h ${m}m`;
 		}
-		return 'tomorrow';
+		return $_('calendar.tomorrow');
 	}
 
 	// Update current time every minute
@@ -240,12 +240,12 @@
 			</span>
 			{#if nextUpcoming}
 				<span class="ml-auto flex items-center gap-1.5 rounded-full bg-primary-50 dark:bg-primary-900/30 px-2.5 py-1 text-xs">
-					<span class="text-primary-700 dark:text-primary-300 font-medium">Next:</span>
+					<span class="text-primary-700 dark:text-primary-300 font-medium">{$_('calendar.next')}</span>
 					{#if nextUpcoming.icon}
 						<EventIcon icon={nextUpcoming.icon} size="sm" />
 					{/if}
 					<span class="text-neutral-700 dark:text-neutral-200 truncate max-w-[14ch]">{nextUpcoming.title}</span>
-					<span class="text-primary-700 dark:text-primary-300 font-medium">in {formatRelative(nextUpcoming.minutesAway)}</span>
+					<span class="text-primary-700 dark:text-primary-300 font-medium">{$_('calendar.in')} {formatRelative(nextUpcoming.minutesAway)}</span>
 				</span>
 			{/if}
 		</div>

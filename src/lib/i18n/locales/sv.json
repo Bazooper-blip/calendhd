@@ -308,7 +308,12 @@
 		"deleted": "Borttagen"
 	},
 	"calendar": {
-		"tightGap": "{minutes} min övergång"
+		"tightGap": "{minutes} min övergång",
+		"next": "Nästa:",
+		"in": "om",
+		"tomorrow": "imorgon",
+		"routineFallback": "Rutin",
+		"by": "senast"
 	},
 	"common": {
 		"cancel": "Avbryt",
@@ -334,7 +339,8 @@
 		"confirm": "Bekräfta",
 		"today": "Idag",
 		"tomorrow": "Imorgon",
-		"yesterday": "Igår"
+		"yesterday": "Igår",
+		"now": "nu"
 	},
 	"status": {
 		"online": "Åter online",

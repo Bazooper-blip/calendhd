@@ -6,10 +6,11 @@
 
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { cn, getContrastColor, formatTime } from '$utils';
+	import { cn, getContrastColor, formatTime, computeRoutineStreak } from '$utils';
 	import { calendar, settingsStore } from '$stores';
+	import { _ } from '$lib/i18n';
 	import { EventIcon } from '$components/ui';
-	import type { EnergyLevel } from '$types';
+	import type { EnergyLevel, CalendarEvent } from '$types';
 
 	interface RoutineStep {
 		id: string;
@@ -144,7 +145,7 @@
 					deadlineStatus === 'over' && 'opacity-90 text-red-200',
 					deadlineStatus === 'warning' && 'opacity-80'
 				)}>
-					by {target_end_time}
+					{$_('calendar.by')} {target_end_time}
 				</span>
 			{/if}
 			<!-- Edit icon -->

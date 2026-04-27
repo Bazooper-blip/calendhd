@@ -308,7 +308,12 @@
 		"deleted": "Deleted"
 	},
 	"calendar": {
-		"tightGap": "{minutes} min transition"
+		"tightGap": "{minutes} min transition",
+		"next": "Next:",
+		"in": "in",
+		"tomorrow": "tomorrow",
+		"routineFallback": "Routine",
+		"by": "by"
 	},
 	"common": {
 		"cancel": "Cancel",
@@ -334,7 +339,8 @@
 		"confirm": "Confirm",
 		"today": "Today",
 		"tomorrow": "Tomorrow",
-		"yesterday": "Yesterday"
+		"yesterday": "Yesterday",
+		"now": "now"
 	},
 	"status": {
 		"online": "Back online",

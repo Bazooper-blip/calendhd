@@ -7,7 +7,8 @@ import type {
 	CalendarEvent,
 	CalendarSubscription,
 	ExternalEvent,
-	UserSettings
+	UserSettings,
+	BrainDump
 } from '$types';
 
 // PocketBase client singleton
@@ -42,16 +43,16 @@ const collections = {
 };
 
 // Brain dump CRUD
-export async function getBrainDumps(): Promise<import('$types').BrainDump[]> {
+export async function getBrainDumps(): Promise<BrainDump[]> {
 	const records = await collections.brain_dump().getFullList({ sort: '-created' });
-	return records as unknown as import('$types').BrainDump[];
+	return records as unknown as BrainDump[];
 }
 
-export async function createBrainDump(title: string, notes?: string): Promise<import('$types').BrainDump> {
+export async function createBrainDump(title: string, notes?: string): Promise<BrainDump> {
 	const userId = getCurrentUser()?.id;
 	if (!userId) throw new Error('Not authenticated');
 	const record = await collections.brain_dump().create({ user: userId, title, notes: notes ?? '' });
-	return record as unknown as import('$types').BrainDump;
+	return record as unknown as BrainDump;
 }
 
 export async function deleteBrainDump(id: string): Promise<void> {
@@ -62,22 +63,6 @@ export async function deleteBrainDump(id: string): Promise<void> {
 export async function signInWithEmail(email: string, password: string): Promise<User> {
 	const authData = await getPocketBase().collection('users').authWithPassword(email, password);
 	return authData.record as unknown as User;
-}
-
-export async function signUpWithEmail(
-	email: string,
-	password: string,
-	name: string
-): Promise<User> {
-	const user = await getPocketBase().collection('users').create({
-		email,
-		password,
-		passwordConfirm: password,
-		name
-	});
-	// Auto sign in after registration
-	await signInWithEmail(email, password);
-	return user as unknown as User;
 }
 
 export function getCurrentUser(): User | null {
