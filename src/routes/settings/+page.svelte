@@ -132,6 +132,12 @@
 		{ value: 'dark', label: $_('settings.themeDark') }
 	]);
 
+	const densityOptions = $derived([
+		{ value: 'compact', label: $_('settings.densityCompact') },
+		{ value: 'comfortable', label: $_('settings.densityComfortable') },
+		{ value: 'spacious', label: $_('settings.densitySpacious') }
+	]);
+
 	const languageOptions = availableLocales.map((l) => ({
 		value: l.code,
 		label: `${l.nativeName} (${l.name})`
@@ -284,6 +290,50 @@
 						onchange={(checked) => handleChange('high_contrast', checked)}
 						label={$_('settings.highContrast')}
 						description={$_('settings.highContrastDescription')}
+					/>
+
+					<div>
+						<label for="density" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+							{$_('settings.density')}
+						</label>
+						<p class="text-xs text-neutral-500 dark:text-neutral-400 mb-2">{$_('settings.densityDescription')}</p>
+						<Select
+							id="density"
+							options={densityOptions}
+							value={settingsStore.density}
+							onchange={(e) => handleChange('density', (e.target as HTMLSelectElement).value)}
+						/>
+					</div>
+
+					<div>
+						<label for="buffer-minutes" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+							{$_('settings.bufferMinutes')}
+						</label>
+						<p class="text-xs text-neutral-500 dark:text-neutral-400 mb-2">{$_('settings.bufferMinutesDescription')}</p>
+						<input
+							id="buffer-minutes"
+							type="number"
+							min="0"
+							max="60"
+							step="5"
+							value={settingsStore.bufferMinutes}
+							onchange={(e) => handleChange('buffer_minutes', parseInt((e.target as HTMLInputElement).value) || 0)}
+							class="w-full px-3 py-2 rounded-lg border bg-white dark:bg-neutral-700 text-neutral-800 dark:text-neutral-100 border-neutral-200 dark:border-neutral-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
+						/>
+					</div>
+
+					<Toggle
+						checked={settingsStore.dailyWinsEnabled}
+						onchange={(checked) => handleChange('daily_wins_enabled', checked)}
+						label={$_('settings.dailyWins')}
+						description={$_('settings.dailyWinsDescription')}
+					/>
+
+					<Toggle
+						checked={settingsStore.streakCelebrationEnabled}
+						onchange={(checked) => handleChange('streak_celebration_enabled', checked)}
+						label={$_('settings.streakCelebration')}
+						description={$_('settings.streakCelebrationDescription')}
 					/>
 				</div>
 			</section>

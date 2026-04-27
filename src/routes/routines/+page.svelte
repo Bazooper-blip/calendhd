@@ -4,7 +4,24 @@
 	import { routinesStore } from '$stores';
 	import { Button, Toggle, EventIcon } from '$components/ui';
 	import { toast } from 'svelte-sonner';
+	import { SAMPLE_ROUTINES } from '$utils/sampleRoutines';
 	import type { RoutineTemplate } from '$types';
+
+	let starterPackLoading = $state(false);
+
+	async function addStarterPack() {
+		starterPackLoading = true;
+		try {
+			for (const sample of SAMPLE_ROUTINES) {
+				await routinesStore.create(sample);
+			}
+			toast.success($t('routine.starterPackAdded'));
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : $t('errors.generic'));
+		} finally {
+			starterPackLoading = false;
+		}
+	}
 
 	const DAY_ABBR: Record<string, string> = {
 		mon: 'Mon',
@@ -114,10 +131,18 @@
 				<h3 class="text-lg font-medium text-neutral-800 dark:text-neutral-100 mb-1">
 					{$t('routine.noRoutines')}
 				</h3>
-				<p class="text-neutral-500 dark:text-neutral-400 mb-4">
+				<p class="text-neutral-500 dark:text-neutral-400 mb-2">
 					{$t('routine.noRoutinesDesc') || ''}
 				</p>
-				<Button onclick={() => goto('/routines/new')}>{$t('routine.create')}</Button>
+				<p class="text-xs text-neutral-400 dark:text-neutral-500 mb-4">
+					{$t('routine.addStarterPackDesc')}
+				</p>
+				<div class="flex flex-col sm:flex-row gap-2 justify-center">
+					<Button variant="ghost" onclick={addStarterPack} loading={starterPackLoading}>
+						{$t('routine.addStarterPack')}
+					</Button>
+					<Button onclick={() => goto('/routines/new')}>{$t('routine.create')}</Button>
+				</div>
 			</div>
 		{:else}
 			<div class="space-y-2">
