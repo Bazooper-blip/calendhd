@@ -1,5 +1,37 @@
 # Changelog
 
+## [1.4.0] - 2026-04-27
+
+Eight new ADHD-focused capabilities, organised into eight commits in the repo for individual reviewability.
+
+### Added — schema (migration `0004_adhd_features.js`)
+
+- `events.first_step` (text, optional) — captures the smallest concrete next action for a task.
+- `user_settings.buffer_minutes` (number, default 10) — tight-transition threshold.
+- `user_settings.density` (compact / comfortable / spacious, default comfortable).
+- `user_settings.daily_wins_enabled` (bool, default true).
+- `user_settings.streak_celebration_enabled` (bool, default true).
+- New `brain_dump` collection (id, user, title, notes, created, updated) for quick thought capture.
+
+### Added — UX
+
+- **First-step extraction** — when an event is marked as a task, EventForm prompts for "what's the first physical action". Reminder push notifications now use the first-step text as the body, so reminders show the concrete action ("Open the laptop") instead of the abstract title ("Write report").
+- **Buffer-time pill** — DayView shows an amber "X min transition" pill in any gap shorter than `buffer_minutes` between two consecutive events. Visual-only; nothing is auto-rescheduled.
+- **/now route** — full-screen focus view with three states: "happening now" (current event, time-left pill, mark-done quick action), "up next" (time-until pill on the next event), and "nothing scheduled" idle state. Auto-refreshes every 30 s.
+- **Daily wins banner** — gentle end-of-day affirmation at the top of the day view after 21:00, summarising completions, focus time, and fully-completed routines. Per-day localStorage dismissal.
+- **Brain dump screen** at `/brain-dump` — single-input quick capture into a dedicated collection. Per-item "Schedule" (pre-fills `/event/new` via query string) and "Delete". For ideas you don't want to lose but don't want to schedule yet.
+- **Sample-routine starter pack** — empty `/routines` page now offers an "Add starter routines" button that creates three calm starting points (morning, evening wind-down, weekly admin) with sensible energy levels and timing modes.
+- **Density toggle** in Settings → Appearance (compact / comfortable / spacious). Currently propagates as `compact={true}` to event/routine blocks; spacious is a future polish.
+- **Routine streak counter + completion celebration** — small "🔥 N" pill on routine blocks when there's a current streak (consecutive past days where every step of that routine was completed). One-shot ✨ toast when toggling a step completes today's last open step in a routine. Both gated by `streak_celebration_enabled`.
+
+### Other settings
+
+- Settings page now exposes the new `density`, `buffer_minutes`, `daily_wins_enabled`, and `streak_celebration_enabled` controls.
+
+### i18n
+
+- 49 new keys added across the eight phases. en.json / sv.json verified balanced at 314 keys each, full Swedish coverage (no `||` fallbacks).
+
 ## [1.3.2] - 2026-04-27
 
 ### Fixed — dark-mode coverage
