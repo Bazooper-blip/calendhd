@@ -1,5 +1,0 @@
-PLACEHOLDER: Create a 256x256 PNG logo for the add-on
-
-Same as icon.png - the logo is displayed in the add-on store.
-
-Save as: logo.png (256x256 pixels)

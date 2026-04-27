@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.4.4] - 2026-04-27
+
+### Added — branding / icons
+
+Replaces the broken text-as-PNG `favicon.png` and the `icon.png.txt` / `logo.png.txt` placeholder files with the real "Today's Focus" calenDHD artwork.
+
+- **`static/favicon.svg`**: vector source. Used as the primary browser favicon (modern browsers prefer SVG, scales to any size).
+- **`static/favicon.ico`**: legacy fallback (16×16 + 32×32 multi-resolution).
+- **`static/favicon.png`**: 32×32 PNG fallback for the few clients that don't support SVG/ICO.
+- **`static/icons/icon-{72,96,128,144,152,180,192,384,512}.png`**: PWA icon set, all rendered from the SVG via rsvg-convert.
+- **`static/icons/apple-touch-icon.png`** (180×180): iOS home-screen icon; sized correctly so iOS doesn't rescale.
+- **`static/icons/maskable-512.png`**: Android adaptive-icon variant. The artwork sits inside the 80% safe zone, so OS-applied circle/squircle masks won't crop the brand mark.
+- **`static/icons/shortcut-add.png`**, **`shortcut-today.png`**: PWA app-shortcut icons (referenced by manifest's "shortcuts" array).
+- **`ha-addon/calendhd/icon.png`** and **`logo.png`** (256×256): used by Home Assistant's add-on store list and detail page. Replaces the `*.txt` placeholders.
+
+### Changed
+
+- `src/app.html`: now declares the SVG favicon as primary (`<link rel="icon" type="image/svg+xml">`) with PNG and ICO marked `rel="alternate icon"`. Apple touch icon link now carries the `sizes="180x180"` attribute iOS expects.
+- `static/manifest.json`: SVG icon entry added at the top of the `icons` array with `"sizes": "any"` so PWA installers prefer it where supported.
+
 ## [1.4.3] - 2026-04-27
 
 Frontend rebuild release — bundles all 1.3.x and 1.4.x source changes into the addon image. Earlier 1.4.x version bumps shipped without re-running `build-for-ha.sh`, so the addon was running a stale `_app/` bundle.
