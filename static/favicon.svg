@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <title>CalenDHD — Today's Focus</title>
+  <rect x="30" y="30" width="452" height="452" rx="92" fill="#FAF3E7"/>
+  <path d="M30 122 Q30 30 122 30 H390 Q482 30 482 122 V163 H30 Z" fill="#5BA08F"/>
+  <circle cx="164" cy="76" r="23" fill="#FAF3E7" stroke="#3D4A52" stroke-width="4"/>
+  <circle cx="348" cy="76" r="23" fill="#FAF3E7" stroke="#3D4A52" stroke-width="4"/>
+  <circle cx="256" cy="320" r="92" fill="#E8826B"/>
+</svg>
