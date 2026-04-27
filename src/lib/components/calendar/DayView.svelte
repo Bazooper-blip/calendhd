@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
-	import { calendar, routinesStore } from '$stores';
+	import { calendar, routinesStore, settingsStore } from '$stores';
 	import {
 		formatDayOfWeek,
 		getEventPosition,
@@ -294,6 +294,7 @@
 							event={item.event}
 							style="top: {pos.top}%; height: {pos.height}%;"
 							onclick={() => handleEventClick(item.event)}
+							compact={settingsStore.density === 'compact'}
 							{now}
 						/>
 					{:else}
@@ -306,6 +307,7 @@
 							steps={item.steps}
 							style="top: {pos.top}%; height: {pos.height}%;"
 							target_end_time={item.target_end_time}
+							compact={settingsStore.density === 'compact'}
 							{now}
 							start={item.start}
 							end={item.end}

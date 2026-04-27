@@ -102,7 +102,13 @@
 		"noRoutines": "Inga rutiner ännu",
 		"noRoutinesDesc": "Skapa rutiner för att bygga daglig struktur",
 		"timelinePreview": "Tidsöversikt",
-		"completedAll": "Alla steg slutförda"
+		"completedAll": "Alla steg slutförda",
+		"addStarterPack": "Lägg till startrutiner",
+		"addStarterPackDesc": "Tre lugna utgångspunkter: morgon, kvällsvila och veckans admin. Redigera dem så de passar dig.",
+		"starterPackAdded": "3 startrutiner tillagda",
+		"streakBadge": "{count, plural, one {# dag} other {# dagar}}",
+		"streakLabel": "🔥 {count}-dagars streak",
+		"completedToday": "Rutin klar!"
 	},
 	"energy": {
 		"level": "Energinivå",
@@ -181,7 +187,18 @@
 		"reduceAnimations": "Minska animationer",
 		"reduceAnimationsDescription": "Minimera rörelse för känsliga användare",
 		"highContrast": "Hög kontrast",
-		"highContrastDescription": "Öka visuell kontrast"
+		"highContrastDescription": "Öka visuell kontrast",
+		"density": "Layouttäthet",
+		"densityDescription": "Hur tätt händelser packas på kalendern",
+		"densityCompact": "Kompakt",
+		"densityComfortable": "Bekväm",
+		"densitySpacious": "Rymlig",
+		"bufferMinutes": "Övergångstid mellan händelser",
+		"bufferMinutesDescription": "Visa en mild påminnelse när händelser schemalagts med mindre andrum än så här (minuter)",
+		"dailyWins": "Dagens framgångar",
+		"dailyWinsDescription": "Visa vad du slutfört i slutet av dagen",
+		"streakCelebration": "Rutinstreak + firande",
+		"streakCelebrationDescription": "Räkna streak per rutin och fira när en slutförs"
 	},
 	"subscription": {
 		"title": "Prenumerationer",

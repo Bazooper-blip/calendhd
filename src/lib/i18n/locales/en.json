@@ -102,7 +102,13 @@
 		"noRoutines": "No routines yet",
 		"noRoutinesDesc": "Create routines to build daily structure",
 		"timelinePreview": "Timeline preview",
-		"completedAll": "All steps completed"
+		"completedAll": "All steps completed",
+		"addStarterPack": "Add starter routines",
+		"addStarterPackDesc": "Three calm starting points: morning, evening wind-down, and weekly admin. Edit them to fit you.",
+		"starterPackAdded": "Added 3 starter routines",
+		"streakBadge": "{count, plural, one {# day} other {# days}}",
+		"streakLabel": "🔥 {count}-day streak",
+		"completedToday": "Routine complete!"
 	},
 	"energy": {
 		"level": "Energy level",
@@ -181,7 +187,18 @@
 		"reduceAnimations": "Reduce animations",
 		"reduceAnimationsDescription": "Minimize motion for sensitive users",
 		"highContrast": "High contrast",
-		"highContrastDescription": "Increase visual contrast"
+		"highContrastDescription": "Increase visual contrast",
+		"density": "Layout density",
+		"densityDescription": "How tightly to pack events on the calendar",
+		"densityCompact": "Compact",
+		"densityComfortable": "Comfortable",
+		"densitySpacious": "Spacious",
+		"bufferMinutes": "Transition time between events",
+		"bufferMinutesDescription": "Show a gentle reminder when events are scheduled with less than this much breathing room (minutes)",
+		"dailyWins": "End-of-day wins",
+		"dailyWinsDescription": "Show what you completed at the end of the day",
+		"streakCelebration": "Routine streak + celebration",
+		"streakCelebrationDescription": "Track day-streaks for routines and celebrate when one finishes"
 	},
 	"subscription": {
 		"title": "Subscriptions",
