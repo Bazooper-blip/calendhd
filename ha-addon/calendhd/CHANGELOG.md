@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.4.1] - 2026-04-27
+
+### Fixed
+
+- **`SINGLETON_EMAIL is not defined` on bootstrap**: `005_singleton_init.pb.js` declared its constants at module scope, but PB JSVM runs `onBootstrap` and `routerAdd` callbacks in an isolated goja runtime where module-level `const`s aren't visible. Same gotcha that bit `PUSH_SERVICE_URL` in 1.1.2. Constants moved inside each callback. Singleton-account creation no longer fails on first start.
+- **Migration 0004 SQL error: `no such column: created`**: dropped the secondary `idx_brain_dump_user_created` index. PocketBase's auto-managed `created` system field isn't available as a SQL column at index-creation time. The remaining `idx_brain_dump_user` index is sufficient — list-by-created is JS-sorted in `getBrainDumps()` and brain-dump volume is small for a single household.
+
+PocketBase rolls failed migrations back in their entirety, so deployments stuck on 1.4.0 will retry the fixed 0004 cleanly on next start. No data loss.
+
 ## [1.4.0] - 2026-04-27
 
 Eight new ADHD-focused capabilities, organised into eight commits in the repo for individual reviewability.

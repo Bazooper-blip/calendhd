@@ -15,16 +15,16 @@
 // contains credentials and password rotation = restart.
 // =============================================================================
 
-const SINGLETON_EMAIL = "home@calendhd.local";
-const SINGLETON_NAME = "Home";
-// Used only when SINGLETON_PASSWORD env is unset (i.e. local dev with raw `pocketbase serve`).
-const DEV_FALLBACK_PASSWORD = "calendhd-dev-only";
-
 // On app bootstrap: ensure the singleton user exists, with a password matching
 // SINGLETON_PASSWORD. If the env-provided password differs from what's stored,
 // rotate it — this transparently retires the old hardcoded password.
 onBootstrap((e) => {
     e.next();
+
+    // PB JSVM runs callbacks in an isolated goja runtime — declare constants inside.
+    const SINGLETON_EMAIL = "home@calendhd.local";
+    const SINGLETON_NAME = "Home";
+    const DEV_FALLBACK_PASSWORD = "calendhd-dev-only";
 
     const password = $os.getenv("SINGLETON_PASSWORD") || DEV_FALLBACK_PASSWORD;
 
@@ -66,6 +66,10 @@ onBootstrap((e) => {
 // this addon; this endpoint is just a way to keep the password out of the
 // shipped bundle and let it rotate on every deployment.
 routerAdd("GET", "/api/calendhd/bootstrap", function(e) {
+    // PB JSVM runs callbacks in an isolated goja runtime — declare constants inside.
+    const SINGLETON_EMAIL = "home@calendhd.local";
+    const DEV_FALLBACK_PASSWORD = "calendhd-dev-only";
+
     const password = $os.getenv("SINGLETON_PASSWORD") || DEV_FALLBACK_PASSWORD;
     return e.json(200, {
         email: SINGLETON_EMAIL,

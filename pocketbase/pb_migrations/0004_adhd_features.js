@@ -61,8 +61,7 @@ migrate((app) => {
       { type: "text", name: "notes", required: false, max: 10000 }
     ],
     indexes: [
-      "CREATE INDEX idx_brain_dump_user ON brain_dump (user)",
-      "CREATE INDEX idx_brain_dump_user_created ON brain_dump (user, created)"
+      "CREATE INDEX idx_brain_dump_user ON brain_dump (user)"
     ]
   });
   app.save(brainDump);
