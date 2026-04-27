@@ -14,7 +14,20 @@
 		"categories": "Kategorier",
 		"subscriptions": "Prenumerationer",
 		"settings": "Inställningar",
-		"routines": "Rutiner"
+		"routines": "Rutiner",
+		"now": "Just nu",
+		"brainDump": "Tankehög"
+	},
+	"now": {
+		"happeningNow": "Händer nu",
+		"upNext": "Nästa",
+		"left": "kvar",
+		"in": "om",
+		"openEvent": "Öppna händelse",
+		"markDone": "Markera klar",
+		"idleTitle": "Ingenting schemalagt just nu",
+		"idleDesc": "Ta ett djupt andetag. Eller kolla din dag.",
+		"viewDay": "Öppna dagens vy"
 	},
 	"event": {
 		"title": "Titel",
@@ -274,6 +287,22 @@
 		"thu": "Tor",
 		"fri": "Fre",
 		"sat": "Lör"
+	},
+	"wins": {
+		"title": "Dagens framgångar",
+		"summary": "{count, plural, one {# sak klar} other {# saker klara}} · {minutes} fokus · {routines, plural, =0 {inga rutiner helt klara} one {# rutin helt klar} other {# rutiner helt klara}}"
+	},
+	"brainDump": {
+		"title": "Tankehög",
+		"placeholder": "Snabb tanke…",
+		"notesPlaceholder": "Anteckningar (valfritt)",
+		"add": "Fånga",
+		"empty": "Inget här än",
+		"emptyDesc": "Skriv en tanke och tryck Fånga. Inget datum, ingen kategori — få bara ur huvudet.",
+		"convertToEvent": "Schemalägg",
+		"delete": "Ta bort",
+		"captured": "Sparad",
+		"deleted": "Borttagen"
 	},
 	"common": {
 		"cancel": "Avbryt",
