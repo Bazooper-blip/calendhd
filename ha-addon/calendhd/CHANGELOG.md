@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.2] - 2026-04-27
+
+### Fixed
+
+- **Brain-dump page 400 on load**: the JS SDK call `getFullList({ sort: '-created' })` produced `perPage=1000&sort=-created` — both legs of which can fail in PB 0.37 (perPage exceeds MaxPerPage=500 in some SDK paths; `sort=-created` is rejected when the brain_dump collection's auto-managed system fields aren't exposed at the API schema layer). Replaced with `getFullList({ batch: 200 })` and a client-side `localeCompare`-on-`created` sort. Volume is small for a single-household app, so post-fetch sort is fine.
+
 ## [1.4.1] - 2026-04-27
 
 ### Fixed

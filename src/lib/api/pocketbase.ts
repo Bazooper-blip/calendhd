@@ -44,8 +44,14 @@ const collections = {
 
 // Brain dump CRUD
 export async function getBrainDumps(): Promise<BrainDump[]> {
-	const records = await collections.brain_dump().getFullList({ sort: '-created' });
-	return records as unknown as BrainDump[];
+	// Sort client-side: server-side `sort=-created` rejected when brain_dump
+	// collection's auto-created system fields aren't exposed as queryable
+	// columns at the API layer in PB 0.37. Volume is small (single household,
+	// quick captures), so post-fetch sort is fine.
+	// `batch: 200` keeps perPage well under PB's MaxPerPage=500.
+	const records = await collections.brain_dump().getFullList({ batch: 200 });
+	const list = records as unknown as BrainDump[];
+	return list.sort((a, b) => b.created.localeCompare(a.created));
 }
 
 export async function createBrainDump(title: string, notes?: string): Promise<BrainDump> {
