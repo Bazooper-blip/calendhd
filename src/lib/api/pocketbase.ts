@@ -37,8 +37,26 @@ const collections = {
 	external_events: () => getPocketBase().collection('external_events'),
 	user_settings: () => getPocketBase().collection('user_settings'),
 	scheduled_reminders: () => getPocketBase().collection('scheduled_reminders'),
-	routine_templates: () => getPocketBase().collection('routine_templates')
+	routine_templates: () => getPocketBase().collection('routine_templates'),
+	brain_dump: () => getPocketBase().collection('brain_dump')
 };
+
+// Brain dump CRUD
+export async function getBrainDumps(): Promise<import('$types').BrainDump[]> {
+	const records = await collections.brain_dump().getFullList({ sort: '-created' });
+	return records as unknown as import('$types').BrainDump[];
+}
+
+export async function createBrainDump(title: string, notes?: string): Promise<import('$types').BrainDump> {
+	const userId = getCurrentUser()?.id;
+	if (!userId) throw new Error('Not authenticated');
+	const record = await collections.brain_dump().create({ user: userId, title, notes: notes ?? '' });
+	return record as unknown as import('$types').BrainDump;
+}
+
+export async function deleteBrainDump(id: string): Promise<void> {
+	await collections.brain_dump().delete(id);
+}
 
 // Auth helpers
 export async function signInWithEmail(email: string, password: string): Promise<User> {
