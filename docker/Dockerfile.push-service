@@ -1,0 +1,23 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy package files and install production dependencies
+COPY push-service/package*.json ./
+RUN npm ci --production
+
+# Copy application files
+COPY push-service/index.js ./
+COPY push-service/generate-vapid.js ./
+
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs \
+ && adduser --system --uid 1001 pushservice
+USER pushservice
+
+EXPOSE 3001
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=10s \
+  CMD wget -q --spider http://localhost:3001/health || exit 1
+
+CMD ["node", "index.js"]

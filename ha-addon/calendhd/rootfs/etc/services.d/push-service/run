@@ -1,0 +1,10 @@
+#!/usr/bin/with-contenv bashio
+# ==============================================================================
+# calenDHD push-service (Web Push / VAPID)
+# Runs alongside PocketBase. PocketBase hooks call this on localhost:3001.
+# ==============================================================================
+
+bashio::log.info "Starting calenDHD push-service on port 3001..."
+
+cd /opt/push-service
+exec node index.js
