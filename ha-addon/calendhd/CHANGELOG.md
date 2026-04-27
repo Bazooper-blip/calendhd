@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.4.3] - 2026-04-27
+
+Frontend rebuild release — bundles all 1.3.x and 1.4.x source changes into the addon image. Earlier 1.4.x version bumps shipped without re-running `build-for-ha.sh`, so the addon was running a stale `_app/` bundle.
+
 ## [1.4.2] - 2026-04-27
 
 ### Fixed
