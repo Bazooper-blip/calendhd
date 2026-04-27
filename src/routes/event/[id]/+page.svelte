@@ -52,6 +52,7 @@
 			await updateEvent(event.id, {
 				title: data.title,
 				description: data.description,
+				first_step: data.first_step,
 				start_time: startTime,
 				end_time: endTime,
 				is_all_day: data.is_all_day,
@@ -98,6 +99,7 @@
 		return {
 			title: event.title,
 			description: event.description,
+			first_step: event.first_step,
 			start_date: format(start, 'yyyy-MM-dd'),
 			start_time: event.is_all_day ? undefined : format(start, 'HH:mm'),
 			end_date: end ? format(end, 'yyyy-MM-dd') : undefined,
