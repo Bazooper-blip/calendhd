@@ -12,10 +12,12 @@
 	let { open = false, onClose }: Props = $props();
 
 	const navItems = $derived([
+		{ href: '/now', label: $_('nav.now'), icon: 'now' },
 		{ href: '/calendar/day', label: $_('nav.day'), icon: 'calendar-day' },
 		{ href: '/calendar/week', label: $_('nav.week'), icon: 'calendar-week' },
 		{ href: '/calendar/month', label: $_('nav.month'), icon: 'calendar-month' },
 		{ href: '/routines', label: $_('nav.routines'), icon: 'routine' },
+		{ href: '/brain-dump', label: $_('nav.brainDump'), icon: 'brain' },
 		{ href: '/templates', label: $_('nav.templates'), icon: 'template' },
 		{ href: '/categories', label: $_('nav.categories'), icon: 'tag' },
 		{ href: '/subscriptions', label: $_('nav.subscriptions'), icon: 'rss' },
@@ -23,6 +25,8 @@
 	]);
 
 	const icons: Record<string, string> = {
+		now: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />`,
+		brain: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />`,
 		'calendar-day': `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />`,
 		'calendar-week': `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />`,
 		'calendar-month': `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2zm4-10h6" />`,

@@ -14,7 +14,20 @@
 		"categories": "Categories",
 		"subscriptions": "Subscriptions",
 		"settings": "Settings",
-		"routines": "Routines"
+		"routines": "Routines",
+		"now": "Right now",
+		"brainDump": "Brain dump"
+	},
+	"now": {
+		"happeningNow": "Happening now",
+		"upNext": "Up next",
+		"left": "left",
+		"in": "in",
+		"openEvent": "Open event",
+		"markDone": "Mark done",
+		"idleTitle": "Nothing scheduled right now",
+		"idleDesc": "Take a breath. Or check your day.",
+		"viewDay": "Open today's day view"
 	},
 	"event": {
 		"title": "Title",
@@ -274,6 +287,22 @@
 		"thu": "Thu",
 		"fri": "Fri",
 		"sat": "Sat"
+	},
+	"wins": {
+		"title": "Today's wins",
+		"summary": "{count, plural, one {# thing done} other {# things done}} · {minutes} of focus · {routines, plural, =0 {no routines fully complete} one {# routine fully complete} other {# routines fully complete}}"
+	},
+	"brainDump": {
+		"title": "Brain dump",
+		"placeholder": "Quick thought…",
+		"notesPlaceholder": "Notes (optional)",
+		"add": "Capture",
+		"empty": "Nothing here yet",
+		"emptyDesc": "Type a thought and tap Capture. No date, no category — just get it out of your head.",
+		"convertToEvent": "Schedule",
+		"delete": "Delete",
+		"captured": "Captured",
+		"deleted": "Deleted"
 	},
 	"common": {
 		"cancel": "Cancel",

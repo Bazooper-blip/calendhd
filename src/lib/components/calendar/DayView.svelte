@@ -14,6 +14,7 @@
 	import EventBlock from './EventBlock.svelte';
 	import RoutineBlock from './RoutineBlock.svelte';
 	import DayProgress from './DayProgress.svelte';
+	import DailyWinsBanner from './DailyWinsBanner.svelte';
 
 	/** A routine group merges multiple routine step events into one visual block. */
 	interface RoutineGroup {
@@ -196,6 +197,7 @@
 <div class="flex flex-col h-full">
 	<!-- Day progress indicator -->
 	<DayProgress {date} />
+	<DailyWinsBanner />
 
 	<!-- Day header -->
 	<div class="flex-shrink-0 border-b border-neutral-100 dark:border-neutral-800 px-4 py-2">
