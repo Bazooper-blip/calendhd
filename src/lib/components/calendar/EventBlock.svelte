@@ -9,12 +9,19 @@
 		style?: string;
 		compact?: boolean;
 		onclick?: () => void;
+		now?: Date;
 	}
 
-	let { event, style = '', compact = false, onclick }: Props = $props();
+	let { event, style = '', compact = false, onclick, now }: Props = $props();
 
 	const format24h = $derived(settingsStore.timeFormat === '24h');
 	const textColor = $derived(getContrastColor(event.color));
+	const isHappeningNow = $derived.by(() => {
+		if (!now) return false;
+		if (event.start > now) return false;
+		if (event.end) return now < event.end;
+		return now.getTime() < event.start.getTime() + 60_000;
+	});
 
 	function handleCheckboxClick(e: MouseEvent) {
 		e.stopPropagation();
@@ -28,7 +35,8 @@
 		'absolute inset-x-1 rounded-lg overflow-hidden text-left transition-all hover:ring-2 hover:ring-primary-500 hover:ring-offset-1 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 min-h-[40px]',
 		event.is_external && 'opacity-80 border-l-4 border-l-secondary-500',
 		event.is_task && 'border-l-4 border-l-amber-400',
-		event.is_completed && 'opacity-60'
+		event.is_completed && 'opacity-60',
+		isHappeningNow && 'ring-2 ring-primary-400 ring-offset-2 ring-offset-white dark:ring-offset-neutral-900 shadow-md'
 	)}
 	{style}
 	style:background-color={event.color}
@@ -79,6 +87,12 @@
 						class:bg-amber-400={event.energy_level === 'medium'}
 						class:bg-red-400={event.energy_level === 'high'}
 					></span>
+				{/if}
+				{#if isHappeningNow}
+					<span class="flex-shrink-0 inline-flex items-center gap-1 rounded-full bg-white/30 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide">
+						<span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+						Now
+					</span>
 				{/if}
 			</span>
 			{#if !event.is_all_day}

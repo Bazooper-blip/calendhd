@@ -127,6 +127,45 @@
 	// Format current time for display
 	const nowTimeString = $derived(format(now, 'HH:mm'));
 
+	const nextUpcoming = $derived.by((): { title: string; minutesAway: number; icon?: string; color: string } | null => {
+		if (!isToday(date)) return null;
+		const nowMs = now.getTime();
+		let bestDelta = Infinity;
+		let best: { title: string; minutesAway: number; icon?: string; color: string } | null = null;
+		for (const item of processedDayEvents) {
+			const start = item.kind === 'single' ? item.event.start : item.start;
+			const delta = start.getTime() - nowMs;
+			if (delta <= 0 || delta >= bestDelta) continue;
+			bestDelta = delta;
+			if (item.kind === 'single') {
+				best = {
+					title: item.event.title,
+					minutesAway: Math.round(delta / 60000),
+					icon: item.event.icon,
+					color: item.event.color
+				};
+			} else {
+				best = {
+					title: item.routine_group_name,
+					minutesAway: Math.round(delta / 60000),
+					icon: item.icon,
+					color: item.color
+				};
+			}
+		}
+		return best;
+	});
+
+	function formatRelative(min: number): string {
+		if (min < 60) return `${min} min`;
+		if (min < 1440) {
+			const h = Math.floor(min / 60);
+			const m = min % 60;
+			return m === 0 ? `${h}h` : `${h}h ${m}m`;
+		}
+		return 'tomorrow';
+	}
+
 	// Update current time every minute
 	$effect(() => {
 		const interval = setInterval(() => {
@@ -169,6 +208,16 @@
 			>
 				{date.getDate()}
 			</span>
+			{#if nextUpcoming}
+				<span class="ml-auto flex items-center gap-1.5 rounded-full bg-primary-50 dark:bg-primary-900/30 px-2.5 py-1 text-xs">
+					<span class="text-primary-700 dark:text-primary-300 font-medium">Next:</span>
+					{#if nextUpcoming.icon}
+						<EventIcon icon={nextUpcoming.icon} size="sm" />
+					{/if}
+					<span class="text-neutral-700 dark:text-neutral-200 truncate max-w-[14ch]">{nextUpcoming.title}</span>
+					<span class="text-primary-700 dark:text-primary-300 font-medium">in {formatRelative(nextUpcoming.minutesAway)}</span>
+				</span>
+			{/if}
 		</div>
 	</div>
 
@@ -245,6 +294,7 @@
 							event={item.event}
 							style="top: {pos.top}%; height: {pos.height}%;"
 							onclick={() => handleEventClick(item.event)}
+							{now}
 						/>
 					{:else}
 						{@const pos = getEventPosition(item.start, item.end, date)}
@@ -256,6 +306,9 @@
 							steps={item.steps}
 							style="top: {pos.top}%; height: {pos.height}%;"
 							target_end_time={item.target_end_time}
+							{now}
+							start={item.start}
+							end={item.end}
 						/>
 					{/if}
 				{/each}

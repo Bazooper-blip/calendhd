@@ -31,6 +31,9 @@
 		style?: string;
 		compact?: boolean;
 		target_end_time?: string;
+		now?: Date;
+		start?: Date;
+		end?: Date;
 	}
 
 	let {
@@ -41,7 +44,10 @@
 		steps,
 		style = '',
 		compact = false,
-		target_end_time
+		target_end_time,
+		now,
+		start,
+		end
 	}: Props = $props();
 
 	let expanded = $state(expandedRoutines.has(routine_template));
@@ -50,6 +56,7 @@
 	const textColor = $derived(getContrastColor(color));
 	const completedCount = $derived(steps.filter((s) => s.is_completed).length);
 	const allDone = $derived(completedCount === steps.length);
+	const isHappeningNow = $derived(!!(now && start && end && start <= now && now < end));
 
 	const deadlineStatus = $derived.by(() => {
 		if (!target_end_time || steps.length === 0) return 'on-track';
@@ -90,7 +97,8 @@
 	type="button"
 	class={cn(
 		'absolute inset-x-1 rounded-lg text-left transition-all hover:ring-2 hover:ring-primary-500 hover:ring-offset-1 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1',
-		expanded ? 'z-10 ring-2 ring-primary-500/30 shadow-lg overflow-y-auto' : 'overflow-hidden'
+		expanded ? 'z-10 ring-2 ring-primary-500/30 shadow-lg overflow-y-auto' : 'overflow-hidden',
+		isHappeningNow && 'ring-2 ring-primary-400 ring-offset-2 ring-offset-white dark:ring-offset-neutral-900 shadow-md'
 	)}
 	style="{expanded ? style.replace(/height:\s*[^;]+;?/, '') + 'height: auto;' : style} background-color: {color};"
 	onclick={toggleExpand}
@@ -103,6 +111,12 @@
 					<EventIcon icon={icon} size="sm" />
 				{/if}
 				{routine_group_name}
+				{#if isHappeningNow}
+					<span class="flex-shrink-0 inline-flex items-center gap-1 rounded-full bg-white/30 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide">
+						<span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+						Now
+					</span>
+				{/if}
 			</span>
 			<!-- Progress pill -->
 			<span class={cn(

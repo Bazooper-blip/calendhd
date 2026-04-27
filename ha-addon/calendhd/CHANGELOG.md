@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.0] - 2026-04-27
+
+### Added — time-blindness UX
+
+- **"Happening now" highlight**: events and routine blocks whose time range contains the current minute get a sage-green ring and a small pulsing "Now" badge in the title row. Visually answers "what should I be doing right now" at a glance.
+- **"Next: …" pill** in the day-view header: shows the upcoming event's icon, truncated title, and time-until ("in 23 min", "in 1h 15m", "tomorrow") when viewing today. Updates as `now` ticks each minute.
+
+The horizontal "now" line on the timeline and auto-scroll-to-current-time on mount were already present; this release builds on those primitives by extending the same `now` rune into the EventBlock / RoutineBlock children.
+
 ## [1.2.0] - 2026-04-27
 
 ### Security
