@@ -307,6 +307,9 @@
 		"captured": "Captured",
 		"deleted": "Deleted"
 	},
+	"calendar": {
+		"tightGap": "{minutes} min transition"
+	},
 	"common": {
 		"cancel": "Cancel",
 		"save": "Save",

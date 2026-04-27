@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import { calendar, routinesStore, settingsStore } from '$stores';
+	import { _ } from '$lib/i18n';
 	import {
 		formatDayOfWeek,
 		getEventPosition,
@@ -127,6 +128,33 @@
 
 	// Format current time for display
 	const nowTimeString = $derived(format(now, 'HH:mm'));
+
+	// Tight gaps: consecutive events whose gap is < bufferMinutes. Visual-only
+	// indicator; we don't push the user's events around.
+	const tightGaps = $derived.by((): Array<{ topPercent: number; minutes: number }> => {
+		const buffer = settingsStore.bufferMinutes;
+		if (buffer <= 0) return [];
+		// Collect [start, end] pairs in time order, only events with explicit ends.
+		const ranges: Array<{ start: Date; end: Date }> = [];
+		for (const item of processedDayEvents) {
+			if (item.kind === 'single') {
+				if (item.event.end) ranges.push({ start: item.event.start, end: item.event.end });
+			} else {
+				ranges.push({ start: item.start, end: item.end });
+			}
+		}
+		ranges.sort((a, b) => a.start.getTime() - b.start.getTime());
+		const out: Array<{ topPercent: number; minutes: number }> = [];
+		for (let i = 0; i < ranges.length - 1; i++) {
+			const gapMs = ranges[i + 1].start.getTime() - ranges[i].end.getTime();
+			if (gapMs <= 0) continue; // overlap or back-to-back
+			const gapMin = Math.round(gapMs / 60_000);
+			if (gapMin >= buffer) continue;
+			const minutesFromMidnight = ranges[i].end.getHours() * 60 + ranges[i].end.getMinutes();
+			out.push({ topPercent: (minutesFromMidnight / 1440) * 100, minutes: gapMin });
+		}
+		return out;
+	});
 
 	const nextUpcoming = $derived.by((): { title: string; minutesAway: number; icon?: string; color: string } | null => {
 		if (!isToday(date)) return null;
@@ -286,6 +314,19 @@
 					</div>
 				</div>
 			{/if}
+
+			<!-- Tight transition gaps: events scheduled with less than buffer-minutes between them -->
+			{#each tightGaps as gap, i (i)}
+				<div
+					class="absolute left-16 right-2 z-10 pointer-events-none flex items-center"
+					style="top: {gap.topPercent}%"
+				>
+					<div class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 text-[10px] text-amber-700 dark:text-amber-300">
+						<span class="opacity-70">⏱</span>
+						<span>{$_('calendar.tightGap', { values: { minutes: gap.minutes } })}</span>
+					</div>
+				</div>
+			{/each}
 
 			<!-- Events -->
 			<div class="absolute left-16 right-2 top-0 bottom-0">
