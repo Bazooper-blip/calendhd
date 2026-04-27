@@ -95,6 +95,7 @@ export interface CalendarEvent extends BaseRecord {
 	category?: string;
 	title: string;
 	description?: string;
+	first_step?: string; // optional "first physical action" — what to actually start doing
 	start_time: string; // ISO datetime
 	end_time?: string; // ISO datetime (optional)
 	is_all_day: boolean;
@@ -155,6 +156,17 @@ export interface UserSettings extends BaseRecord {
 	high_contrast: boolean;
 	timezone: string;
 	push_subscription?: PushSubscriptionData; // Web Push subscription for notifications
+	buffer_minutes?: number; // ADHD: visual transition-time gap between events (default 10)
+	density?: 'compact' | 'comfortable' | 'spacious'; // ADHD: layout density preference
+	daily_wins_enabled?: boolean; // ADHD: show end-of-day completion summary
+	streak_celebration_enabled?: boolean; // ADHD: celebrate routine completion + show streak
+}
+
+// Brain dump (quick thought capture without scheduling)
+export interface BrainDump extends BaseRecord {
+	user: string;
+	title: string;
+	notes?: string;
 }
 
 // Push subscription data
