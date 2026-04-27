@@ -89,21 +89,13 @@ cronAdd("reminder_sender", "* * * * *", function() {
             return { success: false, error: "no_user_settings" };
         }
 
-        // Get push subscription from user settings
-        var pushSubscriptionRaw = userSettings.get("push_subscription");
-        if (!pushSubscriptionRaw) {
+        // PB JSVM returns json fields as byte arrays — use the shared decoder.
+        var helpers = require(`${__hooks}/routine_helpers.js`);
+        var pushSubscription = helpers.parseJsonField(userSettings.get("push_subscription"));
+
+        if (!pushSubscription) {
             return { success: false, error: "no_push_subscription" };
         }
-
-        var pushSubscription;
-        try {
-            pushSubscription = typeof pushSubscriptionRaw === "string"
-                ? JSON.parse(pushSubscriptionRaw)
-                : pushSubscriptionRaw;
-        } catch (err) {
-            return { success: false, error: "invalid_subscription_data" };
-        }
-
         if (!pushSubscription.endpoint || !pushSubscription.keys) {
             return { success: false, error: "invalid_subscription" };
         }

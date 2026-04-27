@@ -43,6 +43,8 @@ function parseJsonField(value) {
 }
 
 module.exports = {
+    parseJsonField: parseJsonField,
+
     deleteRoutineEventsForDate: function(routineId, targetDate) {
         var dayStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 0, 0, 0);
         var dayEnd = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 23, 59, 59);

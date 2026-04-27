@@ -49,21 +49,13 @@ routerAdd("POST", "/api/calendhd/test-notification", function(e) {
         return e.json(400, { error: "No user settings found. Please save your settings first." });
     }
 
-    // Get push subscription from user settings
-    var pushSubscriptionRaw = userSettings.get("push_subscription");
-    if (!pushSubscriptionRaw) {
+    // PB JSVM returns json fields as byte arrays — use the shared decoder.
+    var helpers = require(`${__hooks}/routine_helpers.js`);
+    var pushSubscription = helpers.parseJsonField(userSettings.get("push_subscription"));
+
+    if (!pushSubscription) {
         return e.json(400, { error: "No push subscription found. Please enable push notifications first." });
     }
-
-    var pushSubscription;
-    try {
-        pushSubscription = typeof pushSubscriptionRaw === "string"
-            ? JSON.parse(pushSubscriptionRaw)
-            : pushSubscriptionRaw;
-    } catch (err) {
-        return e.json(400, { error: "Invalid push subscription data" });
-    }
-
     if (!pushSubscription.endpoint || !pushSubscription.keys) {
         return e.json(400, { error: "Invalid push subscription - missing endpoint or keys" });
     }

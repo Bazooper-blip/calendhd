@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.2] - 2026-04-26
+
+### Fixed
+
+- Push notifications now actually deliver. The reminder cron and `/api/calendhd/test-notification` route both read `user_settings.push_subscription` directly from `record.get(...)`, but PB JSVM returns `json` fields as byte arrays, not parsed objects — so `subscription.endpoint` was always `undefined` and the server returned `400 Invalid push subscription`. Both hooks now decode via the shared `parseJsonField()` helper in `routine_helpers.js`.
+
 ## [1.1.1] - 2026-04-26
 
 ### Fixed
