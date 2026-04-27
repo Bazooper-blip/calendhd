@@ -68,13 +68,15 @@ Defined in `svelte.config.js`:
 |--------|------|---------|
 | Database | `src/lib/db/index.ts` | Dexie schema (events, categories, templates, subscriptions, external_events, settings, routine_templates) |
 | Routines DB | `src/lib/db/routines.ts` | Routine template local DB helpers |
-| API | `src/lib/api/pocketbase.ts` | PocketBase client, collection helpers, realtime subscriptions |
+| API | `src/lib/api/pocketbase.ts` | PocketBase client, collection helpers, realtime subscriptions, brain-dump CRUD |
 | Stores | `src/lib/stores/*.svelte.ts` | Rune-based stores: auth, calendar, categories, templates, settings, routines |
-| i18n | `src/lib/i18n/` | English (default, sync-loaded) and Swedish (lazy-loaded) via svelte-i18n |
+| i18n | `src/lib/i18n/` | English (default, sync-loaded) and Swedish (lazy-loaded) via svelte-i18n; locale files must stay key-balanced (Python structural diff in CI-style sweeps) |
 | Date Utils | `src/lib/utils/date.ts` | Timezone-aware date formatting/manipulation via date-fns + date-fns-tz |
 | Recurrence | `src/lib/utils/recurrence.ts` | Recurrence rule formatting and presets |
 | Notifications | `src/lib/utils/notifications.ts` | Web Push API, VAPID key handling |
-| Types | `src/lib/types/index.ts` | Core types: CalendarEvent/LocalEvent, Category/LocalCategory, Template, RoutineTemplate, DisplayEvent, RecurrenceRule, UserSettings |
+| Streak | `src/lib/utils/streak.ts` | `computeRoutineStreak()` — counts consecutive past days a routine was fully completed |
+| Sample routines | `src/lib/utils/sampleRoutines.ts` | Hardcoded starter-pack routines used by the empty-state button on `/routines` |
+| Types | `src/lib/types/index.ts` | Core types: CalendarEvent/LocalEvent, Category/LocalCategory, Template, RoutineTemplate, BrainDump, DisplayEvent, RecurrenceRule, UserSettings |
 
 ### Stores
 
@@ -82,9 +84,9 @@ All stores are singletons using Svelte 5 runes in `.svelte.ts` files:
 
 | Store | Key State | Purpose |
 |-------|-----------|---------|
-| `auth.svelte.ts` | user, isAuthenticated | Auto-login singleton account with token refresh |
-| `calendar.svelte.ts` | currentDate, viewType, events, displayEvents | Calendar state, event CRUD, flexible timing cascade for routine steps |
-| `settings.svelte.ts` | settings (11+ keys) | User preferences (theme, locale, timezone, etc.), syncs to server |
+| `auth.svelte.ts` | user, isAuthenticated | Auto-login singleton account; fetches credentials from `/api/calendhd/bootstrap` (no hardcoded password) |
+| `calendar.svelte.ts` | currentDate, viewType, events, displayEvents | Calendar state, event CRUD, flexible timing cascade for routine steps; fires routine-completion celebration toast |
+| `settings.svelte.ts` | settings (15+ keys) | User preferences. Includes ADHD knobs: `buffer_minutes`, `density`, `daily_wins_enabled`, `streak_celebration_enabled` |
 | `categories.svelte.ts` | categories | Category CRUD with 8 default colors, reorderable |
 | `templates.svelte.ts` | templates | Event template CRUD with local sync |
 | `routines.svelte.ts` | routines | Routine template CRUD with active/inactive toggling |
@@ -94,19 +96,29 @@ All stores are singletons using Svelte 5 runes in `.svelte.ts` files:
 ```
 src/lib/components/
 ├── layout/     Header, Sidebar
-├── calendar/   DayView, WeekView, MonthView, EventBlock, RoutineBlock, DayProgress
+├── calendar/   DayView, WeekView, MonthView, EventBlock, RoutineBlock,
+│               DayProgress, DailyWinsBanner
 ├── event/      EventForm, QuickAdd
 ├── ui/         Button, Input, Modal, Select, Toggle, ColorPicker, IconPicker,
 │               EventIcon, OfflineIndicator
 └── index.ts    Barrel re-export of all subcomponents
 ```
 
+**Time-blindness UX in DayView** (intentional design — keep these affordances coherent when editing):
+- DayProgress bar (waking-hours percent)
+- Horizontal red "now" line at the current minute, with auto-scroll-to-now on mount
+- "Happening now" sage ring + pulsing badge on the active event/routine
+- "Next: …" pill in the day header showing the next event's icon, title, and time-until
+- DailyWinsBanner at top of today's view after 21:00 when there are completions
+
 ### Routes
 
 - `/` — Redirects to user's default calendar view
+- `/now` — Right-now focus screen (current event / next-up / idle); auto-refreshes every 30s
 - `/calendar/day/[[date]]`, `/calendar/week/[[date]]`, `/calendar/month/[[date]]` — Calendar views (optional date param)
-- `/event/new`, `/event/[id]` — Event creation/editing
-- `/routines`, `/routines/new`, `/routines/[id]` — Routine template management
+- `/event/new`, `/event/[id]` — Event creation/editing; `/event/new` reads `?title=&notes=` query params for brain-dump pre-fill
+- `/routines`, `/routines/new`, `/routines/[id]` — Routine template management; empty-state offers "Add starter routines"
+- `/brain-dump` — Quick thought capture (no date/category required); per-item "Schedule" / "Delete"
 - `/categories`, `/templates`, `/subscriptions`, `/settings` — Management pages
 
 ### Dexie Database Schema
@@ -129,15 +141,31 @@ src/lib/components/
 1. `0001_initial_schema.js` — Core collections: categories, events, templates, calendar_subscriptions, external_events, user_settings, scheduled_reminders
 2. `0002_routine_templates.js` — Routine templates collection + routine fields on events
 3. `0003_routine_target_end.js` — target_end_time field on routine_templates
+4. `0004_adhd_features.js` — `events.first_step` (text); `user_settings.{buffer_minutes, density, daily_wins_enabled, streak_celebration_enabled}`; new `brain_dump` collection
 
 **Hooks** (`pocketbase/pb_hooks/`):
+- `005_singleton_init.pb.js` — Creates/rotates the singleton `home@calendhd.local` user on bootstrap; serves credentials at `GET /api/calendhd/bootstrap` (same-origin)
 - `010_reminder_scheduler.pb.js` — Schedules reminders on event create/update
-- `020_reminder_cron.pb.js` — Cron job to send scheduled reminders
+- `020_reminder_cron.pb.js` — Cron job to send scheduled reminders; uses `event.first_step` as push body when set
 - `030_reminder_cleanup.pb.js` — Cleanup old sent reminders
 - `040_notification_test.pb.js` — Test notification endpoint
 - `050_subscription_sync.pb.js` — Sync external iCal feeds
 - `060_routine_generator.pb.js` — Daily cron generates events from active routines; regenerates on routine create/update; cascades delete
-- `routine_helpers.js` — Shared module `require()`'d by routine hooks; provides UTF-8 decoding for PB JSVM JSON byte-array fields (must be copied to addon alongside hooks)
+- `pb_helpers.js` — Shared `require()`'d module; exports `parseJsonField()` (handles all three forms PB JSVM may return for json fields) + routine helpers. Must be copied to addon alongside hooks.
+
+**Custom routes** (registered via `routerAdd` in hooks):
+- `GET /api/calendhd/bootstrap` — singleton credentials (auth bootstrap)
+- `GET /api/calendhd/vapid-public-key` — VAPID public key for push subscriptions
+- `POST /api/calendhd/test-notification` — server-side push test (requires auth)
+
+### PocketBase JSVM gotchas (read before touching any `pb_hooks/*.pb.js`)
+
+These have caused multiple production-breaking bugs. They're not optional knowledge:
+
+1. **Callback scope isolation.** `cronAdd`, `routerAdd`, `onBootstrap`, and `onRecord*` callbacks run in their own goja runtimes. Module-level `var`/`const` declarations are **not** visible inside callbacks. Constants and `$os.getenv()` calls must be **inside** each callback body. Compile-time JS semantics suggest closure capture; PB JSVM does not honor that.
+2. **JSON fields return byte arrays.** `record.get('<json_field>')` returns a Goja byte array, not a parsed object. Always route through `helpers.parseJsonField(record.get(...))`. The "field is `null`/`undefined`" error message is misleading — the bytes are right there but `.endpoint` etc. is undefined on a byte array.
+3. **System fields aren't queryable on JS-defined collections.** PB 0.37 auto-adds `id`/`created`/`updated` SQL columns but does not expose them at the API schema layer for collections defined by JS migrations. You can't `CREATE INDEX ... ON foo (created)` and you can't `?sort=-created` from the JS SDK. Sort by user-defined fields server-side, or sort client-side after `getFullList()`.
+4. **`getFullList()` perPage cap.** The JS SDK may default to `perPage=1000` in some flows but PB 0.37 enforces `MaxPerPage=500`. Pass `{ batch: 200 }` (or similar < 500) explicitly when calling `getFullList`.
 
 ### Service Worker
 
@@ -197,6 +225,10 @@ ha-addon/calendhd/
 
 **Release flow:** the Dockerfile (`ha-addon/calendhd/Dockerfile`) does not run `npm run build` itself — its build context is limited to `ha-addon/calendhd/`, so the frontend at `rootfs/opt/calendhd/public/` must be pre-built and committed. `.gitignore` only excludes the top-level `build/`, so the addon's `rootfs/opt/calendhd/public/` is tracked normally.
 
+> **Critical:** any commit that changes `src/**` MUST be paired with `./build-for-ha.sh` so the rebuilt `_app/*` chunks land in `ha-addon/calendhd/rootfs/opt/calendhd/public/`. Bumping `version:` in `config.yaml` triggers HA to "update" but the image rebuild produces an identical artifact if the rootfs hasn't been refreshed. Has bitten us at least once (1.4.0 → 1.4.3). The init script (`calendhd-init.sh`) rsync's `/opt/calendhd/public/* → /config/calendhd/pb_public/` on every start — overwriting any hot-swapped assets — so the in-image bundle is the source of truth.
+
+**Singleton-account password rotation.** On every addon start, `cont-init.d/calendhd-init.sh` ensures `/config/calendhd/.singleton-password` exists (generates 32-byte hex via openssl/urandom on first run), exposes it as `SINGLETON_PASSWORD` in the s6 container_environment, and the `005_singleton_init.pb.js` hook then `setPassword`s the singleton user to match. To force-rotate the password: stop addon → `rm /config/calendhd/.singleton-password` → start addon. Existing sessions are invalidated on next `authRefresh`.
+
 **Repo metadata:** [`repository.yaml`](repository.yaml) at the repo root marks this as an HA add-on repository. Users add `https://github.com/Bazooper-blip/calendhd` in HA → Add-on Store → Repositories.
 
 **When adding new hooks or migrations**, always run the build script or manually copy files to `ha-addon/calendhd/` to keep the addon in sync.
@@ -212,11 +244,20 @@ ha-addon/calendhd/
 
 - **Tailwind CSS 4** via `@tailwindcss/vite` plugin (no PostCSS config, no `tailwind.config` file)
 - **Calm color palette**: Primary sage green (`#7C9885`), secondary lavender (`#9A88B5`), accent peach (`#E8A383`); 8 soft category colors; UI avoids harsh contrasts
-- **Dark mode**: CSS class strategy with theme toggle in settings
+- **Dark mode**: CSS class strategy with theme toggle in settings. Convention: `bg-white → dark:bg-neutral-800`, `bg-neutral-50 → dark:bg-neutral-900`, `text-neutral-{700,800,900} → dark:text-neutral-{200,100,50}`, `border-neutral-{100,200} → dark:border-neutral-{800,700}`, color-tinted bgs use `dark:bg-{color}-900/{20-30}`. Bright accent buttons (`bg-primary-500`) need NO dark variant.
 - **Dual type system**: Server types (e.g. `CalendarEvent`) extend `BaseRecord`; local types (e.g. `LocalEvent`) add `local_id` and `sync_status`
 - **Barrel exports**: Each `src/lib/` subdirectory has an `index.ts` re-exporting its contents
-- **i18n**: All user-facing text uses `$t('key')` from svelte-i18n; keys organized hierarchically in `src/lib/i18n/locales/{en,sv}.json`
+- **i18n**: All user-facing text uses `$t('key')` / `$_('key')` from svelte-i18n; keys organized hierarchically in `src/lib/i18n/locales/{en,sv}.json`. Both files MUST stay key-balanced — verify with the Python structural diff snippet:
+  ```bash
+  python3 -c "import json; e=json.load(open('src/lib/i18n/locales/en.json')); s=json.load(open('src/lib/i18n/locales/sv.json'));
+  def k(d,p=''): out=set();
+   [out.update(k(v,(f'{p}.{x}' if p else x))) if isinstance(v,dict) else out.add(f'{p}.{x}' if p else x) for x,v in d.items()];
+   return out
+  print(sorted(k(e)-k(s)), sorted(k(s)-k(e)))"
+  ```
+  Avoid the `$_('key') || 'English fallback'` pattern — it masks missing translations.
 - **Accessibility**: Support for reduced animations, high contrast mode, configurable time format (12h/24h), and week start day
-- **Icons**: `lucide-svelte` for UI icons; `EventIcon` component for emoji/icon display on events
+- **Icons**: `lucide-svelte` for UI icons; `EventIcon` component for emoji/icon display on events. App branding lives at `static/favicon.svg` (vector source); `static/icons/icon-{72…512}.png` and `apple-touch-icon.png` are rsvg-convert outputs from the SVG; `ha-addon/calendhd/{icon,logo}.png` (256×256) likewise.
 - **Toasts**: `svelte-sonner` for toast notifications
 - **UI primitives**: `bits-ui` for accessible component primitives
+- **No backwards-compat layer for the singleton user.** The old hardcoded `calendhd-home-2024` password is **gone**. The bootstrap endpoint is the only way the frontend learns credentials.
