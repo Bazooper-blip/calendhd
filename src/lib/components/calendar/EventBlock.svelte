@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { cn, getContrastColor, formatTime, formatTimeRange } from '$utils';
 	import { settingsStore, calendar } from '$stores';
+	import { _ } from '$lib/i18n';
 	import { EventIcon } from '$components/ui';
 	import type { DisplayEvent } from '$types';
 
@@ -58,7 +59,7 @@
 				)}
 				role="checkbox"
 				aria-checked={event.is_completed}
-				aria-label={event.is_completed ? 'Mark incomplete' : 'Mark complete'}
+				aria-label={event.is_completed ? $_('event.markIncomplete') : $_('event.markComplete')}
 			>
 				{#if event.is_completed}
 					<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -91,7 +92,7 @@
 				{#if isHappeningNow}
 					<span class="flex-shrink-0 inline-flex items-center gap-1 rounded-full bg-white/30 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide">
 						<span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
-						Now
+						{$_('event.now')}
 					</span>
 				{/if}
 			</span>
@@ -104,7 +105,7 @@
 					{/if}
 				</span>
 			{:else if !compact}
-				<span class="text-xs opacity-80 truncate">All day</span>
+				<span class="text-xs opacity-80 truncate">{$_('time.allDay')}</span>
 			{/if}
 			{#if event.is_external && !compact}
 				<span class="text-xs opacity-70 truncate">

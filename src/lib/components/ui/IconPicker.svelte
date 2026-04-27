@@ -310,7 +310,7 @@
 							{/each}
 						</div>
 						{#if filteredEmojis.length === 0}
-							<p class="text-center text-neutral-500 py-4 text-sm">No emojis found</p>
+							<p class="text-center text-neutral-500 py-4 text-sm">{$t('iconPicker.noEmojisFound')}</p>
 						{/if}
 					{:else}
 						{#each emojiCategories as category}
@@ -333,7 +333,7 @@
 				{:else}
 					<!-- Lucide icons tab -->
 					{#if !lucideLoaded}
-						<p class="text-center text-neutral-500 py-4 text-sm">Loading icons...</p>
+						<p class="text-center text-neutral-500 py-4 text-sm">{$t('iconPicker.loadingIcons')}</p>
 					{:else if filteredLucideIcons}
 						<div class="grid grid-cols-6 sm:grid-cols-8 gap-1">
 							{#each filteredLucideIcons as iconName}
@@ -351,7 +351,7 @@
 							{/each}
 						</div>
 						{#if filteredLucideIcons.length === 0}
-							<p class="text-center text-neutral-500 py-4 text-sm">No icons found</p>
+							<p class="text-center text-neutral-500 py-4 text-sm">{$t('iconPicker.noIconsFound')}</p>
 						{/if}
 					{:else}
 						{#each lucideCategories as category}

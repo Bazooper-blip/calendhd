@@ -48,7 +48,7 @@
 				// Get VAPID public key from server
 				const vapidKey = await getVapidPublicKey();
 				if (!vapidKey) {
-					toast.error('Push notifications not configured on server');
+					toast.error($_('settings.pushNotConfigured'));
 					return;
 				}
 
@@ -58,13 +58,13 @@
 					// Save subscription to server
 					await savePushSubscription(subscription);
 					hasSubscription = true;
-					toast.success($_('settings.notificationsEnabled') || 'Push notifications enabled!');
+					toast.success($_('settings.notificationsEnabled'));
 				}
 			} else if (permission === 'denied') {
-				toast.error($_('settings.notificationsDenied') || 'Notifications blocked. Please enable in browser settings.');
+				toast.error($_('settings.notificationsDenied'));
 			}
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Failed to enable notifications');
+			toast.error(error instanceof Error ? error.message : $_('settings.notificationsEnableFailed'));
 		} finally {
 			notificationLoading = false;
 		}
@@ -76,9 +76,9 @@
 			await unsubscribeFromPush();
 			await removePushSubscription();
 			hasSubscription = false;
-			toast.success($_('settings.notificationsDisabled') || 'Push notifications disabled');
+			toast.success($_('settings.notificationsDisabled'));
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Failed to disable notifications');
+			toast.error(error instanceof Error ? error.message : $_('settings.notificationsDisableFailed'));
 		} finally {
 			notificationLoading = false;
 		}
@@ -87,9 +87,9 @@
 	async function handleTestNotification() {
 		try {
 			await sendTestNotification();
-			toast.success($_('settings.testNotificationSent') || 'Test notification sent!');
+			toast.success($_('settings.testNotificationSent'));
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Failed to send test notification');
+			toast.error(error instanceof Error ? error.message : $_('settings.testNotificationFailed'));
 		}
 	}
 
@@ -98,13 +98,12 @@
 		try {
 			const result = await testServerNotification();
 			if (result.success) {
-				toast.success($_('settings.pushTestSuccess') || 'Push notification sent! Check your device.');
+				toast.success($_('settings.pushTestSuccess'));
 			} else {
-				const errorMsg = result.error || 'Failed to send push notification';
-				toast.error(errorMsg);
+				toast.error(result.error || $_('settings.pushTestFail'));
 			}
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Failed to send push notification');
+			toast.error(error instanceof Error ? error.message : $_('settings.pushTestFail'));
 		} finally {
 			pushTestLoading = false;
 		}

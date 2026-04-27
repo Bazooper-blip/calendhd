@@ -3,6 +3,7 @@
 	import { format, addHours, setHours, setMinutes } from 'date-fns';
 	import { calendar } from '$stores';
 	import { toast } from 'svelte-sonner';
+	import { _ } from '$lib/i18n';
 	import { Button, Input, Modal } from '$components/ui';
 
 	let showModal = $state(false);
@@ -55,10 +56,10 @@
 				reminders: [{ minutes_before: 10, type: 'notification' }]
 			});
 
-			toast.success('Event created');
+			toast.success($_('event.created'));
 			closeModal();
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Failed to create event');
+			toast.error(error instanceof Error ? error.message : $_('errors.createEvent'));
 		} finally {
 			loading = false;
 		}
@@ -109,7 +110,7 @@
 		? 'translate-y-0 opacity-100'
 		: 'translate-y-20 opacity-0'}"
 	style="bottom: calc(1.5rem + env(safe-area-inset-bottom))"
-	aria-label="Quick add event (press N)"
+	aria-label={$_('event.quickAddAria')}
 >
 	<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 		<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -117,19 +118,19 @@
 </button>
 
 <!-- Quick Add Modal -->
-<Modal bind:open={showModal} title="Quick Add Event" size="sm">
+<Modal bind:open={showModal} title={$_('event.quickAdd')} size="sm">
 	<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4">
 		<div>
 			<Input
 				bind:value={title}
-				placeholder="Event title"
+				placeholder={$_('event.titlePlaceholder')}
 				autofocus
 			/>
 		</div>
 
 		<div class="grid grid-cols-2 gap-3">
 			<div>
-				<label for="quick-date" class="block text-xs font-medium text-neutral-500 mb-1">Date</label>
+				<label for="quick-date" class="block text-xs font-medium text-neutral-500 mb-1">{$_('event.date')}</label>
 				<Input
 					id="quick-date"
 					type="date"
@@ -137,7 +138,7 @@
 				/>
 			</div>
 			<div>
-				<label for="quick-time" class="block text-xs font-medium text-neutral-500 mb-1">Time</label>
+				<label for="quick-time" class="block text-xs font-medium text-neutral-500 mb-1">{$_('event.time')}</label>
 				<Input
 					id="quick-time"
 					type="time"
@@ -147,7 +148,7 @@
 		</div>
 
 		<div>
-			<span class="block text-xs font-medium text-neutral-500 mb-1">Duration</span>
+			<span class="block text-xs font-medium text-neutral-500 mb-1">{$_('event.duration')}</span>
 			<div class="flex gap-2">
 				{#each [15, 30, 60, 120] as mins}
 					<button
@@ -178,18 +179,18 @@
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
 				{/if}
 			</svg>
-			<span class="text-sm">{isTask ? 'This is a task' : 'Make this a task'}</span>
+			<span class="text-sm">{isTask ? $_('event.isTask') : $_('event.makeTask')}</span>
 		</button>
 
 		<p class="text-xs text-neutral-400 text-center">
-			Tip: Press <kbd class="px-1.5 py-0.5 bg-neutral-100 rounded text-neutral-600">N</kbd> anywhere to quick add
+			{$_('event.quickAddTip', { values: { key: 'N' } })}
 		</p>
 	</form>
 
 	{#snippet footer()}
-		<Button variant="ghost" onclick={closeModal}>Cancel</Button>
+		<Button variant="ghost" onclick={closeModal}>{$_('common.cancel')}</Button>
 		<Button onclick={handleSubmit} {loading} disabled={!title.trim()}>
-			Add Event
+			{$_('event.addEvent')}
 		</Button>
 	{/snippet}
 </Modal>

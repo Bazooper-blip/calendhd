@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { isToday } from '$utils';
+	import { _ } from '$lib/i18n';
 
 	let { date }: { date: Date } = $props();
 
@@ -38,7 +39,7 @@
 
 {#if dayProgress !== null}
 	<div class="flex items-center gap-3 px-4 py-2 bg-white border-b border-neutral-100">
-		<span class="text-xs text-neutral-500 w-20">Day progress</span>
+		<span class="text-xs text-neutral-500 w-20">{$_('progress.dayProgress')}</span>
 		<div class="flex-1 h-2 bg-neutral-100 rounded-full overflow-hidden">
 			<div
 				class="h-full bg-gradient-to-r from-primary-400 to-primary-500 rounded-full transition-all duration-1000"

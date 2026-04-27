@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.3.1] - 2026-04-27
+
+### Fixed — Swedish translation coverage
+
+Audited every `.svelte` file under `src/lib/components/` and `src/routes/` for hardcoded English strings that bypassed i18n. Locale files were already key-balanced (each ~265 entries), so the gaps were components, not translations:
+
+- **Quick-add modal** (FAB + form): modal title, input placeholder, day/time/duration labels, task-toggle button, footer buttons, "press N anywhere" tip, FAB aria-label, success/failure toasts.
+- **Event block "Now" badge**: routed through new `event.now` key.
+- **Event block "All day" label**: routed through existing `time.allDay` key.
+- **Event block checkbox aria-label**: new `event.markComplete` / `event.markIncomplete` keys.
+- **Day-progress label**: routed through existing `progress.dayProgress` key.
+- **Offline indicator**: "Back online", "You're offline", "Changes will sync when connected", "Dismiss" — all routed through existing `status.*` keys.
+- **Icon picker**: "No emojis found", "Loading icons…", "No icons found" — new `iconPicker.*` keys.
+- **Settings page**: removed five `$_('key') || 'English fallback'` patterns that masked perfectly-good Swedish translations; added proper failure-message keys for catch-block toasts (was reusing success-message keys).
+
+13 new keys added to both `en.json` and `sv.json`; both files now sit at 270 keys with zero key drift verified.
+
 ## [1.3.0] - 2026-04-27
 
 ### Added — time-blindness UX

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { _ } from '$lib/i18n';
 
 	let isOnline = $state(browser ? navigator.onLine : true);
 	let showBanner = $state(false);
@@ -41,21 +42,21 @@
 			<svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
 			</svg>
-			<span class="text-sm font-medium">Back online</span>
+			<span class="text-sm font-medium">{$_('status.online')}</span>
 		{:else}
 			<svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728m-3.536-3.536a4 4 0 010-5.656m-7.072 7.072a9 9 0 010-12.728m3.536 3.536a4 4 0 010 5.656" />
 			</svg>
 			<div>
-				<p class="text-sm font-medium">You're offline</p>
-				<p class="text-xs opacity-90">Changes will sync when connected</p>
+				<p class="text-sm font-medium">{$_('status.offline')}</p>
+				<p class="text-xs opacity-90">{$_('status.offlineMessage')}</p>
 			</div>
 		{/if}
 		<button
 			type="button"
 			onclick={() => (showBanner = false)}
 			class="ml-auto p-1 hover:bg-white/20 rounded"
-			aria-label="Dismiss"
+			aria-label={$_('status.dismiss')}
 		>
 			<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
