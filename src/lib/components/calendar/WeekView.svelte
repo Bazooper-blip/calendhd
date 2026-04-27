@@ -166,11 +166,11 @@
 
 <div class="flex flex-col h-full">
 	<!-- Week header -->
-	<div class="flex-shrink-0 border-b border-neutral-100">
+	<div class="flex-shrink-0 border-b border-neutral-100 dark:border-neutral-800">
 		<div class="grid grid-cols-7 gap-px">
 			{#each days as day (day.getTime())}
 				<div class="px-2 py-2 text-center">
-					<span class="text-xs text-neutral-500">{formatDayOfWeek(day, true)}</span>
+					<span class="text-xs text-neutral-500 dark:text-neutral-400">{formatDayOfWeek(day, true)}</span>
 					<button
 						type="button"
 						onclick={() => {
@@ -179,7 +179,7 @@
 						}}
 						class="w-8 h-8 mx-auto mt-1 rounded-full flex items-center justify-center text-sm font-semibold transition-colors {isToday(day)
 							? 'bg-primary-500 text-white'
-							: 'text-neutral-800 hover:bg-neutral-100'}"
+							: 'text-neutral-800 dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-700'}"
 					>
 						{day.getDate()}
 					</button>
@@ -188,7 +188,7 @@
 		</div>
 
 		<!-- All-day events row -->
-		<div class="grid grid-cols-7 gap-px border-t border-neutral-100">
+		<div class="grid grid-cols-7 gap-px border-t border-neutral-100 dark:border-neutral-800">
 			{#each days as day (day.getTime())}
 				<div class="min-h-[2rem] p-1 space-y-0.5">
 					{#each getEventsForDay(day, true) as event (event.id)}
@@ -212,10 +212,10 @@
 			<!-- Hour lines and labels -->
 			{#each Array(24) as _, hour (hour)}
 				<div
-					class="absolute left-0 right-0 border-t border-neutral-100"
+					class="absolute left-0 right-0 border-t border-neutral-100 dark:border-neutral-800"
 					style="top: {(hour / 24) * 100}%"
 				>
-					<span class="absolute -top-3 left-1 text-xs text-neutral-400 bg-white px-1 w-12">
+					<span class="absolute -top-3 left-1 text-xs text-neutral-400 dark:text-neutral-500 bg-white dark:bg-neutral-800 px-1 w-12">
 						{hour.toString().padStart(2, '0')}:00
 					</span>
 				</div>
@@ -236,7 +236,7 @@
 			<!-- Day columns -->
 			<div class="absolute left-14 right-0 top-0 bottom-0 grid grid-cols-7 gap-px">
 				{#each days as day, dayIndex (day.getTime())}
-					<div class="relative border-l border-neutral-100">
+					<div class="relative border-l border-neutral-100 dark:border-neutral-800">
 						<!-- Current time indicator -->
 						{#if isToday(day)}
 							<div

@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.3.2] - 2026-04-27
+
+### Fixed — dark-mode coverage
+
+Dark mode previously rendered correctly only in Settings, Subscriptions, and Routines. The remaining views shipped with light-only Tailwind classes and looked broken on a dark theme. Audit + fix:
+
+- **Day / Week / Month views**: all hour gridlines, day headers, hour labels, weekday headers, "non-current-month" cells, and "+N more" indicators now have `dark:` variants. Current-time indicator (red) intentionally left unchanged — it's a signal color that reads on both themes.
+- **Event form** (`/event/new`, `/event/[id]`) — was completely white. All field labels, hints, reminder rows, and the description textarea now have dark variants.
+- **Categories and Templates** pages: list cards, empty states, modal labels and helpers — all dark-aware now.
+- **QuickAdd modal**: date/time/duration labels, duration-segmented control, task toggle, and tip text. The FAB and primary action buttons keep their bright `bg-primary-500` (legible on either theme).
+- **ColorPicker primitive**: the selected-state ring used `ring-neutral-800` which was invisible against the dark surface; now flips to `ring-neutral-100` in dark mode with a matching offset so the checkmark stays readable.
+
+Convention used (extracted from existing dark-aware files): `bg-white → dark:bg-neutral-800`, `text-neutral-{700,800,900} → dark:text-neutral-{200,100,50}`, `border-neutral-{100,200} → dark:border-neutral-{800,700}`, color-tinted backgrounds use `dark:bg-{color}-900/{20-30}` for subtle washes. The UI primitives (`<Input>`, `<Select>`, `<Modal>`, `<Toggle>`) were already dark-aware — verified, no changes needed.
+
 ## [1.3.1] - 2026-04-27
 
 ### Fixed — Swedish translation coverage

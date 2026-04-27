@@ -41,7 +41,7 @@
 			onclick={() => selectColor(color)}
 			class={cn(
 				'w-8 h-8 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500',
-				value === color ? 'ring-2 ring-offset-2 ring-neutral-800 scale-110' : 'hover:scale-105'
+				value === color ? 'ring-2 ring-offset-2 ring-offset-white dark:ring-offset-neutral-800 ring-neutral-800 dark:ring-neutral-100 scale-110' : 'hover:scale-105'
 			)}
 			style="background-color: {color}"
 			aria-label="Select color {color}"

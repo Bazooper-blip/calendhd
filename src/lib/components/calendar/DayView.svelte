@@ -198,13 +198,13 @@
 	<DayProgress {date} />
 
 	<!-- Day header -->
-	<div class="flex-shrink-0 border-b border-neutral-100 px-4 py-2">
+	<div class="flex-shrink-0 border-b border-neutral-100 dark:border-neutral-800 px-4 py-2">
 		<div class="flex items-center gap-2">
-			<span class="text-sm text-neutral-500">{formatDayOfWeek(date)}</span>
+			<span class="text-sm text-neutral-500 dark:text-neutral-400">{formatDayOfWeek(date)}</span>
 			<span
 				class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold {isToday(date)
 					? 'bg-primary-500 text-white'
-					: 'text-neutral-800'}"
+					: 'text-neutral-800 dark:text-neutral-100'}"
 			>
 				{date.getDate()}
 			</span>
@@ -223,7 +223,7 @@
 
 	<!-- All-day events -->
 	{#if allDayEvents.length > 0}
-		<div class="flex-shrink-0 border-b border-neutral-100 px-4 py-2 space-y-1">
+		<div class="flex-shrink-0 border-b border-neutral-100 dark:border-neutral-800 px-4 py-2 space-y-1">
 			{#each allDayEvents as event}
 				<button
 					type="button"
@@ -246,10 +246,10 @@
 			<!-- Hour lines -->
 			{#each Array(24) as _, hour (hour)}
 				<div
-					class="absolute left-0 right-0 border-t border-neutral-100"
+					class="absolute left-0 right-0 border-t border-neutral-100 dark:border-neutral-800"
 					style="top: {(hour / 24) * 100}%"
 				>
-					<span class="absolute -top-3 left-2 text-xs text-neutral-400 bg-white px-1 w-14">
+					<span class="absolute -top-3 left-2 text-xs text-neutral-400 dark:text-neutral-500 bg-white dark:bg-neutral-800 px-1 w-14">
 						{hour.toString().padStart(2, '0')}:00
 					</span>
 				</div>
@@ -258,7 +258,7 @@
 			<!-- Half-hour lines -->
 			{#each Array(24) as _, hour (hour)}
 				<div
-					class="absolute left-16 right-0 border-t border-neutral-50"
+					class="absolute left-16 right-0 border-t border-neutral-50 dark:border-neutral-900"
 					style="top: {((hour + 0.5) / 24) * 100}%"
 				></div>
 			{/each}
