@@ -307,6 +307,9 @@
 		"captured": "Sparad",
 		"deleted": "Borttagen"
 	},
+	"calendar": {
+		"tightGap": "{minutes} min övergång"
+	},
 	"common": {
 		"cancel": "Avbryt",
 		"save": "Spara",
