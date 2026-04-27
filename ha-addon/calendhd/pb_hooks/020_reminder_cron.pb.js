@@ -57,9 +57,14 @@ cronAdd("reminder_sender", "* * * * *", function() {
 
         var eventTitle = event.get("title") || "Event";
         var eventStart = event.get("start_time") || "";
+        var firstStep = event.get("first_step") || "";
 
-        // Format the notification message
-        var message = formatReminderMessage(eventTitle, eventStart);
+        // Format the notification message — first_step (if set) is the actionable
+        // body line; otherwise fall back to "<title> at <HH:mm>". The push-service
+        // shows title as the heading and message as the body.
+        var message = firstStep
+            ? firstStep
+            : formatReminderMessage(eventTitle, eventStart);
 
         var sent = false;
         var deliveryMethod = "";

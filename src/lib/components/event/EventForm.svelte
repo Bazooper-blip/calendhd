@@ -18,6 +18,7 @@
 	// Form state
 	let title = $state(initialData.title || '');
 	let description = $state(initialData.description || '');
+	let firstStep = $state(initialData.first_step || '');
 	let startDate = $state(initialData.start_date || format(new Date(), 'yyyy-MM-dd'));
 	let startTime = $state(initialData.start_time || '09:00');
 	let endDate = $state(initialData.end_date || '');
@@ -106,6 +107,7 @@
 		const data: EventFormData = {
 			title,
 			description: description || undefined,
+			first_step: isTask ? firstStep || undefined : undefined,
 			start_date: startDate,
 			start_time: isAllDay ? undefined : startTime,
 			end_date: endDate || undefined,
@@ -173,6 +175,25 @@
 			description={$t('event.isTaskDescription')}
 		/>
 	</div>
+
+	<!-- First-step extraction (ADHD): when this is a task, prompt for the
+	     first physical action — what reminders show instead of the abstract title. -->
+	{#if isTask}
+		<div class="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/10 p-3">
+			<label for="first-step" class="block text-sm font-medium text-amber-800 dark:text-amber-300 mb-1">
+				{$t('event.firstStep')}
+				<span class="text-neutral-400 dark:text-neutral-500 font-normal">({$t('common.optional')})</span>
+			</label>
+			<p class="text-xs text-amber-700 dark:text-amber-400 mb-2">
+				{$t('event.firstStepHelp')}
+			</p>
+			<Input
+				id="first-step"
+				bind:value={firstStep}
+				placeholder={$t('event.firstStepPlaceholder')}
+			/>
+		</div>
+	{/if}
 
 	<!-- Date and time -->
 	<div class="grid grid-cols-2 gap-4">

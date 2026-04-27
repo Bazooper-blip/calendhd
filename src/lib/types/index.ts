@@ -224,6 +224,7 @@ export interface DisplayEvent {
 export interface EventFormData {
 	title: string;
 	description?: string;
+	first_step?: string; // ADHD: optional "first physical action"
 	start_date: string;
 	start_time?: string;
 	end_date?: string;
