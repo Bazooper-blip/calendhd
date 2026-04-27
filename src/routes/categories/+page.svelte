@@ -128,7 +128,7 @@
 <div class="h-full overflow-y-auto">
 	<div class="max-w-2xl mx-auto px-4 py-6">
 		<div class="flex items-center justify-between mb-6">
-			<h1 class="text-2xl font-bold text-neutral-800">{$t('category.title')}</h1>
+			<h1 class="text-2xl font-bold text-neutral-800 dark:text-neutral-100">{$t('category.title')}</h1>
 			<Button onclick={openCreateModal}>
 				<svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -142,20 +142,20 @@
 				<div class="w-8 h-8 border-4 border-primary-200 border-t-primary-500 rounded-full animate-spin"></div>
 			</div>
 		{:else if categoriesStore.categories.length === 0}
-			<div class="bg-white rounded-xl shadow-sm border border-neutral-100 p-8 text-center">
-				<div class="w-12 h-12 bg-neutral-100 rounded-full flex items-center justify-center mx-auto mb-4">
-					<svg class="w-6 h-6 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+			<div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-neutral-100 dark:border-neutral-700 p-8 text-center">
+				<div class="w-12 h-12 bg-neutral-100 dark:bg-neutral-700 rounded-full flex items-center justify-center mx-auto mb-4">
+					<svg class="w-6 h-6 text-neutral-400 dark:text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
 					</svg>
 				</div>
-				<h3 class="text-lg font-medium text-neutral-800 mb-1">{$t('category.noCategories')}</h3>
-				<p class="text-neutral-500 mb-4">{$t('category.noCategoriesDesc') || ''}</p>
+				<h3 class="text-lg font-medium text-neutral-800 dark:text-neutral-100 mb-1">{$t('category.noCategories')}</h3>
+				<p class="text-neutral-500 dark:text-neutral-400 mb-4">{$t('category.noCategoriesDesc') || ''}</p>
 				<Button onclick={openCreateModal}>{$t('category.create')}</Button>
 			</div>
 		{:else}
 			<div class="space-y-2">
 				{#each categoriesStore.categories as category}
-					<div class="bg-white rounded-xl shadow-sm border border-neutral-100 p-4 flex items-center gap-4">
+					<div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-neutral-100 dark:border-neutral-700 p-4 flex items-center gap-4">
 						<div
 							class="w-10 h-10 rounded-lg flex items-center justify-center text-xl"
 							style="background-color: {category.color}"
@@ -170,14 +170,14 @@
 						</div>
 
 						<div class="flex-1">
-							<h3 class="font-medium text-neutral-800">{category.name}</h3>
+							<h3 class="font-medium text-neutral-800 dark:text-neutral-100">{category.name}</h3>
 						</div>
 
 						<div class="flex items-center gap-2">
 							<button
 								type="button"
 								onclick={() => openEditModal(category)}
-								class="p-2 text-neutral-400 hover:text-neutral-600 transition-colors"
+								class="p-2 text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
 								aria-label={$t('category.edit')}
 							>
 								<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -187,7 +187,7 @@
 							<button
 								type="button"
 								onclick={() => handleDelete(category)}
-								class="p-2 text-neutral-400 hover:text-red-500 transition-colors"
+								class="p-2 text-neutral-400 dark:text-neutral-500 hover:text-red-500 transition-colors"
 								aria-label={$t('category.delete')}
 							>
 								<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -206,7 +206,7 @@
 <Modal bind:open={showModal} title={editingCategory ? $t('category.edit') : $t('category.create')} size="md">
 	<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4">
 		<div>
-			<label for="name" class="block text-sm font-medium text-neutral-700 mb-1">
+			<label for="name" class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1">
 				{$t('category.name')}
 			</label>
 			<Input
@@ -218,17 +218,17 @@
 		</div>
 
 		<div>
-			<span class="block text-sm font-medium text-neutral-700 mb-2">
+			<span class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2">
 				{$t('event.color')}
 			</span>
 			<ColorPicker bind:value={color} />
 		</div>
 
 		<div>
-			<label class="block text-sm font-medium text-neutral-700 mb-2">
+			<label class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2">
 				{$t('category.icon') || 'Icon'}
 				{#if icon}
-					<button type="button" onclick={() => icon = ''} class="ml-2 text-xs text-neutral-400 hover:text-neutral-600">({$t('event.removeIcon')})</button>
+					<button type="button" onclick={() => icon = ''} class="ml-2 text-xs text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300">({$t('event.removeIcon')})</button>
 				{/if}
 			</label>
 			{#if icon}

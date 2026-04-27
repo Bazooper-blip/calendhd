@@ -130,7 +130,7 @@
 
 		<div class="grid grid-cols-2 gap-3">
 			<div>
-				<label for="quick-date" class="block text-xs font-medium text-neutral-500 mb-1">{$_('event.date')}</label>
+				<label for="quick-date" class="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">{$_('event.date')}</label>
 				<Input
 					id="quick-date"
 					type="date"
@@ -138,7 +138,7 @@
 				/>
 			</div>
 			<div>
-				<label for="quick-time" class="block text-xs font-medium text-neutral-500 mb-1">{$_('event.time')}</label>
+				<label for="quick-time" class="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">{$_('event.time')}</label>
 				<Input
 					id="quick-time"
 					type="time"
@@ -148,7 +148,7 @@
 		</div>
 
 		<div>
-			<span class="block text-xs font-medium text-neutral-500 mb-1">{$_('event.duration')}</span>
+			<span class="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">{$_('event.duration')}</span>
 			<div class="flex gap-2">
 				{#each [15, 30, 60, 120] as mins}
 					<button
@@ -156,7 +156,7 @@
 						onclick={() => (duration = mins)}
 						class="flex-1 px-2 py-1.5 text-sm rounded-lg border transition-colors {duration === mins
 							? 'bg-primary-500 text-white border-primary-500'
-							: 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300'}"
+							: 'bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600'}"
 					>
 						{mins < 60 ? `${mins}m` : `${mins / 60}h`}
 					</button>
@@ -169,8 +169,8 @@
 			type="button"
 			onclick={() => (isTask = !isTask)}
 			class="w-full flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors {isTask
-				? 'bg-amber-50 border-amber-300 text-amber-700'
-				: 'bg-white border-neutral-200 text-neutral-600 hover:border-neutral-300'}"
+				? 'bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300'
+				: 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:border-neutral-300 dark:hover:border-neutral-600'}"
 		>
 			<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 				{#if isTask}
@@ -182,7 +182,7 @@
 			<span class="text-sm">{isTask ? $_('event.isTask') : $_('event.makeTask')}</span>
 		</button>
 
-		<p class="text-xs text-neutral-400 text-center">
+		<p class="text-xs text-neutral-400 dark:text-neutral-500 text-center">
 			{$_('event.quickAddTip', { values: { key: 'N' } })}
 		</p>
 	</form>

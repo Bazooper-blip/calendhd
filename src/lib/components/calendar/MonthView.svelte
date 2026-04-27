@@ -130,9 +130,9 @@
 
 <div class="flex flex-col h-full">
 	<!-- Weekday headers -->
-	<div class="flex-shrink-0 grid grid-cols-7 border-b border-neutral-100">
+	<div class="flex-shrink-0 grid grid-cols-7 border-b border-neutral-100 dark:border-neutral-800">
 		{#each weekdays() as weekday}
-			<div class="px-2 py-3 text-center text-xs font-medium text-neutral-500 uppercase">
+			<div class="px-2 py-3 text-center text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase">
 				{weekday}
 			</div>
 		{/each}
@@ -141,7 +141,7 @@
 	<!-- Calendar grid -->
 	<div class="flex-1 grid grid-rows-{weeks().length} min-h-0">
 		{#each weeks() as week}
-			<div class="grid grid-cols-7 border-b border-neutral-100 last:border-b-0 min-h-0">
+			<div class="grid grid-cols-7 border-b border-neutral-100 dark:border-neutral-800 last:border-b-0 min-h-0">
 				{#each week as day}
 					{@const inCurrentMonth = isSameMonth(day, date)}
 					{@const dayData = getItemsForDay(day)}
@@ -149,9 +149,9 @@
 					<button
 						type="button"
 						onclick={() => handleDayClick(day)}
-						class="relative p-1 border-r border-neutral-100 last:border-r-0 text-left hover:bg-neutral-50 transition-colors min-h-0 overflow-hidden {inCurrentMonth
+						class="relative p-1 border-r border-neutral-100 dark:border-neutral-800 last:border-r-0 text-left hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors min-h-0 overflow-hidden {inCurrentMonth
 							? ''
-							: 'bg-neutral-50'}"
+							: 'bg-neutral-50 dark:bg-neutral-900'}"
 					>
 						<!-- Day number -->
 						<div class="flex justify-end mb-1">
@@ -159,8 +159,8 @@
 								class="w-7 h-7 flex items-center justify-center text-sm rounded-full {isToday(day)
 									? 'bg-primary-500 text-white font-semibold'
 									: inCurrentMonth
-										? 'text-neutral-800'
-										: 'text-neutral-400'}"
+										? 'text-neutral-800 dark:text-neutral-100'
+										: 'text-neutral-400 dark:text-neutral-500'}"
 							>
 								{day.getDate()}
 							</span>
@@ -206,7 +206,7 @@
 							{/each}
 
 							{#if dayData.moreCount > 0}
-								<div class="px-1 text-xs text-neutral-500">
+								<div class="px-1 text-xs text-neutral-500 dark:text-neutral-400">
 									+{dayData.moreCount} more
 								</div>
 							{/if}

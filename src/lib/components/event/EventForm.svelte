@@ -127,7 +127,7 @@
 	<!-- Template selector -->
 	{#if templateOptions.length > 0}
 		<div>
-			<span class="block text-sm font-medium text-neutral-700 mb-1">
+			<span class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1">
 				{$t('template.startFrom')}
 			</span>
 			<Select
@@ -140,7 +140,7 @@
 
 	<!-- Title -->
 	<div>
-		<label for="title" class="block text-sm font-medium text-neutral-700 mb-1">
+		<label for="title" class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1">
 			{$t('event.title')} <span class="text-red-500">*</span>
 		</label>
 		<Input
@@ -153,9 +153,9 @@
 
 	<!-- Icon -->
 	<div>
-		<span class="block text-sm font-medium text-neutral-700 mb-1">
+		<span class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1">
 			{$t('event.icon')}
-			<span class="text-neutral-400 font-normal">({$t('common.optional')})</span>
+			<span class="text-neutral-400 dark:text-neutral-500 font-normal">({$t('common.optional')})</span>
 		</span>
 		<IconPicker value={icon} onSelect={(v) => icon = v} />
 	</div>
@@ -177,7 +177,7 @@
 	<!-- Date and time -->
 	<div class="grid grid-cols-2 gap-4">
 		<div>
-			<label for="start-date" class="block text-sm font-medium text-neutral-700 mb-1">
+			<label for="start-date" class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1">
 				{$t('event.startDate')} <span class="text-red-500">*</span>
 			</label>
 			<Input
@@ -189,7 +189,7 @@
 		</div>
 		{#if !isAllDay}
 			<div>
-				<label for="start-time" class="block text-sm font-medium text-neutral-700 mb-1">
+				<label for="start-time" class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1">
 					{$t('event.startTime')}
 				</label>
 				<Input
@@ -204,7 +204,7 @@
 	{#if !isAllDay}
 		<div class="grid grid-cols-2 gap-4">
 			<div>
-				<label for="end-date" class="block text-sm font-medium text-neutral-700 mb-1">
+				<label for="end-date" class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1">
 					{$t('event.endDate')}
 				</label>
 				<Input
@@ -214,7 +214,7 @@
 				/>
 			</div>
 			<div>
-				<label for="end-time" class="block text-sm font-medium text-neutral-700 mb-1">
+				<label for="end-time" class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1">
 					{$t('event.endTime')}
 				</label>
 				<Input
@@ -229,7 +229,7 @@
 	<!-- Category -->
 	{#if categoryOptions.length > 0}
 		<div>
-			<label for="category" class="block text-sm font-medium text-neutral-700 mb-1">
+			<label for="category" class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1">
 				{$t('event.category')}
 			</label>
 			<Select
@@ -243,7 +243,7 @@
 
 	<!-- Color override -->
 	<div>
-		<span class="block text-sm font-medium text-neutral-700 mb-2">
+		<span class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2">
 			{$t('event.color')}
 		</span>
 		<ColorPicker bind:value={colorOverride} />
@@ -251,7 +251,7 @@
 
 	<!-- Recurrence -->
 	<div>
-		<span class="block text-sm font-medium text-neutral-700 mb-1">
+		<span class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1">
 			{$t('event.repeat')}
 		</span>
 		<Select
@@ -266,7 +266,7 @@
 	<!-- Reminders -->
 	<div>
 		<div class="flex items-center justify-between mb-2">
-			<span class="block text-sm font-medium text-neutral-700">
+			<span class="block text-sm font-medium text-neutral-700 dark:text-neutral-200">
 				{$t('event.reminders')}
 			</span>
 			<Button variant="ghost" size="sm" onclick={addReminder}>
@@ -285,7 +285,7 @@
 					<button
 						type="button"
 						onclick={() => removeReminder(index)}
-						class="p-2 text-neutral-400 hover:text-red-500 transition-colors"
+						class="p-2 text-neutral-400 dark:text-neutral-500 hover:text-red-500 transition-colors"
 						aria-label={$t('common.remove')}
 					>
 						<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -299,7 +299,7 @@
 
 	<!-- Description -->
 	<div>
-		<label for="description" class="block text-sm font-medium text-neutral-700 mb-1">
+		<label for="description" class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1">
 			{$t('event.description')}
 		</label>
 		<textarea
@@ -307,12 +307,12 @@
 			bind:value={description}
 			placeholder={$t('event.description')}
 			rows="3"
-			class="w-full px-3 py-2 rounded-lg border border-neutral-200 bg-white text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+			class="w-full px-3 py-2 rounded-lg border border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-800 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
 		></textarea>
 	</div>
 
 	<!-- Actions -->
-	<div class="flex items-center justify-end gap-3 pt-4 border-t border-neutral-100">
+	<div class="flex items-center justify-end gap-3 pt-4 border-t border-neutral-100 dark:border-neutral-700">
 		{#if oncancel}
 			<Button variant="ghost" onclick={oncancel} disabled={loading}>
 				{$t('common.cancel')}
