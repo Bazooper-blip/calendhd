@@ -25,9 +25,9 @@ A calm, ADHD-friendly calendar Progressive Web App (PWA) for Home Assistant.
 - Organize events by type
 - Custom colors for visual organization
 
-### Households
-- Share calendars with family and friends
-- Control visibility with private events
+### Single-Household Calendar
+- Each addon instance is a single calendar for one household — no sign-up, no per-user accounts.
+- The app auto-logs in to a built-in `home@calendhd.local` account, so anyone who can reach the URL can use the calendar. Gate it appropriately (LAN only, Cloudflare Access, etc.).
 
 ### External Calendars
 - Subscribe to iCal/ICS feeds
@@ -57,27 +57,15 @@ On first run, you need to set up the database:
 6. Click **Review** → **Confirm and import**
 7. Access the calendar at `http://homeassistant.local:8090/`
 
-### Copy Frontend Files (Required)
+### Hot-swap a newer frontend (optional)
 
-The add-on provides PocketBase but you need to copy the calenDHD frontend separately:
+The Docker image ships with the calendar frontend pre-built. On first run the init script copies it from the image to `/config/calendhd/pb_public/`, which is what PocketBase serves. If you want to swap in a newer build without rebuilding the container:
 
 1. Build the frontend on your dev machine: `npm run build`
-2. Copy the `build/` folder contents to `\\homeassistant\config\calendhd\pb_public\`
+2. Copy the `build/` folder contents into `\\homeassistant\config\calendhd\pb_public\` (Samba) — overwriting what's there
 3. Restart the add-on
 
-### Apple Sign-in (Optional)
-
-To enable Apple Sign-in:
-
-1. Create an App ID in Apple Developer Console
-2. Create a Services ID for web authentication
-3. Generate a private key
-4. In PocketBase Admin → Settings → Auth providers → Apple:
-   - Enable Apple provider
-   - Enter Client ID (Services ID)
-   - Enter Team ID
-   - Enter Key ID
-   - Paste the private key
+Most users won't need this; updating the addon via the HA UI takes care of frontend changes too.
 
 ### Push Notifications (Optional)
 
@@ -140,13 +128,19 @@ Your calenDHD data is included in Home Assistant's automatic backups since it's 
 
 ## Network Access
 
+> Note: HA ingress is **disabled** for this addon — the SvelteKit app uses absolute paths that escape the dynamic ingress token prefix. There is no HA sidebar entry; the addon is reachable on port 8090 only.
+
 ### Local Access
-- Calendar: `http://homeassistant.local:8090/`
+- Calendar: `http://homeassistant.local:8090/` (or `http://<ha-ip>:8090/`)
 - Admin: `http://homeassistant.local:8090/_/`
 
-### Remote Access (via Home Assistant)
+### Remote / HTTPS Access
 
-If you have Home Assistant remote access configured (Nabu Casa or reverse proxy), calenDHD is accessible through the sidebar.
+The addon serves plain HTTP. PWA install requires HTTPS, and you'll usually want remote access too. Pick one:
+
+- **Cloudflare Tunnel** (recommended) — install the cloudflared HA addon, route `calendhd.example.com` → `http://<ha-ip>:8090`. Pair with **Cloudflare Access** to whitelist family/household email addresses; non-allowed visitors are rejected at Cloudflare's edge before reaching your network.
+- **NGINX SSL Proxy** addon + a Let's Encrypt certificate.
+- **LAN only** — keep the URL inside your home network, no SSL needed.
 
 ### Install as PWA
 

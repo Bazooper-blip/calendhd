@@ -24,7 +24,7 @@ PocketBase must be running separately for backend features (requires PocketBase 
 cd pocketbase && ./pocketbase serve   # Starts on http://127.0.0.1:8090
 ```
 
-Environment variables are documented in `.env.example` (PocketBase URL, optional VAPID keys for push, optional Apple OAuth).
+Environment variables are documented in `.env.example` (PocketBase URL, optional VAPID keys for push).
 
 Home Assistant addon release build (commits go to git for HA to pull):
 ```bash

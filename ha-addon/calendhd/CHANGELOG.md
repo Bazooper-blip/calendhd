@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.1.3] - 2026-04-27
+
+### Documentation
+
+- Removed stale references to "Household sharing", HA sidebar/ingress, and an in-app sign-up flow — none of which exist. The app is intentionally a single-household calendar with auto-login as `home@calendhd.local`.
+- Added Cloudflare Tunnel / NGINX SSL Proxy guidance for HTTPS / remote access (the addon serves plain HTTP on port 8090).
+- Clarified that the frontend is baked into the Docker image and copied to `/config/calendhd/pb_public/` on first run; manual file copy is only needed for hot-swapping a newer build.
+- Removed the Apple Sign-in / OAuth provider sections from user docs and the corresponding `APPLE_*` env vars from `.env.example` — the app's auto-login flow never exercised any external provider.
+- Added a note that contributors building the addon manually must run `./build-for-ha.sh` first to populate the pre-built frontend the Dockerfile expects.
+
 ## [1.1.2] - 2026-04-26
 
 ### Fixed
@@ -48,5 +58,4 @@
 - Accessibility options (reduce animations, high contrast)
 - Multi-language support (English, Swedish)
 - Timezone support
-- Apple Sign-in support (requires configuration)
 - Email/password authentication

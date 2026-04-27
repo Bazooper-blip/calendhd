@@ -28,23 +28,29 @@ This guide walks you through installing calenDHD on your Home Assistant installa
 3. Click on it → **Install**
 4. Wait for installation to complete
 
-### Step 3: Start and Configure
+### Step 3: Start the Add-on
 
 1. Click **Start**
-2. Enable **Show in sidebar** (optional but recommended)
-3. Click **Open Web UI**
+2. The add-on serves on **port 8090** of your HA host. There is no HA sidebar entry — ingress is disabled because the SPA's absolute-path routing conflicts with HA's dynamic ingress prefix.
 
-### Step 4: Create Admin Account
+### Step 4: Create the PocketBase Superuser
 
-1. You'll be redirected to the PocketBase setup
-2. Create your admin email and password
-3. This is your admin account for managing the database
+1. Open `http://<ha-host>:8090/_/` (e.g. `http://homeassistant.local:8090/_/`)
+2. Create the superuser email and password
+3. This is the admin password for the **database**, not an account for the calendar app.
+4. Settings → Import collections → load `/config/calendhd/pb_schema_import.json` → Review → Confirm.
 
-### Step 5: Start Using calenDHD
+### Step 5: Use the Calendar
 
-1. Go back to the main calenDHD URL: `http://homeassistant.local:8090/`
-2. Click **Sign up** to create your calendar account
+1. Open `http://<ha-host>:8090/`
+2. The app auto-logs in as a built-in `home@calendhd.local` account — no sign-up flow. Anyone with access to the URL has access to the calendar, so gate it (LAN only, Cloudflare Access, etc.) for non-public deployments.
 3. Start adding events!
+
+### Step 6 (recommended): HTTPS / Remote Access
+
+The addon serves plain HTTP. PWA install requires HTTPS, and you'll typically want remote access. Front the addon with one of:
+- **Cloudflare Tunnel** — install the cloudflared HA add-on, route `calendhd.example.com` → `http://<ha-host>:8090`. Add Cloudflare Access on the same hostname to whitelist family emails.
+- **NGINX SSL Proxy** addon + Let's Encrypt — for self-hosted TLS without Cloudflare.
 
 ---
 
@@ -80,19 +86,16 @@ Copy the entire `calendhd` folder to `/addons/`:
     └── translations/
 ```
 
-### Step 3: Build the Frontend (Optional)
+### Step 3: Build the Frontend (Required)
 
-If you want to include the latest frontend:
+The Dockerfile does **not** build the frontend during the image build — its Docker context is limited to `ha-addon/calendhd/`, so it can't reach the SvelteKit source. You must produce a build on your dev machine and stage it inside the addon directory before installing:
 
 ```bash
-# On your development machine
-cd calendhd
-npm install
-npm run build
-
-# Copy build folder contents to:
-# /addons/calendhd/rootfs/opt/calendhd/public/
+# On your development machine, in the repo root
+./build-for-ha.sh
 ```
+
+That script runs `npm install`/`npm run build`, then syncs the build output, hooks, migrations, and push-service into `ha-addon/calendhd/`. If you skip this step, the addon will start but the calendar UI won't load (only the placeholder `index.html`).
 
 ### Step 4: Install the Add-on
 
@@ -123,12 +126,6 @@ npm run build
 1. Go to Admin UI: `http://homeassistant.local:8090/_/`
 2. Navigate to **Settings** → **Mail settings**
 3. Enter your SMTP details
-
-### Enable Apple Sign-in (Optional)
-
-1. Create credentials in Apple Developer Console
-2. Go to Admin UI → **Settings** → **Auth providers** → **Apple**
-3. Enter your credentials
 
 ---
 
