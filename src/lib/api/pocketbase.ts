@@ -349,7 +349,11 @@ export function getDefaultSettings(): Omit<UserSettings, 'id' | 'created' | 'upd
 		notification_sound: true,
 		reduce_animations: false,
 		high_contrast: false,
-		timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+		timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+		buffer_minutes: 10,
+		density: 'comfortable',
+		daily_wins_enabled: true,
+		streak_celebration_enabled: true
 	};
 }
 
