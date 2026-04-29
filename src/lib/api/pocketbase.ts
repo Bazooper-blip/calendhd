@@ -469,6 +469,9 @@ export async function deleteExternalEventReminderRemote(
 	subscriptionId: string,
 	icalUid: string
 ): Promise<void> {
+	const user = getCurrentUser();
+	if (!user) throw new Error('Not authenticated');
+
 	const existing = await collections.external_event_reminders().getFullList({
 		filter: `subscription = "${subscriptionId}" && ical_uid = "${icalUid}"`,
 		batch: 1
