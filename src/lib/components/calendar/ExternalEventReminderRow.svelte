@@ -160,12 +160,10 @@
 				{#each minuteOptions as m (m)}
 					<option value={m}>
 						{m < 60
-							? `${m} ${$_('time.minutes')}`
-							: m === 60
-								? `1 ${$_('time.hour')}`
-								: m === 1440
-									? `1 ${$_('time.day')}`
-									: `${m / 60} ${$_('time.hours')}`}
+							? $_('time.minutes', { values: { count: m } })
+							: m === 1440
+								? `1 ${$_('time.day')}`
+								: $_('time.hours', { values: { count: m / 60 } })}
 					</option>
 				{/each}
 			</select>
