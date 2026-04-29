@@ -57,13 +57,14 @@
 				await deleteExternalEventReminderRemote(external.subscription, external.uid);
 				await deleteExternalEventReminder(external.subscription, external.uid);
 			} else if (mode === 'off') {
-				await upsertExternalEventReminderRemote(
+				const remote = await upsertExternalEventReminderRemote(
 					external.subscription,
 					external.uid,
 					null,
 					true
 				);
 				await upsertExternalEventReminder({
+					id: remote.id,
 					user: external.user,
 					subscription: external.subscription,
 					ical_uid: external.uid,
@@ -71,13 +72,14 @@
 					disabled: true
 				});
 			} else {
-				await upsertExternalEventReminderRemote(
+				const remote = await upsertExternalEventReminderRemote(
 					external.subscription,
 					external.uid,
 					customMinutes,
 					false
 				);
 				await upsertExternalEventReminder({
+					id: remote.id,
 					user: external.user,
 					subscription: external.subscription,
 					ical_uid: external.uid,
