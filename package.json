@@ -1,0 +1,63 @@
+{
+  "name": "calendhd",
+  "version": "1.0.0",
+  "description": "A calm, ADHD-friendly calendar PWA for neurodivergent minds",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "author": "",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "keywords": [
+    "calendar",
+    "pwa",
+    "adhd",
+    "neurodivergent",
+    "svelte",
+    "sveltekit",
+    "pocketbase"
+  ],
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+    "test": "vitest",
+    "test:e2e": "playwright test",
+    "lint": "biome check src && svelte-check --tsconfig ./tsconfig.json",
+    "format": "biome format --write src",
+    "format:check": "biome format src"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.13",
+    "@playwright/test": "^1.59.1",
+    "@sveltejs/adapter-static": "^3.0.10",
+    "@sveltejs/kit": "^2.58.0",
+    "@sveltejs/vite-plugin-svelte": "^7.0.0",
+    "@tailwindcss/vite": "^4.2.4",
+    "@types/node": "^25.6.0",
+    "fake-indexeddb": "^6.2.5",
+    "svelte": "^5.55.5",
+    "svelte-check": "^4.4.6",
+    "tailwindcss": "^4.2.4",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.10",
+    "vitest": "^4.1.5"
+  },
+  "dependencies": {
+    "bits-ui": "^2.18.0",
+    "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
+    "dexie": "^4.4.2",
+    "lucide-svelte": "^1.0.1",
+    "pocketbase": "^0.26.8",
+    "svelte-i18n": "^4.0.1",
+    "svelte-sonner": "^1.1.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

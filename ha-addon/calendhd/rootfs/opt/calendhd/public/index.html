@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="alternate icon" type="image/x-icon" href="/favicon.ico" />
+		<link rel="alternate icon" type="image/png" sizes="32x32" href="/favicon.png" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+		<meta name="theme-color" content="#7C9885" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+		<meta name="apple-mobile-web-app-title" content="calenDHD" />
+		<link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+		<link rel="manifest" href="/manifest.json" />
+		<title>calenDHD</title>
+		<link href="/_app/immutable/entry/start.KDTGaQdr.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/DLLcXnT1.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/DvieX5GM.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/cxLwtM6S.js" rel="modulepreload">
+		<link href="/_app/immutable/entry/app.kl9RfAlh.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/DKwHt3Ho.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/ibwe1TAv.js" rel="modulepreload">
+		<link href="/_app/immutable/nodes/0.D8HyBRoF.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/C4peVb-w.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/gShRq3wO.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/pU_QgDYb.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/7250Jq-P.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/Bn7xwda3.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/DhQqxdcU.js" rel="modulepreload">
+		
+		<link href="/_app/immutable/assets/0.C_xoaZaL.css" rel="stylesheet">
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents">
+			<script>
+				{
+					__sveltekit_fpepdh = {
+						base: ""
+					};
+
+					const element = document.currentScript.parentElement;
+
+					Promise.all([
+						import("/_app/immutable/entry/start.KDTGaQdr.js"),
+						import("/_app/immutable/entry/app.kl9RfAlh.js")
+					]).then(([kit, app]) => {
+						kit.start(app, element);
+					});
+
+					if ('serviceWorker' in navigator) {
+						const script_url = '/service-worker.js';
+						const policy = globalThis?.window?.trustedTypes?.createPolicy(
+							'sveltekit-trusted-url',
+							{ createScriptURL(url) { return url; } }
+						);
+						const sanitised = policy?.createScriptURL(script_url) ?? script_url;
+						addEventListener('load', function () {
+							navigator.serviceWorker.register(sanitised);
+						});
+					}
+				}
+			</script>
+		</div>
+	</body>
+</html>
