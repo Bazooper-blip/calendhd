@@ -216,7 +216,9 @@ cronAdd("reminder_sender", "* * * * *", function() {
 
         var eventTitle = ext.get("title") || "Event";
         var eventStart = ext.get("start_time") || "";
-        var notificationTag = "calendhd-ext-reminder-" + uid;
+        // sendWebPushNotification adds "calendhd-reminder-" prefix; pass
+        // "ext-<uid>" so the final tag is "calendhd-reminder-ext-<uid>".
+        var notificationTag = "ext-" + uid;
 
         // Load user settings
         var userSettings;

@@ -20,7 +20,13 @@ onRecordAfterUpdateSuccess("external_events", (e) => {
     helpers.scheduleExternalReminder(e.record);
 });
 
-// Reschedule everything for a subscription whose defaults changed.
+// Reschedule everything for a subscription whose record changed.
+// PB JSVM doesn't expose previous-vs-current values, so we can't tell
+// whether a reminder-relevant field changed (reminders_enabled,
+// default_reminder_minutes) vs an unrelated one (last_refreshed,
+// error_message). We over-trigger and let scheduleExternalReminder
+// short-circuit when reminders are disabled — wasteful on every sync
+// but ensures settings-change-without-sync paths stay correct.
 onRecordAfterUpdateSuccess("calendar_subscriptions", (e) => {
     const helpers = require(`${__hooks}/pb_helpers.js`);
     helpers.rescheduleExternalRemindersForSubscription(e.record.id);
