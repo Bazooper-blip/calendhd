@@ -6,6 +6,7 @@ import type {
 	LocalRoutineTemplate,
 	CalendarSubscription,
 	ExternalEvent,
+	ExternalEventReminder,
 	UserSettings
 } from '$types';
 
@@ -16,6 +17,7 @@ class CalendHDDatabase extends Dexie {
 	templates!: EntityTable<LocalTemplate, 'local_id'>;
 	subscriptions!: EntityTable<CalendarSubscription, 'id'>;
 	external_events!: EntityTable<ExternalEvent, 'id'>;
+	external_event_reminders!: EntityTable<ExternalEventReminder, 'id'>;
 	settings!: EntityTable<UserSettings, 'id'>;
 	routine_templates!: EntityTable<LocalRoutineTemplate, 'local_id'>;
 
@@ -30,6 +32,10 @@ class CalendHDDatabase extends Dexie {
 			external_events: 'id, user, subscription, uid, start_time, [user+start_time]',
 			settings: 'id, user',
 			routine_templates: 'local_id, id, user, name, is_active, sync_status'
+		});
+
+		this.version(3).stores({
+			external_event_reminders: 'id, user, subscription, ical_uid, [subscription+ical_uid]'
 		});
 	}
 }
@@ -186,4 +192,60 @@ export async function setLocalSettings(settings: UserSettings): Promise<void> {
 	await db.settings.put(settings);
 }
 
+// External event reminder overrides
+// Keyed by (subscription, ical_uid) — survives the wipe-and-replace of
+// external_events on every subscription sync.
+
+export async function upsertExternalEventReminder(
+	override: Omit<ExternalEventReminder, 'id' | 'created' | 'updated'> & { id?: string }
+): Promise<void> {
+	const existing = await db.external_event_reminders
+		.where('[subscription+ical_uid]')
+		.equals([override.subscription, override.ical_uid])
+		.first();
+
+	if (existing) {
+		await db.external_event_reminders.update(existing.id, {
+			minutes_before: override.minutes_before,
+			disabled: override.disabled
+		});
+	} else {
+		const id = override.id ?? generateLocalId();
+		await db.external_event_reminders.put({
+			...override,
+			id,
+			created: '',
+			updated: ''
+		} as ExternalEventReminder);
+	}
+}
+
+export async function getExternalEventReminder(
+	subscription: string,
+	icalUid: string
+): Promise<ExternalEventReminder | undefined> {
+	return db.external_event_reminders
+		.where('[subscription+ical_uid]')
+		.equals([subscription, icalUid])
+		.first();
+}
+
+export async function deleteExternalEventReminder(
+	subscription: string,
+	icalUid: string
+): Promise<void> {
+	const existing = await db.external_event_reminders
+		.where('[subscription+ical_uid]')
+		.equals([subscription, icalUid])
+		.first();
+	if (existing) {
+		await db.external_event_reminders.delete(existing.id);
+	}
+}
+
+export async function getExternalEventRemindersForSubscription(
+	subscription: string
+): Promise<ExternalEventReminder[]> {
+	return db.external_event_reminders.where('subscription').equals(subscription).toArray();
+}
 
