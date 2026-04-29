@@ -239,6 +239,8 @@ module.exports = {
     },
 
     rescheduleExternalRemindersForSubscription: function(subscriptionId) {
+        var self = this;
+
         // Clear all unsent reminders for the subscription
         try {
             var stale = $app.findAllRecords("external_scheduled_reminders", $dbx.and(
@@ -262,7 +264,7 @@ module.exports = {
                 { sub: subscriptionId, now: nowISO }
             );
             for (var j = 0; j < events.length; j++) {
-                this.scheduleExternalReminder(events[j]);
+                self.scheduleExternalReminder(events[j]);
             }
         } catch (err) {
             console.log("[ext-rem] reschedule for subscription failed:", err);
@@ -271,6 +273,7 @@ module.exports = {
 
     rescheduleExternalRemindersForOverride: function(subscriptionId, icalUid) {
         if (!subscriptionId || !icalUid) return;
+        var self = this;
         try {
             var events = $app.findRecordsByFilter(
                 "external_events",
@@ -279,7 +282,7 @@ module.exports = {
                 { sub: subscriptionId, uid: icalUid }
             );
             for (var i = 0; i < events.length; i++) {
-                this.scheduleExternalReminder(events[i]);
+                self.scheduleExternalReminder(events[i]);
             }
         } catch (err) {
             console.log("[ext-rem] reschedule for override failed:", err);
