@@ -77,7 +77,13 @@
 	"externalEvent": {
 		"readOnly": "Skrivskyddad",
 		"fromCalendar": "Extern kalender",
-		"location": "Plats"
+		"location": "Plats",
+		"reminderCustom": "Anpassad",
+		"reminderHeader": "Påminnelse",
+		"reminderOff": "Av",
+		"reminderSaved": "Påminnelse uppdaterad",
+		"reminderUseDefault": "Standard ({minutes} min innan)",
+		"remindersOffForSubscription": "Påminnelser är avstängda för den här kalendern. Aktivera dem i Prenumerationer."
 	},
 	"iconPicker": {
 		"noEmojisFound": "Inga emojier hittades",
@@ -251,7 +257,9 @@
 		"error": "Fel",
 		"minutes": "minuter",
 		"hour": "timme",
-		"hours": "timmar"
+		"hours": "timmar",
+		"remindersEnabled": "Skicka påminnelser för händelser",
+		"defaultReminderMinutes": "Standard ledtid"
 	},
 	"reminder": {
 		"atTime": "Vid händelsens tid",
@@ -278,7 +286,10 @@
 		"minutes": "{count, plural, one {# minut} other {# minuter}}",
 		"hours": "{count, plural, one {# timme} other {# timmar}}",
 		"days": "{count, plural, one {# dag} other {# dagar}}",
-		"allDay": "Heldag"
+		"allDay": "Heldag",
+		"day": "dag",
+		"hour": "timme",
+		"minute": "minut"
 	},
 	"days": {
 		"sunday": "Söndag",

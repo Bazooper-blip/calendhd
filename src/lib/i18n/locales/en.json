@@ -77,7 +77,13 @@
 	"externalEvent": {
 		"readOnly": "Read-only",
 		"fromCalendar": "External calendar",
-		"location": "Location"
+		"location": "Location",
+		"reminderCustom": "Custom",
+		"reminderHeader": "Reminder",
+		"reminderOff": "Off",
+		"reminderSaved": "Reminder updated",
+		"reminderUseDefault": "Default ({minutes} min before)",
+		"remindersOffForSubscription": "Reminders are turned off for this calendar. Enable them in Subscriptions."
 	},
 	"iconPicker": {
 		"noEmojisFound": "No emojis found",
@@ -251,7 +257,9 @@
 		"error": "Error",
 		"minutes": "minutes",
 		"hour": "hour",
-		"hours": "hours"
+		"hours": "hours",
+		"remindersEnabled": "Send reminders for events",
+		"defaultReminderMinutes": "Default lead time"
 	},
 	"reminder": {
 		"atTime": "At time of event",
@@ -278,7 +286,10 @@
 		"minutes": "{count, plural, one {# minute} other {# minutes}}",
 		"hours": "{count, plural, one {# hour} other {# hours}}",
 		"days": "{count, plural, one {# day} other {# days}}",
-		"allDay": "All day"
+		"allDay": "All day",
+		"day": "day",
+		"hour": "hour",
+		"minute": "minute"
 	},
 	"days": {
 		"sunday": "Sunday",

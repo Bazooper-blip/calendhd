@@ -19,7 +19,10 @@ import {
 	updateLocalTemplate,
 	deleteLocalTemplate,
 	setLocalSettings,
-	getLocalSettings
+	getLocalSettings,
+	upsertExternalEventReminder,
+	getExternalEventReminder,
+	deleteExternalEventReminder
 } from './index';
 import type { LocalEvent, LocalCategory, LocalTemplate, UserSettings } from '$types';
 
@@ -406,5 +409,69 @@ describe('Settings', () => {
 		// Should still be only one record
 		const count = await db.settings.count();
 		expect(count).toBe(1);
+	});
+});
+
+// --- External event reminder overrides ---
+
+describe('External event reminder overrides', () => {
+	beforeEach(async () => {
+		await db.external_event_reminders.clear();
+	});
+
+	it('upsertExternalEventReminder creates a row keyed by (subscription, ical_uid)', async () => {
+		await upsertExternalEventReminder({
+			user: TEST_USER,
+			subscription: 'sub-1',
+			ical_uid: 'evt-uid-1',
+			minutes_before: 30,
+			disabled: false
+		});
+
+		const row = await getExternalEventReminder('sub-1', 'evt-uid-1');
+		expect(row).toBeDefined();
+		expect(row!.minutes_before).toBe(30);
+		expect(row!.disabled).toBe(false);
+	});
+
+	it('upsertExternalEventReminder updates existing row', async () => {
+		await upsertExternalEventReminder({
+			user: TEST_USER,
+			subscription: 'sub-1',
+			ical_uid: 'evt-uid-1',
+			minutes_before: 30,
+			disabled: false
+		});
+		await upsertExternalEventReminder({
+			user: TEST_USER,
+			subscription: 'sub-1',
+			ical_uid: 'evt-uid-1',
+			minutes_before: 5,
+			disabled: false
+		});
+
+		const row = await getExternalEventReminder('sub-1', 'evt-uid-1');
+		expect(row!.minutes_before).toBe(5);
+
+		const all = await db.external_event_reminders.toArray();
+		expect(all).toHaveLength(1);
+	});
+
+	it('deleteExternalEventReminder removes the row', async () => {
+		await upsertExternalEventReminder({
+			user: TEST_USER,
+			subscription: 'sub-1',
+			ical_uid: 'evt-uid-1',
+			minutes_before: 15,
+			disabled: false
+		});
+		await deleteExternalEventReminder('sub-1', 'evt-uid-1');
+		const row = await getExternalEventReminder('sub-1', 'evt-uid-1');
+		expect(row).toBeUndefined();
+	});
+
+	it('getExternalEventReminder returns undefined for unknown key', async () => {
+		const row = await getExternalEventReminder('sub-x', 'unknown');
+		expect(row).toBeUndefined();
 	});
 });
