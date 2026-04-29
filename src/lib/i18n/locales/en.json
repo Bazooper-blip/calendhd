@@ -74,6 +74,11 @@
 		"iconIcons": "Icons",
 		"removeIcon": "Remove icon"
 	},
+	"externalEvent": {
+		"readOnly": "Read-only",
+		"fromCalendar": "External calendar",
+		"location": "Location"
+	},
 	"iconPicker": {
 		"noEmojisFound": "No emojis found",
 		"loadingIcons": "Loading icons...",

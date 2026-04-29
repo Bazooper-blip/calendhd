@@ -74,6 +74,11 @@
 		"iconIcons": "Ikoner",
 		"removeIcon": "Ta bort ikon"
 	},
+	"externalEvent": {
+		"readOnly": "Skrivskyddad",
+		"fromCalendar": "Extern kalender",
+		"location": "Plats"
+	},
 	"iconPicker": {
 		"noEmojisFound": "Inga emojier hittades",
 		"loadingIcons": "Laddar ikoner...",

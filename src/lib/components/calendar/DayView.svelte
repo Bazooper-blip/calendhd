@@ -16,6 +16,7 @@
 	import RoutineBlock from './RoutineBlock.svelte';
 	import DayProgress from './DayProgress.svelte';
 	import DailyWinsBanner from './DailyWinsBanner.svelte';
+	import ExternalEventModal from './ExternalEventModal.svelte';
 
 	/** A routine group merges multiple routine step events into one visual block. */
 	interface RoutineGroup {
@@ -212,9 +213,11 @@
 		}
 	});
 
+	let externalDetail = $state<DisplayEvent | null>(null);
+
 	function handleEventClick(event: DisplayEvent) {
 		if (event.is_external) {
-			// External events are read-only, don't navigate to edit page
+			externalDetail = event;
 			return;
 		}
 		goto(`/event/${event.id}`);
@@ -361,3 +364,5 @@
 		</div>
 	</div>
 </div>
+
+<ExternalEventModal event={externalDetail} onclose={() => (externalDetail = null)} />
