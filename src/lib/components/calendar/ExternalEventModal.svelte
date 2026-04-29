@@ -3,7 +3,9 @@
 	import { _ } from '$lib/i18n';
 	import { settingsStore } from '$stores';
 	import { formatDateSmart, formatTimeRange } from '$utils';
-	import type { DisplayEvent, ExternalEvent } from '$types';
+	import { getPocketBase } from '$api/pocketbase';
+	import ExternalEventReminderRow from './ExternalEventReminderRow.svelte';
+	import type { DisplayEvent, ExternalEvent, CalendarSubscription } from '$types';
 
 	interface Props {
 		event: DisplayEvent | null;
@@ -12,6 +14,9 @@
 
 	let { event, onclose }: Props = $props();
 
+	let subscription = $state<CalendarSubscription | null>(null);
+	let subscriptionLoaded = $state(false);
+
 	const open = $derived(event !== null);
 	const format24h = $derived(settingsStore.timeFormat === '24h');
 
@@ -19,6 +24,29 @@
 		if (!event) return null;
 		return event.original_event as ExternalEvent;
 	});
+
+	$effect(() => {
+		if (!external) {
+			subscription = null;
+			subscriptionLoaded = false;
+			return;
+		}
+		void loadSubscription(external.subscription);
+	});
+
+	async function loadSubscription(id: string) {
+		subscriptionLoaded = false;
+		try {
+			const record = await getPocketBase()
+				.collection('calendar_subscriptions')
+				.getOne(id);
+			subscription = record as unknown as CalendarSubscription;
+		} catch {
+			subscription = null;
+		} finally {
+			subscriptionLoaded = true;
+		}
+	}
 
 	const dateLabel = $derived.by(() => {
 		if (!event) return '';
@@ -40,7 +68,6 @@
 <Modal {open} title={event?.title ?? ''} size="md" {onclose}>
 	{#if event && external}
 		<div class="space-y-4">
-			<!-- Read-only badge + subscription source -->
 			<div class="flex items-center gap-2 flex-wrap">
 				<span
 					class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium border-l-4"
@@ -60,7 +87,6 @@
 				</span>
 			</div>
 
-			<!-- When -->
 			<div>
 				<div class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400 mb-1">
 					{$_('event.date')}
@@ -69,7 +95,6 @@
 				<div class="text-sm text-neutral-600 dark:text-neutral-300">{timeLabel}</div>
 			</div>
 
-			<!-- Location -->
 			{#if external.location}
 				<div>
 					<div class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400 mb-1">
@@ -81,7 +106,6 @@
 				</div>
 			{/if}
 
-			<!-- Description -->
 			{#if external.description}
 				<div>
 					<div class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400 mb-1">
@@ -90,6 +114,15 @@
 					<div class="text-sm text-neutral-800 dark:text-neutral-100 whitespace-pre-line break-words">
 						{external.description}
 					</div>
+				</div>
+			{/if}
+
+			{#if subscriptionLoaded}
+				<div class="pt-2 border-t border-neutral-100 dark:border-neutral-700">
+					<div class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400 mb-2">
+						{$_('externalEvent.reminderHeader')}
+					</div>
+					<ExternalEventReminderRow {external} {subscription} />
 				</div>
 			{/if}
 		</div>

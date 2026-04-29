@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.0
+
+- Add reminders for external (subscription) events: per-subscription default lead-time, per-event override (custom minutes / off), survives re-sync.
+
 ## [1.4.5] - 2026-04-29
 
 ### Added

@@ -7,6 +7,7 @@ import type {
 	CalendarEvent,
 	CalendarSubscription,
 	ExternalEvent,
+	ExternalEventReminder,
 	UserSettings,
 	BrainDump
 } from '$types';
@@ -36,6 +37,7 @@ const collections = {
 	events: () => getPocketBase().collection('events'),
 	calendar_subscriptions: () => getPocketBase().collection('calendar_subscriptions'),
 	external_events: () => getPocketBase().collection('external_events'),
+	external_event_reminders: () => getPocketBase().collection('external_event_reminders'),
 	user_settings: () => getPocketBase().collection('user_settings'),
 	scheduled_reminders: () => getPocketBase().collection('scheduled_reminders'),
 	routine_templates: () => getPocketBase().collection('routine_templates'),
@@ -415,4 +417,66 @@ export function subscribeToCategories(
 	return () => {
 		collections.categories().unsubscribe('*');
 	};
+}
+
+// External event reminder overrides
+
+export async function getExternalEventReminders(
+	subscriptionId: string
+): Promise<ExternalEventReminder[]> {
+	const records = await collections.external_event_reminders().getFullList({
+		filter: `subscription = "${subscriptionId}"`,
+		batch: 200
+	});
+	return records as unknown as ExternalEventReminder[];
+}
+
+export async function upsertExternalEventReminderRemote(
+	subscriptionId: string,
+	icalUid: string,
+	minutesBefore: number | null,
+	disabled: boolean
+): Promise<ExternalEventReminder> {
+	const user = getCurrentUser();
+	if (!user) throw new Error('Not authenticated');
+
+	// Look up existing row for this (subscription, uid). Server-side filter
+	// uses the unique index added by migration 0005.
+	const existing = await collections.external_event_reminders().getFullList({
+		filter: `subscription = "${subscriptionId}" && ical_uid = "${icalUid}"`,
+		batch: 1
+	});
+
+	const payload = {
+		user: user.id,
+		subscription: subscriptionId,
+		ical_uid: icalUid,
+		minutes_before: minutesBefore,
+		disabled
+	};
+
+	if (existing.length > 0) {
+		const record = await collections
+			.external_event_reminders()
+			.update(existing[0].id, payload);
+		return record as unknown as ExternalEventReminder;
+	}
+	const record = await collections.external_event_reminders().create(payload);
+	return record as unknown as ExternalEventReminder;
+}
+
+export async function deleteExternalEventReminderRemote(
+	subscriptionId: string,
+	icalUid: string
+): Promise<void> {
+	const user = getCurrentUser();
+	if (!user) throw new Error('Not authenticated');
+
+	const existing = await collections.external_event_reminders().getFullList({
+		filter: `subscription = "${subscriptionId}" && ical_uid = "${icalUid}"`,
+		batch: 1
+	});
+	if (existing.length > 0) {
+		await collections.external_event_reminders().delete(existing[0].id);
+	}
 }
