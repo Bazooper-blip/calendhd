@@ -123,7 +123,7 @@ src/lib/components/
 
 ### Dexie Database Schema
 
-7 tables with offline-first sync support (`sync_status: 'synced' | 'pending' | 'conflict' | 'deleted'`):
+8 tables with offline-first sync support (`sync_status: 'synced' | 'pending' | 'conflict' | 'deleted'`):
 
 | Table | Key | Purpose |
 |-------|-----|---------|
@@ -133,6 +133,7 @@ src/lib/components/
 | routine_templates | local_id | Routine definitions with steps, schedule, energy levels |
 | subscriptions | id | External iCal feed subscriptions |
 | external_events | id | Read-only events from subscriptions |
+| external_event_reminders | id | Per-external-event reminder override (keyed by subscription+ical_uid). Mirrored from PB; pure local cache for the modal. |
 | settings | id | User preferences |
 
 ### PocketBase
@@ -142,10 +143,12 @@ src/lib/components/
 2. `0002_routine_templates.js` — Routine templates collection + routine fields on events
 3. `0003_routine_target_end.js` — target_end_time field on routine_templates
 4. `0004_adhd_features.js` — `events.first_step` (text); `user_settings.{buffer_minutes, density, daily_wins_enabled, streak_celebration_enabled}`; new `brain_dump` collection
+5. `0005_external_event_reminders.js` — `calendar_subscriptions.{reminders_enabled, default_reminder_minutes}`; new `external_event_reminders` collection (per-event overrides keyed by subscription+ical_uid); new `external_scheduled_reminders` collection (parallel to `scheduled_reminders` for the external-event reminder pipeline)
 
 **Hooks** (`pocketbase/pb_hooks/`):
 - `005_singleton_init.pb.js` — Creates/rotates the singleton `home@calendhd.local` user on bootstrap; serves credentials at `GET /api/calendhd/bootstrap` (same-origin)
 - `010_reminder_scheduler.pb.js` — Schedules reminders on event create/update
+- `015_external_reminder_scheduler.pb.js` — Thin shell that delegates to pb_helpers; on `external_events` create/update writes a row to `external_scheduled_reminders` applying per-event override + subscription default; reschedules when overrides or subscription settings change
 - `020_reminder_cron.pb.js` — Cron job to send scheduled reminders; uses `event.first_step` as push body when set
 - `030_reminder_cleanup.pb.js` — Cleanup old sent reminders
 - `040_notification_test.pb.js` — Test notification endpoint
