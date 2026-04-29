@@ -19,6 +19,8 @@
 	let url = $state('');
 	let colorOverride = $state('');
 	let refreshIntervalMinutes = $state(60);
+	let remindersEnabled = $state(false);
+	let defaultReminderMinutes = $state(15);
 
 	// Load subscriptions
 	$effect(() => {
@@ -42,6 +44,8 @@
 		url = '';
 		colorOverride = '#9A88B5';
 		refreshIntervalMinutes = 60;
+		remindersEnabled = false;
+		defaultReminderMinutes = 15;
 		showModal = true;
 	}
 
@@ -51,6 +55,8 @@
 		url = subscription.url;
 		colorOverride = subscription.color_override || '#9A88B5';
 		refreshIntervalMinutes = subscription.refresh_interval_minutes;
+		remindersEnabled = subscription.reminders_enabled ?? false;
+		defaultReminderMinutes = subscription.default_reminder_minutes ?? 15;
 		showModal = true;
 	}
 
@@ -72,7 +78,9 @@
 					name,
 					url: normalizedUrl,
 					color_override: colorOverride || undefined,
-					refresh_interval_minutes: refreshIntervalMinutes
+					refresh_interval_minutes: refreshIntervalMinutes,
+					reminders_enabled: remindersEnabled,
+					default_reminder_minutes: defaultReminderMinutes
 				});
 				toast.success($t('subscription.updated'));
 				// Sync after update in case URL changed
@@ -83,7 +91,9 @@
 					url: normalizedUrl,
 					color_override: colorOverride || undefined,
 					refresh_interval_minutes: refreshIntervalMinutes,
-					is_active: true
+					is_active: true,
+					reminders_enabled: remindersEnabled,
+					default_reminder_minutes: defaultReminderMinutes
 				});
 				toast.success($t('subscription.created'));
 				// Immediately sync the new subscription
@@ -358,6 +368,34 @@
 					<option value={option.value}>{option.label}</option>
 				{/each}
 			</select>
+		</div>
+
+		<div class="pt-2 border-t border-neutral-100 dark:border-neutral-700">
+			<label class="flex items-center justify-between gap-2 mb-3">
+				<span class="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+					{$t('subscription.remindersEnabled')}
+				</span>
+				<Toggle bind:checked={remindersEnabled} />
+			</label>
+
+			{#if remindersEnabled}
+				<label for="default-reminder" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+					{$t('subscription.defaultReminderMinutes')}
+				</label>
+				<select
+					id="default-reminder"
+					bind:value={defaultReminderMinutes}
+					class="w-full px-3 py-2 rounded-lg border border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-800 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+				>
+					<option value={5}>5 {$t('subscription.minutes')}</option>
+					<option value={10}>10 {$t('subscription.minutes')}</option>
+					<option value={15}>15 {$t('subscription.minutes')}</option>
+					<option value={30}>30 {$t('subscription.minutes')}</option>
+					<option value={60}>1 {$t('subscription.hour')}</option>
+					<option value={120}>2 {$t('subscription.hours')}</option>
+					<option value={1440}>1 {$t('time.day')}</option>
+				</select>
+			{/if}
 		</div>
 	</form>
 
