@@ -149,7 +149,7 @@ export interface ExternalEventReminder extends BaseRecord {
 	user: string;
 	subscription: string;
 	ical_uid: string;
-	minutes_before?: number; // null = use subscription default
+	minutes_before?: number; // undefined → use the subscription default
 	disabled?: boolean;
 }
 
