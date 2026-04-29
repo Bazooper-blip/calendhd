@@ -167,6 +167,8 @@ cronAdd("reminder_sender", "* * * * *", function() {
     // ── External-event reminders ──────────────────────────────────
     // Parallel collection: external_scheduled_reminders. Same processing
     // contract (scheduled_for / sent_at / delivery_method / error_message).
+    // Failures here fall open (empty list) so an external-only outage
+    // never blocks the internal reminder pipeline above.
     var dueExternal;
     try {
         dueExternal = $app.findAllRecords("external_scheduled_reminders", $dbx.and(
