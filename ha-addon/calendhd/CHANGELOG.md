@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.5] - 2026-04-29
+
+### Added
+
+- **External-event detail modal**: subscription-fed events (iCal feeds) are now clickable across day, week, and month views and open a read-only modal showing source calendar, date/time, location, and description. Previously they were rendered but silently inert. Editing remains disabled — the source calendar is still the only writer.
+
 ## [1.4.4] - 2026-04-27
 
 ### Added — branding / icons
