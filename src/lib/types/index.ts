@@ -124,6 +124,8 @@ export interface CalendarSubscription extends BaseRecord {
 	last_refreshed?: string;
 	is_active: boolean;
 	error_message?: string;
+	reminders_enabled?: boolean;
+	default_reminder_minutes?: number;
 }
 
 // External event from subscription (read-only)
@@ -139,6 +141,16 @@ export interface ExternalEvent extends BaseRecord {
 	location?: string;
 	recurrence_rule?: RecurrenceRule;
 	raw_ics?: string;
+}
+
+// Per-external-event reminder override, keyed by stable iCal UID so it
+// survives the wipe-and-replace done by subscription sync.
+export interface ExternalEventReminder extends BaseRecord {
+	user: string;
+	subscription: string;
+	ical_uid: string;
+	minutes_before?: number; // null = use subscription default
+	disabled?: boolean;
 }
 
 // User settings
