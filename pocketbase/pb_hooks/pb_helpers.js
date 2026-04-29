@@ -153,5 +153,136 @@ module.exports = {
             self.generateEventsForRoutine(routines[i], today);
             self.generateEventsForRoutine(routines[i], tomorrow);
         }
+    },
+
+    // ─────────────────────────────────────────────────────────────────
+    // External-event reminders
+    // ─────────────────────────────────────────────────────────────────
+
+    scheduleExternalReminder: function(externalEvent) {
+        var subscriptionId = externalEvent.get("subscription");
+        var icalUid = externalEvent.get("uid");
+        var userId = externalEvent.get("user");
+        var startTime = externalEvent.get("start_time");
+        if (!subscriptionId || !icalUid || !startTime) return;
+
+        var subscription;
+        try {
+            subscription = $app.findRecordById("calendar_subscriptions", subscriptionId);
+        } catch (err) {
+            return;
+        }
+        if (!subscription.get("reminders_enabled")) return;
+
+        var defaultMinutes = subscription.get("default_reminder_minutes");
+        if (defaultMinutes === undefined || defaultMinutes === null || defaultMinutes === "") {
+            defaultMinutes = 15;
+        }
+
+        // Look up override
+        var minutesBefore = defaultMinutes;
+        var disabled = false;
+        try {
+            var overrides = $app.findRecordsByFilter(
+                "external_event_reminders",
+                "subscription = {:sub} && ical_uid = {:uid}",
+                "", 1, 0,
+                { sub: subscriptionId, uid: icalUid }
+            );
+            if (overrides && overrides.length > 0) {
+                var override = overrides[0];
+                if (override.get("disabled")) {
+                    disabled = true;
+                } else {
+                    var mb = override.get("minutes_before");
+                    if (mb !== undefined && mb !== null && mb !== "") {
+                        minutesBefore = mb;
+                    }
+                }
+            }
+        } catch (err) {
+            // No override — use default
+        }
+
+        // Clean up any unsent scheduled rows for this (subscription, uid)
+        try {
+            var stale = $app.findAllRecords("external_scheduled_reminders", $dbx.and(
+                $dbx.hashExp({ "subscription": subscriptionId, "ical_uid": icalUid }),
+                $dbx.newExp("sent_at = '' OR sent_at IS NULL")
+            ));
+            for (var i = 0; i < stale.length; i++) {
+                try { $app.delete(stale[i]); } catch (e) { /* ignore */ }
+            }
+        } catch (err) {
+            // Nothing to clean up
+        }
+
+        if (disabled) return;
+
+        var eventTime = new Date(startTime);
+        var scheduledFor = new Date(eventTime.getTime() - (minutesBefore * 60 * 1000));
+        if (scheduledFor <= new Date()) return;
+
+        try {
+            var collection = $app.findCollectionByNameOrId("external_scheduled_reminders");
+            var record = new Record(collection);
+            record.set("user", userId);
+            record.set("subscription", subscriptionId);
+            record.set("ical_uid", icalUid);
+            record.set("scheduled_for", scheduledFor.toISOString());
+            record.set("reminder_type", "notification");
+            $app.save(record);
+            console.log("[ext-rem] scheduled reminder for '" + externalEvent.get("title") + "' at " + scheduledFor.toISOString());
+        } catch (err) {
+            console.log("[ext-rem] failed to schedule:", err);
+        }
+    },
+
+    rescheduleExternalRemindersForSubscription: function(subscriptionId) {
+        // Clear all unsent reminders for the subscription
+        try {
+            var stale = $app.findAllRecords("external_scheduled_reminders", $dbx.and(
+                $dbx.hashExp({ "subscription": subscriptionId }),
+                $dbx.newExp("sent_at = '' OR sent_at IS NULL")
+            ));
+            for (var i = 0; i < stale.length; i++) {
+                try { $app.delete(stale[i]); } catch (e) { /* ignore */ }
+            }
+        } catch (err) {
+            // No prior reminders
+        }
+
+        // Re-schedule for each upcoming external event
+        try {
+            var nowISO = new Date().toISOString();
+            var events = $app.findRecordsByFilter(
+                "external_events",
+                "subscription = {:sub} && start_time >= {:now}",
+                "", 500, 0,
+                { sub: subscriptionId, now: nowISO }
+            );
+            for (var j = 0; j < events.length; j++) {
+                this.scheduleExternalReminder(events[j]);
+            }
+        } catch (err) {
+            console.log("[ext-rem] reschedule for subscription failed:", err);
+        }
+    },
+
+    rescheduleExternalRemindersForOverride: function(subscriptionId, icalUid) {
+        if (!subscriptionId || !icalUid) return;
+        try {
+            var events = $app.findRecordsByFilter(
+                "external_events",
+                "subscription = {:sub} && uid = {:uid}",
+                "", 50, 0,
+                { sub: subscriptionId, uid: icalUid }
+            );
+            for (var i = 0; i < events.length; i++) {
+                this.scheduleExternalReminder(events[i]);
+            }
+        } catch (err) {
+            console.log("[ext-rem] reschedule for override failed:", err);
+        }
     }
 };
