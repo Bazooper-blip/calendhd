@@ -15,6 +15,7 @@
 	import { format } from 'date-fns';
 	import EventBlock from './EventBlock.svelte';
 	import RoutineBlock from './RoutineBlock.svelte';
+	import ExternalEventModal from './ExternalEventModal.svelte';
 
 	/** A routine group merges multiple routine step events into one visual block. */
 	interface RoutineGroup {
@@ -155,8 +156,11 @@
 		}
 	});
 
+	let externalDetail = $state<DisplayEvent | null>(null);
+
 	function handleEventClick(event: DisplayEvent) {
 		if (event.is_external) {
+			externalDetail = event;
 			return;
 		}
 		goto(`/event/${event.id}`);
@@ -285,3 +289,5 @@
 		</div>
 	</div>
 </div>
+
+<ExternalEventModal event={externalDetail} onclose={() => (externalDetail = null)} />
