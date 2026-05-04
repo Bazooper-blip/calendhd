@@ -170,7 +170,7 @@
 
 <div class="flex flex-col h-full">
 	<!-- Week header -->
-	<div class="flex-shrink-0 border-b border-neutral-100 dark:border-neutral-800">
+	<div class="flex-shrink-0 border-b border-neutral-100 dark:border-neutral-800 pl-14">
 		<div class="grid grid-cols-7 gap-px">
 			{#each days as day (day.getTime())}
 				<div class="px-2 py-2 text-center">

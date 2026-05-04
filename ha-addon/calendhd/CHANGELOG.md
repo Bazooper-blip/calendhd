@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.1
+
+- Fix week view grid misalignment on phone/tablet — day headers now align with the time grid columns instead of stretching across the time-label gutter.
+
 ## 1.5.0
 
 - Add reminders for external (subscription) events: per-subscription default lead-time, per-event override (custom minutes / off), survives re-sync.
