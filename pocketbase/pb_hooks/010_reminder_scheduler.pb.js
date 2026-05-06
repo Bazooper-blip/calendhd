@@ -1,7 +1,7 @@
 /// <reference path="../pb_data/types.d.ts" />
 
 // Schedule reminders when events are created
-onRecordAfterCreateSuccess("events", function(e) {
+onRecordAfterCreateSuccess(function(e) {
     var event = e.record;
 
     // PB JSVM returns json fields as byte arrays — decode via shared helper.
@@ -46,17 +46,17 @@ onRecordAfterCreateSuccess("events", function(e) {
             console.log("Failed to create scheduled reminder:", err);
         }
     }
-});
+}, "events");
 
 // Reschedule reminders when events are updated
-onRecordAfterUpdateSuccess("events", function(e) {
+onRecordAfterUpdateSuccess(function(e) {
     var event = e.record;
 
     // Delete existing unsent reminders for this event
     try {
         var existing = $app.findAllRecords("scheduled_reminders", $dbx.and(
             $dbx.hashExp({ "event": event.id }),
-            $dbx.newExp("sent_at = '' OR sent_at IS NULL")
+            $dbx.exp("sent_at = '' OR sent_at IS NULL")
         ));
         for (var i = 0; i < existing.length; i++) {
             $app.delete(existing[i]);
@@ -107,4 +107,4 @@ onRecordAfterUpdateSuccess("events", function(e) {
             console.log("Failed to create scheduled reminder:", err);
         }
     }
-});
+}, "events");

@@ -10,15 +10,15 @@
 
 // Schedule on external_event create/update — subscription sync calls these N
 // times per refresh because it deletes-and-recreates external_events.
-onRecordAfterCreateSuccess("external_events", (e) => {
+onRecordAfterCreateSuccess((e) => {
     const helpers = require(`${__hooks}/pb_helpers.js`);
     helpers.scheduleExternalReminder(e.record);
-});
+}, "external_events");
 
-onRecordAfterUpdateSuccess("external_events", (e) => {
+onRecordAfterUpdateSuccess((e) => {
     const helpers = require(`${__hooks}/pb_helpers.js`);
     helpers.scheduleExternalReminder(e.record);
-});
+}, "external_events");
 
 // Reschedule everything for a subscription whose record changed.
 // PB JSVM doesn't expose previous-vs-current values, so we can't tell
@@ -27,34 +27,34 @@ onRecordAfterUpdateSuccess("external_events", (e) => {
 // error_message). We over-trigger and let scheduleExternalReminder
 // short-circuit when reminders are disabled — wasteful on every sync
 // but ensures settings-change-without-sync paths stay correct.
-onRecordAfterUpdateSuccess("calendar_subscriptions", (e) => {
+onRecordAfterUpdateSuccess((e) => {
     const helpers = require(`${__hooks}/pb_helpers.js`);
     helpers.rescheduleExternalRemindersForSubscription(e.record.id);
-});
+}, "calendar_subscriptions");
 
 // A new/updated/deleted override should re-schedule for that specific
 // (subscription, uid). Read keys BEFORE delegating because the deleted record
 // is still queryable inside the callback.
-onRecordAfterCreateSuccess("external_event_reminders", (e) => {
+onRecordAfterCreateSuccess((e) => {
     const helpers = require(`${__hooks}/pb_helpers.js`);
     helpers.rescheduleExternalRemindersForOverride(
         e.record.get("subscription"),
         e.record.get("ical_uid")
     );
-});
+}, "external_event_reminders");
 
-onRecordAfterUpdateSuccess("external_event_reminders", (e) => {
+onRecordAfterUpdateSuccess((e) => {
     const helpers = require(`${__hooks}/pb_helpers.js`);
     helpers.rescheduleExternalRemindersForOverride(
         e.record.get("subscription"),
         e.record.get("ical_uid")
     );
-});
+}, "external_event_reminders");
 
-onRecordAfterDeleteSuccess("external_event_reminders", (e) => {
+onRecordAfterDeleteSuccess((e) => {
     const helpers = require(`${__hooks}/pb_helpers.js`);
     helpers.rescheduleExternalRemindersForOverride(
         e.record.get("subscription"),
         e.record.get("ical_uid")
     );
-});
+}, "external_event_reminders");

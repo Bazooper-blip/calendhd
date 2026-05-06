@@ -12,8 +12,8 @@ cronAdd("reminder_sender", "* * * * *", function() {
     var dueReminders;
     try {
         dueReminders = $app.findAllRecords("scheduled_reminders", $dbx.and(
-            $dbx.newExp("scheduled_for <= {:now}", { now: nowISO }),
-            $dbx.newExp("sent_at = '' OR sent_at IS NULL")
+            $dbx.exp("scheduled_for <= {:now}", { now: nowISO }),
+            $dbx.exp("sent_at = '' OR sent_at IS NULL")
         ));
     } catch (err) {
         // No due reminders
@@ -172,8 +172,8 @@ cronAdd("reminder_sender", "* * * * *", function() {
     var dueExternal;
     try {
         dueExternal = $app.findAllRecords("external_scheduled_reminders", $dbx.and(
-            $dbx.newExp("scheduled_for <= {:now}", { now: nowISO }),
-            $dbx.newExp("sent_at = '' OR sent_at IS NULL")
+            $dbx.exp("scheduled_for <= {:now}", { now: nowISO }),
+            $dbx.exp("sent_at = '' OR sent_at IS NULL")
         ));
     } catch (err) {
         dueExternal = [];

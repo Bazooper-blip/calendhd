@@ -208,7 +208,7 @@ module.exports = {
         try {
             var stale = $app.findAllRecords("external_scheduled_reminders", $dbx.and(
                 $dbx.hashExp({ "subscription": subscriptionId, "ical_uid": icalUid }),
-                $dbx.newExp("sent_at = '' OR sent_at IS NULL")
+                $dbx.exp("sent_at = '' OR sent_at IS NULL")
             ));
             for (var i = 0; i < stale.length; i++) {
                 try { $app.delete(stale[i]); } catch (e) { /* ignore */ }
@@ -245,7 +245,7 @@ module.exports = {
         try {
             var stale = $app.findAllRecords("external_scheduled_reminders", $dbx.and(
                 $dbx.hashExp({ "subscription": subscriptionId }),
-                $dbx.newExp("sent_at = '' OR sent_at IS NULL")
+                $dbx.exp("sent_at = '' OR sent_at IS NULL")
             ));
             for (var i = 0; i < stale.length; i++) {
                 try { $app.delete(stale[i]); } catch (e) { /* ignore */ }

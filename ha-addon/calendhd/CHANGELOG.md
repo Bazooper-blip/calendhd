@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.5.4
+
+- Fix push notifications never firing in real usage. Two PB 0.37 API mismatches were silently breaking the reminder pipeline:
+  - All `onRecordAfter*` hooks were registered with `(collectionName, handler)` instead of the required `(handler, ...tags)` — none of the per-record event hooks were actually firing, so `scheduled_reminders` rows were never written on event create/update.
+  - `$dbx.newExp` was renamed to `$dbx.exp` in PB 0.37; the reminder cron silently swallowed the resulting `TypeError`, so even pre-existing scheduled rows would never be sent.
+- Bump bundled PocketBase from 0.37.3 → 0.37.5.
+
 ## 1.5.1
 
 - Fix week view grid misalignment on phone/tablet — day headers now align with the time grid columns instead of stretching across the time-label gutter.

@@ -7,7 +7,7 @@ cronAdd("routine_generator", "0 4 * * *", () => {
 });
 
 // Generate on routine create (today + tomorrow)
-onRecordAfterCreateSuccess("routine_templates", (e) => {
+onRecordAfterCreateSuccess((e) => {
     const helpers = require(`${__hooks}/pb_helpers.js`);
     const routine = e.record;
     if (routine.get("is_active")) {
@@ -16,10 +16,10 @@ onRecordAfterCreateSuccess("routine_templates", (e) => {
         helpers.generateEventsForRoutine(routine, today);
         helpers.generateEventsForRoutine(routine, tomorrow);
     }
-});
+}, "routine_templates");
 
 // Delete + regenerate on routine update (today + tomorrow)
-onRecordAfterUpdateSuccess("routine_templates", (e) => {
+onRecordAfterUpdateSuccess((e) => {
     const helpers = require(`${__hooks}/pb_helpers.js`);
     const routine = e.record;
     const today = new Date();
@@ -34,10 +34,10 @@ onRecordAfterUpdateSuccess("routine_templates", (e) => {
         helpers.generateEventsForRoutine(routine, today);
         helpers.generateEventsForRoutine(routine, tomorrow);
     }
-});
+}, "routine_templates");
 
 // Cascade delete: remove all generated events when routine is deleted
-onRecordAfterDeleteSuccess("routine_templates", (e) => {
+onRecordAfterDeleteSuccess((e) => {
     const routineId = e.record.id;
     try {
         const events = $app.findRecordsByFilter("events", "routine_template = {:rid}", "", 100, 0, { rid: routineId });
@@ -45,4 +45,4 @@ onRecordAfterDeleteSuccess("routine_templates", (e) => {
             try { $app.delete(events[i]); } catch (err) { /* ignore */ }
         }
     } catch (err) { /* No events to delete */ }
-});
+}, "routine_templates");
