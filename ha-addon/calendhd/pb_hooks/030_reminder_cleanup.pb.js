@@ -9,8 +9,8 @@ cronAdd("reminder_cleanup", "0 3 * * *", function() {
 
     try {
         var oldReminders = $app.findAllRecords("scheduled_reminders", $dbx.and(
-            $dbx.newExp("sent_at != '' AND sent_at IS NOT NULL"),
-            $dbx.newExp("sent_at <= {:cutoff}", { cutoff: cutoff })
+            $dbx.exp("sent_at != '' AND sent_at IS NOT NULL"),
+            $dbx.exp("sent_at <= {:cutoff}", { cutoff: cutoff })
         ));
 
         if (oldReminders && oldReminders.length > 0) {
