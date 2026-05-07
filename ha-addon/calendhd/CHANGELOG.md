@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.5
+
+- Fix reminders all firing at once at midnight UTC (≈ 02:00 local) instead of at their scheduled times. The reminder cron compared `scheduled_for` against `Date.toISOString()` (which uses a `T` separator) but PocketBase stores datetimes with a space separator. SQL `<=` is a lexical compare and `' '` (32) < `'T'` (84), so every "today" row became lexically due the moment UTC ticked over to the new day. Now the cron passes the comparison value in PB's storage format.
+
 ## 1.5.4
 
 - Fix push notifications never firing in real usage. Two PB 0.37 API mismatches were silently breaking the reminder pipeline:

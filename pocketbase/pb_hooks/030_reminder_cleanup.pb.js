@@ -5,7 +5,9 @@ cronAdd("reminder_cleanup", "0 3 * * *", function() {
     // Delete sent reminders older than 30 days
     var thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    var cutoff = thirtyDaysAgo.toISOString();
+    // PB stores datetimes with a space separator; lexical SQL compare against a
+    // T-separator string is off by ~1 day. See note in 020_reminder_cron.pb.js.
+    var cutoff = thirtyDaysAgo.toISOString().replace("T", " ");
 
     try {
         var oldReminders = $app.findAllRecords("scheduled_reminders", $dbx.and(
