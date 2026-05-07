@@ -7,12 +7,17 @@ cronAdd("reminder_sender", "* * * * *", function() {
 
     var now = new Date();
     var nowISO = now.toISOString();
+    // PB stores datetimes as 'YYYY-MM-DD HH:MM:SS.fffZ' (space separator).
+    // toISOString() produces a 'T' separator. SQL '<=' is a lexical compare,
+    // and ' ' (32) < 'T' (84) — so a T-formatted RHS makes every "today" row
+    // lexically "due" the instant UTC rolls over to a new day. Match storage.
+    var nowSQL = nowISO.replace("T", " ");
 
     // Find all unsent reminders that are due
     var dueReminders;
     try {
         dueReminders = $app.findAllRecords("scheduled_reminders", $dbx.and(
-            $dbx.exp("scheduled_for <= {:now}", { now: nowISO }),
+            $dbx.exp("scheduled_for <= {:now}", { now: nowSQL }),
             $dbx.exp("sent_at = '' OR sent_at IS NULL")
         ));
     } catch (err) {
@@ -172,7 +177,7 @@ cronAdd("reminder_sender", "* * * * *", function() {
     var dueExternal;
     try {
         dueExternal = $app.findAllRecords("external_scheduled_reminders", $dbx.and(
-            $dbx.exp("scheduled_for <= {:now}", { now: nowISO }),
+            $dbx.exp("scheduled_for <= {:now}", { now: nowSQL }),
             $dbx.exp("sent_at = '' OR sent_at IS NULL")
         ));
     } catch (err) {
