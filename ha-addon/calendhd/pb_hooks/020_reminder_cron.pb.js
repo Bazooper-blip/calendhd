@@ -13,24 +13,21 @@ cronAdd("reminder_sender", "* * * * *", function() {
     // lexically "due" the instant UTC rolls over to a new day. Match storage.
     var nowSQL = nowISO.replace("T", " ");
 
-    // Find all unsent reminders that are due
-    var dueReminders;
+    // Find all unsent reminders that are due. Failures fall open (empty list)
+    // and are logged — a broken internal query must NOT early-return, since
+    // that would silently skip the external reminder block below.
+    var dueReminders = [];
     try {
         dueReminders = $app.findAllRecords("scheduled_reminders", $dbx.and(
             $dbx.exp("scheduled_for <= {:now}", { now: nowSQL }),
             $dbx.exp("sent_at = '' OR sent_at IS NULL")
         ));
     } catch (err) {
-        // No due reminders
-        return;
+        console.log("reminder_sender: scheduled_reminders query failed: " + err);
     }
 
-    var hasInternal = dueReminders && dueReminders.length > 0;
-    if (hasInternal) {
+    if (dueReminders && dueReminders.length > 0) {
         console.log("Processing " + dueReminders.length + " due reminders");
-    }
-
-    if (hasInternal) {
         for (var i = 0; i < dueReminders.length; i++) {
             processReminder(dueReminders[i], nowISO);
         }
@@ -172,16 +169,16 @@ cronAdd("reminder_sender", "* * * * *", function() {
     // ── External-event reminders ──────────────────────────────────
     // Parallel collection: external_scheduled_reminders. Same processing
     // contract (scheduled_for / sent_at / delivery_method / error_message).
-    // Failures here fall open (empty list) so an external-only outage
-    // never blocks the internal reminder pipeline above.
-    var dueExternal;
+    // Failures fall open (empty list) and are logged so an external-only
+    // outage stays visible without blocking the internal pipeline above.
+    var dueExternal = [];
     try {
         dueExternal = $app.findAllRecords("external_scheduled_reminders", $dbx.and(
             $dbx.exp("scheduled_for <= {:now}", { now: nowSQL }),
             $dbx.exp("sent_at = '' OR sent_at IS NULL")
         ));
     } catch (err) {
-        dueExternal = [];
+        console.log("reminder_sender: external_scheduled_reminders query failed: " + err);
     }
 
     if (dueExternal && dueExternal.length > 0) {
