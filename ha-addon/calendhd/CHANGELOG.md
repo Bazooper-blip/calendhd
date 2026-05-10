@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.6
+
+- Fix internal-event reminders re-firing every minute and never visibly notifying. The `scheduled_reminders.delivery_method` select field (defined in migration 0001) accepted only `["ha_companion","ntfy","browser"]`, but the cron writes `"web_push"`. Saves were rejected, `sent_at` never got written, the row stayed due, and the cron re-fired it on every tick. Browsers dedupe Web Push by `tag`, so the repeated same-tag pushes silently replaced each other instead of re-alerting — net effect was zero visible notifications for events created via the calendar (subscription/external reminders were unaffected because migration 0005 already added `"web_push"` to its parallel collection). Migration 0006 brings `scheduled_reminders` into line.
+- Harden `020_reminder_cron.pb.js`: a thrown error from the internal `findAllRecords` query no longer early-returns from the whole cron callback, which was silently skipping the external reminder block. Both `findAllRecords` failures now log instead of being swallowed.
+
 ## 1.5.5
 
 - Fix reminders all firing at once at midnight UTC (≈ 02:00 local) instead of at their scheduled times. The reminder cron compared `scheduled_for` against `Date.toISOString()` (which uses a `T` separator) but PocketBase stores datetimes with a space separator. SQL `<=` is a lexical compare and `' '` (32) < `'T'` (84), so every "today" row became lexically due the moment UTC ticked over to the new day. Now the cron passes the comparison value in PB's storage format.
