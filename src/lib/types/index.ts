@@ -153,6 +153,19 @@ export interface ExternalEventReminder extends BaseRecord {
 	disabled?: boolean;
 }
 
+// One row per browser/device that has opted in to push notifications.
+// Replaces the single `user_settings.push_subscription` JSON blob — that
+// blob was overwritten on every device's first subscribe, so only the
+// last device ever received reminders. Keyed by the unique Web Push
+// `endpoint` (stable per browser+VAPID combo).
+export interface DevicePushSubscription extends BaseRecord {
+	user: string;
+	endpoint: string;
+	p256dh: string;
+	auth: string;
+	last_seen?: string;
+}
+
 // User settings
 export interface UserSettings extends BaseRecord {
 	user: string;
@@ -167,7 +180,6 @@ export interface UserSettings extends BaseRecord {
 	reduce_animations: boolean;
 	high_contrast: boolean;
 	timezone: string;
-	push_subscription?: PushSubscriptionData; // Web Push subscription for notifications
 	buffer_minutes?: number; // ADHD: visual transition-time gap between events (default 10)
 	density?: 'compact' | 'comfortable' | 'spacious'; // ADHD: layout density preference
 	daily_wins_enabled?: boolean; // ADHD: show end-of-day completion summary
@@ -179,15 +191,6 @@ export interface BrainDump extends BaseRecord {
 	user: string;
 	title: string;
 	notes?: string;
-}
-
-// Push subscription data
-export interface PushSubscriptionData {
-	endpoint: string;
-	keys: {
-		p256dh: string;
-		auth: string;
-	};
 }
 
 // Local-only types for Dexie/IndexedDB
