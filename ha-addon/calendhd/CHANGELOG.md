@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.7
+
+- Fix external-event reminders silently never firing for same-day events. After a subscription sync, the `calendar_subscriptions` update hook calls `rescheduleExternalRemindersForSubscription`, which deletes every unsent reminder for the subscription and then re-queries `external_events WHERE start_time >= {:now}` to recreate them. The `:now` parameter came from `new Date().toISOString()` (T separator) but PocketBase stores `start_time` with a space separator — same lexical-compare class of bug as 1.5.5, in a different code path. Position 10 has `' '` (0x20) < `'T'` (0x54), so any same-day event's `start_time` always compared LESS than `:now` and got filtered out. The freshly-created reminder rows were therefore deleted by step 1 and never recreated by step 2; the cron had nothing to fire. (Future-day events were unaffected because their date prefix differs.) Symmetric audit of `pb_helpers.js`: two routine-generator queries (`deleteRoutineEventsForDate`, `generateEventsForRoutine`'s existence check) had the same bug and would have caused routine-event duplication; both fixed in the same pass.
+- Add `pbDateFilter()` helper in `pb_helpers.js` so future code that compares datetime parameters against PB columns can't reintroduce this mismatch. `record.set()` writes are unaffected — PB normalizes T → space on save.
+
 ## 1.5.6
 
 - Fix internal-event reminders re-firing every minute and never visibly notifying. The `scheduled_reminders.delivery_method` select field (defined in migration 0001) accepted only `["ha_companion","ntfy","browser"]`, but the cron writes `"web_push"`. Saves were rejected, `sent_at` never got written, the row stayed due, and the cron re-fired it on every tick. Browsers dedupe Web Push by `tag`, so the repeated same-tag pushes silently replaced each other instead of re-alerting — net effect was zero visible notifications for events created via the calendar (subscription/external reminders were unaffected because migration 0005 already added `"web_push"` to its parallel collection). Migration 0006 brings `scheduled_reminders` into line.
