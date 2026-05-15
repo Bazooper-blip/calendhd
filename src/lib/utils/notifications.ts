@@ -1,5 +1,9 @@
 import { browser } from '$app/environment';
-import { getPocketBase, getCurrentUser, updateUserSettings, getUserSettings } from '$api/pocketbase';
+import {
+	getCurrentUser,
+	upsertDevicePushSubscription,
+	deleteDevicePushSubscriptionByEndpoint
+} from '$api/pocketbase';
 
 // Check if notifications are supported
 export function isNotificationSupported(): boolean {
@@ -66,35 +70,39 @@ export async function unsubscribeFromPush(): Promise<boolean> {
 	return true;
 }
 
-// Save push subscription to server
+// Save (upsert) this device's push subscription on the server. Each device
+// gets its own row in push_subscriptions keyed by the unique Web Push
+// `endpoint`, so multi-device works — see pb_migrations/0007.
 export async function savePushSubscription(subscription: PushSubscription): Promise<void> {
 	const user = getCurrentUser();
 	if (!user) throw new Error('Not authenticated');
 
 	const json = subscription.toJSON();
-	const settings = await getUserSettings();
-	await updateUserSettings({
-		push_subscription: {
-			endpoint: json.endpoint || '',
-			keys: {
-				p256dh: json.keys?.p256dh || '',
-				auth: json.keys?.auth || ''
-			}
-		}
-	}, settings?.id);
+	if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) {
+		throw new Error('Push subscription is missing endpoint or keys');
+	}
+
+	await upsertDevicePushSubscription(json.endpoint, json.keys.p256dh, json.keys.auth);
 }
 
-// Remove push subscription from server
+// Remove this device's push subscription row from the server. Reads the
+// endpoint from the active browser subscription before the caller
+// unsubscribes — once the browser unsubscribes, the registration's
+// endpoint is gone.
 export async function removePushSubscription(): Promise<void> {
 	const user = getCurrentUser();
 	if (!user) throw new Error('Not authenticated');
 
-	const settings = await getUserSettings();
-	if (settings) {
-		await updateUserSettings({
-			push_subscription: undefined
-		}, settings.id);
-	}
+	if (!isNotificationSupported()) return;
+
+	const registration = await navigator.serviceWorker.ready;
+	const subscription = await registration.pushManager.getSubscription();
+	if (!subscription) return;
+
+	const endpoint = subscription.toJSON().endpoint;
+	if (!endpoint) return;
+
+	await deleteDevicePushSubscriptionByEndpoint(endpoint);
 }
 
 // Check if user has an active push subscription

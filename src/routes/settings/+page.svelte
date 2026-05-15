@@ -73,8 +73,10 @@
 	async function handleDisableNotifications() {
 		notificationLoading = true;
 		try {
-			await unsubscribeFromPush();
+			// Delete the server row FIRST, while we can still read the endpoint
+			// from the active push subscription.
 			await removePushSubscription();
+			await unsubscribeFromPush();
 			hasSubscription = false;
 			toast.success($_('settings.notificationsDisabled'));
 		} catch (error) {
