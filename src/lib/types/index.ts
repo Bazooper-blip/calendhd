@@ -253,4 +253,3 @@ export interface EventFormData {
 	reminders: ReminderConfig[];
 	recurrence_rule?: RecurrenceRule;
 }
-
