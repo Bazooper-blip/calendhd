@@ -9,7 +9,8 @@ import type {
 	ExternalEvent,
 	ExternalEventReminder,
 	UserSettings,
-	BrainDump
+	BrainDump,
+	DevicePushSubscription
 } from '$types';
 
 // PocketBase client singleton
@@ -39,6 +40,7 @@ const collections = {
 	external_events: () => getPocketBase().collection('external_events'),
 	external_event_reminders: () => getPocketBase().collection('external_event_reminders'),
 	user_settings: () => getPocketBase().collection('user_settings'),
+	push_subscriptions: () => getPocketBase().collection('push_subscriptions'),
 	scheduled_reminders: () => getPocketBase().collection('scheduled_reminders'),
 	routine_templates: () => getPocketBase().collection('routine_templates'),
 	brain_dump: () => getPocketBase().collection('brain_dump')
@@ -366,6 +368,71 @@ export function getDefaultSettings(): Omit<UserSettings, 'id' | 'created' | 'upd
 		daily_wins_enabled: true,
 		streak_celebration_enabled: true
 	};
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Device push subscriptions (one row per browser/device).
+// Replaces the single user_settings.push_subscription blob — see
+// pb_migrations/0007_push_subscriptions.js for context.
+// ─────────────────────────────────────────────────────────────────
+
+export async function getDevicePushSubscriptions(): Promise<DevicePushSubscription[]> {
+	const user = getCurrentUser();
+	if (!user) return [];
+	const records = await collections.push_subscriptions().getFullList({
+		filter: `user = "${user.id}"`,
+		batch: 200
+	});
+	return records as unknown as DevicePushSubscription[];
+}
+
+// Upsert by endpoint: find any row with the same endpoint and update it,
+// otherwise create a new one. The unique index on `endpoint` guarantees
+// at most one row exists for any given browser+VAPID combo.
+export async function upsertDevicePushSubscription(
+	endpoint: string,
+	p256dh: string,
+	auth: string
+): Promise<DevicePushSubscription> {
+	const user = getCurrentUser();
+	if (!user) throw new Error('Not authenticated');
+
+	const lastSeen = new Date().toISOString();
+	const escaped = endpoint.replace(/"/g, '\\"');
+	const existing = await collections.push_subscriptions().getFullList({
+		filter: `endpoint = "${escaped}"`,
+		batch: 1
+	});
+
+	if (existing.length > 0) {
+		const row = existing[0] as unknown as DevicePushSubscription;
+		const updated = await collections.push_subscriptions().update(row.id, {
+			user: user.id,
+			p256dh,
+			auth,
+			last_seen: lastSeen
+		});
+		return updated as unknown as DevicePushSubscription;
+	}
+
+	const created = await collections.push_subscriptions().create({
+		user: user.id,
+		endpoint,
+		p256dh,
+		auth,
+		last_seen: lastSeen
+	});
+	return created as unknown as DevicePushSubscription;
+}
+
+export async function deleteDevicePushSubscriptionByEndpoint(endpoint: string): Promise<void> {
+	const escaped = endpoint.replace(/"/g, '\\"');
+	const matches = await collections.push_subscriptions().getFullList({
+		filter: `endpoint = "${escaped}"`,
+		batch: 1
+	});
+	if (matches.length === 0) return;
+	await collections.push_subscriptions().delete(matches[0].id);
 }
 
 // Get VAPID public key for Web Push subscription
