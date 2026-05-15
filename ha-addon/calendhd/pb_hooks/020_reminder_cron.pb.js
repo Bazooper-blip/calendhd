@@ -2,9 +2,6 @@
 
 // Cron job: check for due reminders every minute
 cronAdd("reminder_sender", "* * * * *", function() {
-    // PB JSVM runs callbacks in an isolated goja runtime — read env vars inside.
-    var PUSH_SERVICE_URL = $os.getenv("PUSH_SERVICE_URL") || "http://localhost:3001";
-
     var now = new Date();
     var nowISO = now.toISOString();
     // PB stores datetimes as 'YYYY-MM-DD HH:MM:SS.fffZ' (space separator).
@@ -73,8 +70,10 @@ cronAdd("reminder_sender", "* * * * *", function() {
         var deliveryMethod = "";
         var errorMessage = "";
 
-        // Try to send Web Push notification
-        var pushResult = sendWebPushNotification(userSettings, eventTitle, message, eventId);
+        // Fan out to every device row for this user. We no longer need
+        // userSettings here — kept the lookup above so log messages can
+        // still mention the user, and to preserve future per-user toggles.
+        var pushResult = sendWebPushNotification(userId, eventTitle, message, eventId);
         if (pushResult.success) {
             sent = true;
             deliveryMethod = "web_push";
@@ -92,52 +91,22 @@ cronAdd("reminder_sender", "* * * * *", function() {
         }
     }
 
-    function sendWebPushNotification(userSettings, title, message, eventId) {
-        if (!userSettings) {
-            return { success: false, error: "no_user_settings" };
+    // Fan out to every device subscribed under this user. Returns success
+    // if at least one device received the push; otherwise reports the
+    // count so the failure log line shows "0 sent / N failed".
+    function sendWebPushNotification(userId, title, message, tag) {
+        if (!userId) {
+            return { success: false, error: "no_user" };
         }
-
-        // PB JSVM returns json fields as byte arrays — use the shared decoder.
         var helpers = require(`${__hooks}/pb_helpers.js`);
-        var pushSubscription = helpers.parseJsonField(userSettings.get("push_subscription"));
-
-        if (!pushSubscription) {
-            return { success: false, error: "no_push_subscription" };
+        var result = helpers.sendPushToAllDevices(userId, title, message, tag);
+        if (result.sent > 0) {
+            return { success: true, error: "", sent: result.sent, failed: result.failed };
         }
-        if (!pushSubscription.endpoint || !pushSubscription.keys) {
-            return { success: false, error: "invalid_subscription" };
+        if (result.sent === 0 && result.failed === 0) {
+            return { success: false, error: "no_devices" };
         }
-
-        // Send push notification via push service
-        try {
-            var res = $http.send({
-                url: PUSH_SERVICE_URL + "/send",
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    subscription: pushSubscription,
-                    payload: {
-                        title: title,
-                        body: message,
-                        tag: "calendhd-reminder-" + eventId,
-                        data: {
-                            eventId: eventId
-                        }
-                    }
-                }),
-                timeout: 10
-            });
-
-            if (res.statusCode >= 200 && res.statusCode < 300) {
-                return { success: true, error: "" };
-            } else {
-                return { success: false, error: "push_api_" + res.statusCode };
-            }
-        } catch (err) {
-            return { success: false, error: "push_request_failed: " + err };
-        }
+        return { success: false, error: "push_fanout_failed_" + result.failed };
     }
 
     function formatReminderMessage(title, startTime) {
@@ -218,25 +187,13 @@ cronAdd("reminder_sender", "* * * * *", function() {
 
         var eventTitle = ext.get("title") || "Event";
         var eventStart = ext.get("start_time") || "";
-        // sendWebPushNotification adds "calendhd-reminder-" prefix; pass
-        // "ext-<uid>" so the final tag is "calendhd-reminder-ext-<uid>".
+        // sendPushToAllDevices prefixes "calendhd-reminder-"; pass "ext-<uid>"
+        // so the final notification tag is "calendhd-reminder-ext-<uid>".
         var notificationTag = "ext-" + uid;
-
-        // Load user settings
-        var userSettings;
-        try {
-            var settingsRecords = $app.findAllRecords("user_settings", $dbx.hashExp({ "user": userId }));
-            userSettings = settingsRecords.length > 0 ? settingsRecords[0] : null;
-        } catch (err) {
-            userSettings = null;
-        }
 
         var message = formatReminderMessage(eventTitle, eventStart);
 
-        // sendWebPushNotification's existing signature is
-        // (userSettings, title, message, eventId). Pass the tag in eventId's
-        // slot — the existing implementation only uses it to build the tag.
-        var pushResult = sendWebPushNotification(userSettings, eventTitle, message, notificationTag);
+        var pushResult = sendWebPushNotification(userId, eventTitle, message, notificationTag);
         var deliveryMethod = "";
         var errorMessage = "";
         if (pushResult.success) {

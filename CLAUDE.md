@@ -144,6 +144,8 @@ src/lib/components/
 3. `0003_routine_target_end.js` — target_end_time field on routine_templates
 4. `0004_adhd_features.js` — `events.first_step` (text); `user_settings.{buffer_minutes, density, daily_wins_enabled, streak_celebration_enabled}`; new `brain_dump` collection
 5. `0005_external_event_reminders.js` — `calendar_subscriptions.{reminders_enabled, default_reminder_minutes}`; new `external_event_reminders` collection (per-event overrides keyed by subscription+ical_uid); new `external_scheduled_reminders` collection (parallel to `scheduled_reminders` for the external-event reminder pipeline)
+6. `0006_scheduled_reminders_web_push.js` — adds `"web_push"` to `scheduled_reminders.delivery_method` allowed values (was masked before 1.5.4 because the cron never ran)
+7. `0007_push_subscriptions.js` — new `push_subscriptions` collection (one row per device, keyed by unique Web Push endpoint); backfills the legacy `user_settings.push_subscription` blob and drops it (no compat shim — see Multi-device push below)
 
 **Hooks** (`pocketbase/pb_hooks/`):
 - `005_singleton_init.pb.js` — Creates/rotates the singleton `home@calendhd.local` user on bootstrap; serves credentials at `GET /api/calendhd/bootstrap` (same-origin)
@@ -154,7 +156,7 @@ src/lib/components/
 - `040_notification_test.pb.js` — Test notification endpoint
 - `050_subscription_sync.pb.js` — Sync external iCal feeds
 - `060_routine_generator.pb.js` — Daily cron generates events from active routines; regenerates on routine create/update; cascades delete
-- `pb_helpers.js` — Shared `require()`'d module; exports `parseJsonField()` (handles all three forms PB JSVM may return for json fields) + routine helpers. Must be copied to addon alongside hooks.
+- `pb_helpers.js` — Shared `require()`'d module; exports `parseJsonField()` (handles all three forms PB JSVM may return for json fields), routine helpers, external-reminder helpers, and `sendPushToAllDevices(userId, title, body, tag)` (fans out to every row in `push_subscriptions` for the user, prunes dead subscriptions when push-service returns 404/410). Must be copied to addon alongside hooks.
 
 **Custom routes** (registered via `routerAdd` in hooks):
 - `GET /api/calendhd/bootstrap` — singleton credentials (auth bootstrap)
@@ -231,6 +233,8 @@ ha-addon/calendhd/
 > **Critical:** any commit that changes `src/**` MUST be paired with `./build-for-ha.sh` so the rebuilt `_app/*` chunks land in `ha-addon/calendhd/rootfs/opt/calendhd/public/`. Bumping `version:` in `config.yaml` triggers HA to "update" but the image rebuild produces an identical artifact if the rootfs hasn't been refreshed. Has bitten us at least once (1.4.0 → 1.4.3). The init script (`calendhd-init.sh`) rsync's `/opt/calendhd/public/* → /config/calendhd/pb_public/` on every start — overwriting any hot-swapped assets — so the in-image bundle is the source of truth.
 
 **Singleton-account password rotation.** On every addon start, `cont-init.d/calendhd-init.sh` ensures `/config/calendhd/.singleton-password` exists (generates 32-byte hex via openssl/urandom on first run), exposes it as `SINGLETON_PASSWORD` in the s6 container_environment, and the `005_singleton_init.pb.js` hook then `setPassword`s the singleton user to match. To force-rotate the password: stop addon → `rm /config/calendhd/.singleton-password` → start addon. Existing sessions are invalidated on next `authRefresh`.
+
+**Multi-device push.** Each browser/device that opts in to notifications gets its own row in the `push_subscriptions` collection (keyed by the unique Web Push endpoint URL). The reminder cron + test-notification endpoint both call `sendPushToAllDevices()` from `pb_helpers.js`, which fans out to every row for the singleton user — so notifications fire on every active device, not just the most recent one. Dead subscriptions (push-service returns 404 or 410) are pruned lazily on the next send. The push-service forwards web-push's upstream `statusCode` so the cron can distinguish prune-worthy failures (gone) from transient ones (5xx). See `pb_migrations/0007_push_subscriptions.js`.
 
 **Repo metadata:** [`repository.yaml`](repository.yaml) at the repo root marks this as an HA add-on repository. Users add `https://github.com/Bazooper-blip/calendhd` in HA → Add-on Store → Repositories.
 

@@ -297,5 +297,96 @@ module.exports = {
         } catch (err) {
             console.log("[ext-rem] reschedule for override failed:", err);
         }
+    },
+
+    // ─────────────────────────────────────────────────────────────────
+    // Multi-device push delivery
+    //
+    // Looks up every push_subscriptions row for the user and POSTs to the
+    // push-service for each. Returns { sent: <count>, failed: <count> }.
+    //
+    // Dead subscriptions (push-service responds 404 or 410) are deleted —
+    // those status codes mean the browser/server has discarded the
+    // subscription and no future push will ever succeed for that endpoint.
+    // Other failures (5xx, network) are logged and left alone so the row
+    // stays available for the next cron tick.
+    // ─────────────────────────────────────────────────────────────────
+    sendPushToAllDevices: function(userId, title, body, tag) {
+        var PUSH_SERVICE_URL = $os.getenv("PUSH_SERVICE_URL") || "http://localhost:3001";
+
+        var subs;
+        try {
+            subs = $app.findRecordsByFilter(
+                "push_subscriptions",
+                "user = {:uid}",
+                "", 100, 0,
+                { uid: userId }
+            );
+        } catch (err) {
+            console.log("[push-fanout] failed to load push_subscriptions: " + err);
+            return { sent: 0, failed: 0 };
+        }
+
+        if (!subs || subs.length === 0) {
+            return { sent: 0, failed: 0 };
+        }
+
+        var sent = 0;
+        var failed = 0;
+
+        for (var i = 0; i < subs.length; i++) {
+            var row = subs[i];
+            var endpoint = row.get("endpoint");
+            var p256dh = row.get("p256dh");
+            var auth = row.get("auth");
+
+            if (!endpoint || !p256dh || !auth) {
+                console.log("[push-fanout] skipping malformed row " + row.id);
+                failed++;
+                continue;
+            }
+
+            try {
+                var res = $http.send({
+                    url: PUSH_SERVICE_URL + "/send",
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        subscription: {
+                            endpoint: endpoint,
+                            keys: { p256dh: p256dh, auth: auth }
+                        },
+                        payload: {
+                            title: title,
+                            body: body,
+                            tag: "calendhd-reminder-" + tag,
+                            data: { tag: tag }
+                        }
+                    }),
+                    timeout: 10
+                });
+
+                if (res.statusCode >= 200 && res.statusCode < 300) {
+                    sent++;
+                } else if (res.statusCode === 404 || res.statusCode === 410) {
+                    // Subscription is dead — prune so the next cron tick is faster.
+                    try {
+                        $app.delete(row);
+                        console.log("[push-fanout] pruned dead subscription " + row.id + " (status " + res.statusCode + ")");
+                    } catch (delErr) {
+                        console.log("[push-fanout] failed to prune dead subscription " + row.id + ": " + delErr);
+                    }
+                    failed++;
+                } else {
+                    console.log("[push-fanout] push failed for " + row.id + " with status " + res.statusCode);
+                    failed++;
+                }
+            } catch (err) {
+                console.log("[push-fanout] http error for " + row.id + ": " + err);
+                failed++;
+            }
+        }
+
+        return { sent: sent, failed: failed };
     }
 };

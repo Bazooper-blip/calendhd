@@ -78,7 +78,10 @@ const server = http.createServer(async (req, res) => {
             return;
         }
 
-        // POST /send - Send a push notification
+        // POST /send - Send a push notification.
+        // Forwards web-push's upstream statusCode so the caller (PB cron) can
+        // distinguish prune-worthy failures (404/410 — subscription is dead)
+        // from transient ones (5xx — try again next tick).
         if (req.method === 'POST' && req.url === '/send') {
             const body = await parseBody(req);
 
@@ -88,10 +91,18 @@ const server = http.createServer(async (req, res) => {
                 return;
             }
 
-            await sendPushNotification(body.subscription, body.payload);
-
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: true }));
+            try {
+                await sendPushNotification(body.subscription, body.payload);
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: true }));
+            } catch (err) {
+                const upstream = typeof err.statusCode === 'number' ? err.statusCode : 500;
+                res.writeHead(upstream, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    error: err.message || 'Push send failed',
+                    statusCode: upstream
+                }));
+            }
             return;
         }
 
