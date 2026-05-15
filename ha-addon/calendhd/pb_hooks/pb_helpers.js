@@ -42,8 +42,19 @@ function parseJsonField(value) {
     return value;
 }
 
+// PB stores datetimes as 'YYYY-MM-DD HH:MM:SS.fffZ' (space separator) but
+// Date.toISOString() emits 'YYYY-MM-DDTHH:MM:SS.fffZ' (T separator). SQL
+// string compares are byte-wise — ' ' (0x20) < 'T' (0x54) — so passing a
+// T-formatted value as a filter parameter against a datetime column excludes
+// every same-day row. Always route filter parameters through this helper.
+// (Storing via record.set() is safe; PB normalizes T → space on save.)
+function pbDateFilter(date) {
+    return date.toISOString().replace("T", " ");
+}
+
 module.exports = {
     parseJsonField: parseJsonField,
+    pbDateFilter: pbDateFilter,
 
     deleteRoutineEventsForDate: function(routineId, targetDate) {
         var dayStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 0, 0, 0);
@@ -54,7 +65,7 @@ module.exports = {
             events = $app.findRecordsByFilter("events",
                 "routine_template = {:rid} && start_time >= {:start} && start_time <= {:end}",
                 "", 100, 0,
-                { rid: routineId, start: dayStart.toISOString(), end: dayEnd.toISOString() }
+                { rid: routineId, start: pbDateFilter(dayStart), end: pbDateFilter(dayEnd) }
             );
         } catch (err) {
             return;
@@ -96,7 +107,7 @@ module.exports = {
                 existing = $app.findRecordsByFilter("events",
                     "routine_template = {:rid} && routine_step_index = {:idx} && start_time >= {:start} && start_time <= {:end}",
                     "", 1, 0,
-                    { rid: routineId, idx: stepIdx, start: dayStart.toISOString(), end: dayEnd.toISOString() }
+                    { rid: routineId, idx: stepIdx, start: pbDateFilter(dayStart), end: pbDateFilter(dayEnd) }
                 );
             } catch (err) {
                 existing = [];
@@ -256,12 +267,11 @@ module.exports = {
 
         // Re-schedule for each upcoming external event
         try {
-            var nowISO = new Date().toISOString();
             var events = $app.findRecordsByFilter(
                 "external_events",
                 "subscription = {:sub} && start_time >= {:now}",
                 "", 500, 0,
-                { sub: subscriptionId, now: nowISO }
+                { sub: subscriptionId, now: pbDateFilter(new Date()) }
             );
             for (var j = 0; j < events.length; j++) {
                 self.scheduleExternalReminder(events[j]);
