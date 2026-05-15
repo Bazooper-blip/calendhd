@@ -21,7 +21,7 @@ npm run test:e2e     # Run Playwright end-to-end tests
 npm run lint         # Same as check (svelte-check)
 ```
 
-PocketBase must be running separately for backend features (requires PocketBase 0.37+):
+PocketBase must be running separately for backend features (requires PocketBase 0.38+):
 ```bash
 cd pocketbase && ./pocketbase serve   # Starts on http://127.0.0.1:8090
 ```
