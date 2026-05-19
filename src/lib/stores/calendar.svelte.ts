@@ -55,6 +55,10 @@ function createCalendarStore() {
 	// Unsubscribe function for realtime events
 	let unsubscribe: (() => void) | null = null;
 
+	// Monotonic token for loadEvents() — bumped on every call, used to discard
+	// stale writes when navigation fires overlapping loads.
+	let loadGeneration = 0;
+
 	// Calculate view range based on current date and view type
 	function getViewRange(): { start: Date; end: Date } {
 		const weekStartsOn = settingsStore.weekStartsOn;
@@ -212,12 +216,20 @@ function createCalendarStore() {
 				return;
 			}
 
+			// Claim a token; any in-flight loadEvents() with an older token must
+			// stop writing to the shared events/externalEvents state — otherwise
+			// a slow earlier fetch can clobber a newer view's data and the grid
+			// renders empty after rapid prev/next clicks.
+			const myGen = ++loadGeneration;
+			const isStale = () => myGen !== loadGeneration;
+
 			loading = true;
 			const { start, end } = getViewRange();
 
 			// Load from local DB first (offline-first)
 			try {
 				const localEvents = await getLocalEvents(userId, start, end);
+				if (isStale()) return;
 				events = localEvents.map((le) => ({
 					...le,
 					id: le.id || le.local_id,
@@ -226,6 +238,7 @@ function createCalendarStore() {
 				})) as CalendarEvent[];
 
 				const localExternal = await getLocalExternalEvents(userId, start, end);
+				if (isStale()) return;
 				externalEvents = localExternal;
 			} catch (error) {
 				console.warn('Failed to load from local DB:', error);
@@ -256,9 +269,11 @@ function createCalendarStore() {
 					getEvents(start, end),
 					getExternalEvents(start, end)
 				]);
+				if (isStale()) return;
 
 				// Filter out events that are still pending deletion locally
 				const stillPendingDeletes = await getPendingDeleteEvents();
+				if (isStale()) return;
 				const pendingDeleteIds = new Set(stillPendingDeletes.map((e) => e.id).filter(Boolean));
 				events = pendingDeleteIds.size > 0
 					? serverEvents.filter((e) => !pendingDeleteIds.has(e.id))
@@ -268,6 +283,7 @@ function createCalendarStore() {
 				// Save external events to IndexedDB for offline access
 				// Clear old external events first to remove stale entries
 				await db.external_events.where('user').equals(userId).delete();
+				if (isStale()) return;
 				if (serverExternalEvents.length > 0) {
 					await setExternalEvents(serverExternalEvents);
 				}
@@ -278,7 +294,7 @@ function createCalendarStore() {
 				// Keep local data if server fails
 			}
 
-			loading = false;
+			if (!isStale()) loading = false;
 		},
 
 		// Subscribe to realtime updates
