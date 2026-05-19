@@ -140,6 +140,11 @@
 		{ value: 'spacious', label: $_('settings.densitySpacious') }
 	]);
 
+	const dayViewStyleOptions = $derived([
+		{ value: 'timeline', label: $_('settings.dayViewStyleTimeline') },
+		{ value: 'agenda', label: $_('settings.dayViewStyleAgenda') }
+	]);
+
 	const languageOptions = availableLocales.map((l) => ({
 		value: l.code,
 		label: `${l.nativeName} (${l.name})`
@@ -270,6 +275,19 @@
 							options={timeFormatOptions}
 							value={settingsStore.timeFormat}
 							onchange={(e) => handleChange('time_format', (e.target as HTMLSelectElement).value)}
+						/>
+					</div>
+
+					<div>
+						<label for="day-view-style" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+							{$_('settings.dayViewStyle')}
+						</label>
+						<p class="text-xs text-neutral-500 dark:text-neutral-400 mb-2">{$_('settings.dayViewStyleDescription')}</p>
+						<Select
+							id="day-view-style"
+							options={dayViewStyleOptions}
+							value={settingsStore.dayViewStyle}
+							onchange={(e) => handleChange('day_view_style', (e.target as HTMLSelectElement).value)}
 						/>
 					</div>
 				</div>

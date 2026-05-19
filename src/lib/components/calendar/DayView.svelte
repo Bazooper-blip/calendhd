@@ -17,6 +17,7 @@
 	import DayProgress from './DayProgress.svelte';
 	import DailyWinsBanner from './DailyWinsBanner.svelte';
 	import ExternalEventModal from './ExternalEventModal.svelte';
+	import AgendaView from './AgendaView.svelte';
 
 	/** A routine group merges multiple routine step events into one visual block. */
 	interface RoutineGroup {
@@ -204,9 +205,10 @@
 		return () => clearInterval(interval);
 	});
 
-	// Scroll to current time on mount
+	// Scroll to current time on mount (timeline only — agenda view positions itself)
 	let timeGridRef: HTMLDivElement | undefined = $state();
 	$effect(() => {
+		if (settingsStore.dayViewStyle !== 'timeline') return;
 		if (browser && timeGridRef && isToday(date)) {
 			const scrollTarget = (nowPosition ?? 50) / 100 * 1440 - 200;
 			timeGridRef.scrollTop = Math.max(0, scrollTarget);
@@ -254,6 +256,9 @@
 		</div>
 	</div>
 
+	{#if settingsStore.dayViewStyle === 'agenda'}
+		<AgendaView {date} />
+	{:else}
 	<!-- All-day events -->
 	{#if allDayEvents.length > 0}
 		<div class="flex-shrink-0 border-b border-neutral-100 dark:border-neutral-800 px-4 py-2 space-y-1">
@@ -363,6 +368,7 @@
 			</div>
 		</div>
 	</div>
+	{/if}
 </div>
 
 <ExternalEventModal event={externalDetail} onclose={() => (externalDetail = null)} />
