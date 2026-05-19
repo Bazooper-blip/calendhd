@@ -71,6 +71,10 @@ function createSettingsStore() {
 		get streakCelebrationEnabled() {
 			return settings?.streak_celebration_enabled ?? defaults.streak_celebration_enabled ?? true;
 		},
+		get dayViewStyle(): 'timeline' | 'agenda' {
+			const val = settings?.day_view_style ?? defaults.day_view_style;
+			return val === 'agenda' ? 'agenda' : 'timeline';
+		},
 		async load() {
 			if (!browser) return;
 

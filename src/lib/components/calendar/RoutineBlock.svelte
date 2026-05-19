@@ -58,6 +58,9 @@
 	const completedCount = $derived(steps.filter((s) => s.is_completed).length);
 	const allDone = $derived(completedCount === steps.length);
 	const isHappeningNow = $derived(!!(now && start && end && start <= now && now < end));
+	// Dim past routine groups (every step's end-time has passed). Skip dimming
+	// while expanded so the user can still scan the completed steps clearly.
+	const isPast = $derived(!!(now && end && now >= end && !isHappeningNow));
 	const streak = $derived(
 		settingsStore.streakCelebrationEnabled
 			? computeRoutineStreak(routine_template, calendar.events as CalendarEvent[])
@@ -104,6 +107,7 @@
 	class={cn(
 		'absolute inset-x-1 rounded-lg text-left transition-all hover:ring-2 hover:ring-primary-500 hover:ring-offset-1 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1',
 		expanded ? 'z-10 ring-2 ring-primary-500/30 shadow-lg overflow-y-auto' : 'overflow-hidden',
+		isPast && !expanded && 'opacity-55',
 		isHappeningNow && 'ring-2 ring-primary-400 ring-offset-2 ring-offset-white dark:ring-offset-neutral-900 shadow-md'
 	)}
 	style="{expanded ? style.replace(/height:\s*[^;]+;?/, '') + 'height: auto;' : style} background-color: {color};"
