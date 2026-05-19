@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.0
+
+- Add Agenda day-view layout. Settings → Calendar → Day view style lets users switch from the existing 24-hour timeline to a chronological list with three sections: **Earlier today** (collapsible, dimmed), **Now** (big card with "X min left"), and **Upcoming** (with "Free for ~30 min" gap hints between events; first item gets a "Next · in Y min" card). Default stays `timeline` so existing setups are unchanged.
+- Dim past events/routine groups to 55% opacity across both layouts so the eye lands on what's ahead, not what's done. Orthogonal to the existing completed-strikethrough.
+- Migration 0008 adds `user_settings.day_view_style`.
+
 ## 1.5.7
 
 - Fix external-event reminders silently never firing for same-day events. After a subscription sync, the `calendar_subscriptions` update hook calls `rescheduleExternalRemindersForSubscription`, which deletes every unsent reminder for the subscription and then re-queries `external_events WHERE start_time >= {:now}` to recreate them. The `:now` parameter came from `new Date().toISOString()` (T separator) but PocketBase stores `start_time` with a space separator — same lexical-compare class of bug as 1.5.5, in a different code path. Position 10 has `' '` (0x20) < `'T'` (0x54), so any same-day event's `start_time` always compared LESS than `:now` and got filtered out. The freshly-created reminder rows were therefore deleted by step 1 and never recreated by step 2; the cron had nothing to fire. (Future-day events were unaffected because their date prefix differs.) Symmetric audit of `pb_helpers.js`: two routine-generator queries (`deleteRoutineEventsForDate`, `generateEventsForRoutine`'s existence check) had the same bug and would have caused routine-event duplication; both fixed in the same pass.

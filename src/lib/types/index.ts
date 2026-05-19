@@ -184,6 +184,7 @@ export interface UserSettings extends BaseRecord {
 	density?: 'compact' | 'comfortable' | 'spacious'; // ADHD: layout density preference
 	daily_wins_enabled?: boolean; // ADHD: show end-of-day completion summary
 	streak_celebration_enabled?: boolean; // ADHD: celebrate routine completion + show streak
+	day_view_style?: 'timeline' | 'agenda'; // ADHD: 24h grid vs chronological list with past/now/upcoming sections
 }
 
 // Brain dump (quick thought capture without scheduling)

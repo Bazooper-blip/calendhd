@@ -23,6 +23,14 @@
 		if (event.end) return now < event.end;
 		return now.getTime() < event.start.getTime() + 60_000;
 	});
+	// Past = ended (or single-point start older than a minute). Dimmed so the
+	// eye lands on what's ahead, not what's done. Orthogonal to `is_completed`
+	// (which adds strikethrough) — both can apply at once.
+	const isPast = $derived.by(() => {
+		if (!now || isHappeningNow) return false;
+		if (event.end) return now >= event.end;
+		return now.getTime() >= event.start.getTime() + 60_000;
+	});
 
 	function handleCheckboxClick(e: MouseEvent) {
 		e.stopPropagation();
@@ -37,6 +45,7 @@
 		event.is_external && 'opacity-80 border-l-4 border-l-secondary-500',
 		event.is_task && 'border-l-4 border-l-amber-400',
 		event.is_completed && 'opacity-60',
+		isPast && !event.is_completed && 'opacity-55',
 		isHappeningNow && 'ring-2 ring-primary-400 ring-offset-2 ring-offset-white dark:ring-offset-neutral-900 shadow-md'
 	)}
 	{style}

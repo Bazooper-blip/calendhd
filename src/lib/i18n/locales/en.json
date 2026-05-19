@@ -225,7 +225,11 @@
 		"dailyWins": "End-of-day wins",
 		"dailyWinsDescription": "Show what you completed at the end of the day",
 		"streakCelebration": "Routine streak + celebration",
-		"streakCelebrationDescription": "Track day-streaks for routines and celebrate when one finishes"
+		"streakCelebrationDescription": "Track day-streaks for routines and celebrate when one finishes",
+		"dayViewStyle": "Day view style",
+		"dayViewStyleDescription": "How to lay out today's events. Agenda groups them by past / now / upcoming with free-time hints.",
+		"dayViewStyleTimeline": "Timeline (24-hour grid)",
+		"dayViewStyleAgenda": "Agenda (chronological list)"
 	},
 	"subscription": {
 		"title": "Subscriptions",
@@ -330,6 +334,15 @@
 		"tomorrow": "tomorrow",
 		"routineFallback": "Routine",
 		"by": "by"
+	},
+	"agenda": {
+		"earlierToday": "{count, plural, one {# earlier today} other {# earlier today}}",
+		"now": "Now",
+		"upcoming": "Upcoming",
+		"allEvents": "Events",
+		"freeFor": "Free for ~{duration}",
+		"minLeft": "{duration} left",
+		"moreSteps": "more"
 	},
 	"common": {
 		"cancel": "Cancel",
