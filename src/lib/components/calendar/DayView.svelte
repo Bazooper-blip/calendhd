@@ -228,8 +228,10 @@
 </script>
 
 <div class="flex flex-col h-full">
-	<!-- Day progress indicator -->
-	<DayProgress {date} />
+	<!-- Day progress indicator (hidden in agenda view — the Now/Upcoming sections cover it) -->
+	{#if settingsStore.dayViewStyle !== 'agenda'}
+		<DayProgress {date} />
+	{/if}
 	<DailyWinsBanner />
 
 	<!-- Day header -->
@@ -243,7 +245,7 @@
 			>
 				{date.getDate()}
 			</span>
-			{#if nextUpcoming}
+			{#if nextUpcoming && settingsStore.dayViewStyle !== 'agenda'}
 				<span class="ml-auto flex items-center gap-1.5 rounded-full bg-primary-50 dark:bg-primary-900/30 px-2.5 py-1 text-xs">
 					<span class="text-primary-700 dark:text-primary-300 font-medium">{$_('calendar.next')}</span>
 					{#if nextUpcoming.icon}

@@ -263,7 +263,7 @@ ha-addon/calendhd/
   print(sorted(k(e)-k(s)), sorted(k(s)-k(e)))"
   ```
   Avoid the `$_('key') || 'English fallback'` pattern — it masks missing translations.
-- **Accessibility**: Support for reduced animations, high contrast mode, configurable time format (12h/24h), and week start day
+- **Accessibility**: Configurable time format (12h/24h) and week start day. The `@media (prefers-reduced-motion)` query in `app.css` honors OS-level reduced-motion automatically.
 - **Icons**: `lucide-svelte` for UI icons; `EventIcon` component for emoji/icon display on events. App branding lives at `static/favicon.svg` (vector source); `static/icons/icon-{72…512}.png` and `apple-touch-icon.png` are rsvg-convert outputs from the SVG; `ha-addon/calendhd/{icon,logo}.png` (256×256) likewise.
 - **Toasts**: `svelte-sonner` for toast notifications
 - **UI primitives**: `bits-ui` for accessible component primitives

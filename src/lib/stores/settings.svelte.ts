@@ -43,12 +43,6 @@ function createSettingsStore() {
 		get notificationSound() {
 			return settings?.notification_sound ?? defaults.notification_sound;
 		},
-		get reduceAnimations() {
-			return settings?.reduce_animations ?? defaults.reduce_animations;
-		},
-		get highContrast() {
-			return settings?.high_contrast ?? defaults.high_contrast;
-		},
 		get colorPalette(): 'sage' | 'ocean' | 'lavender' | 'rose' | 'amber' | 'teal' {
 			const val = settings?.color_palette;
 			if (val === 'sage' || val === 'ocean' || val === 'lavender' || val === 'rose' || val === 'amber' || val === 'teal') {
