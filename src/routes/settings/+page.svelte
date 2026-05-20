@@ -16,6 +16,7 @@
 		removePushSubscription
 	} from '$utils';
 	import { testServerNotification, getVapidPublicKey } from '$api/pocketbase';
+	import AccountSection from './AccountSection.svelte';
 
 	// Notification state
 	let notificationSupported = $state(false);
@@ -174,6 +175,9 @@
 		<h1 class="text-2xl font-bold text-neutral-800 dark:text-neutral-100 mb-6">{$_('settings.title')}</h1>
 
 		<div class="space-y-6">
+			<!-- Account -->
+			<AccountSection />
+
 			<!-- Appearance Settings -->
 			<section class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-neutral-100 dark:border-neutral-700 p-6">
 				<h2 class="text-lg font-semibold text-neutral-800 dark:text-neutral-100 mb-4">{$_('settings.appearance')}</h2>

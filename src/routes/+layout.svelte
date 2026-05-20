@@ -23,27 +23,19 @@
 	let sidebarOpen = $state(false);
 	let initialized = $state(false);
 	let mainRef = $state<HTMLElement>();
+	let loadedSettingsForUserId = $state<string | null>(null);
 
 	// <main> is the app's scroll container; reset it on navigation like a page scroll
 	afterNavigate(() => {
 		mainRef?.scrollTo(0, 0);
 	});
 
-	// Initialize data when authenticated (only once)
+	// Initialize shared data once on first auth. Categories/events/routines/
+	// templates are household-shared, so they don't need to reload on
+	// user-switch — the data is the same for every account.
 	$effect(() => {
 		if (browser && auth.isAuthenticated && !initialized) {
 			initialized = true;
-
-			// Load user data. Settings must land BEFORE the first event fetch:
-			// the week range is computed from week_starts_on, and fetching with
-			// the default (Sunday-start) while the user's setting (Monday-start)
-			// is still in flight loads a range that barely overlaps the week the
-			// grid then displays — on Sundays the two ranges share only a single
-			// day and the week renders (near-)empty until something refetches.
-			(async () => {
-				await settingsStore.load();
-				calendar.loadEvents();
-			})();
 			categoriesStore.load();
 			templatesStore.load();
 			routinesStore.load();
@@ -52,6 +44,25 @@
 			calendar.subscribeToUpdates();
 			categoriesStore.subscribeToUpdates();
 			routinesStore.subscribeToUpdates();
+		}
+	});
+
+	// Per-user settings: (re)load whenever the active user changes (sign-in,
+	// sign-out, switching between named user and guest). Settings must land
+	// BEFORE the event fetch: the week range is computed from week_starts_on,
+	// and fetching with the default (Sunday-start) while the user's setting
+	// (Monday-start) is still in flight loads a range that barely overlaps
+	// the week the grid then displays — on Sundays the two ranges share only
+	// a single day and the week renders (near-)empty until something refetches.
+	$effect(() => {
+		if (!browser) return;
+		const userId = auth.user?.id ?? null;
+		if (userId && userId !== loadedSettingsForUserId) {
+			loadedSettingsForUserId = userId;
+			(async () => {
+				await settingsStore.load();
+				calendar.loadEvents();
+			})();
 		}
 	});
 

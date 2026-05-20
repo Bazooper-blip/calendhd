@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.1
+
+- Optional named per-device accounts: any device can register/sign in to a personal account (Settings → Account or `/login`) for its own settings (theme, density, default view, …) while still sharing the household's events, categories, routines, templates, and subscriptions. Signing out returns the device to the household guest account. Migration 0010 opens shared-collection rules to any authenticated user; per-user state (settings, push subscriptions, scheduled reminders) stays owner-locked.
+- Known limitation: push notifications stay per-user — a named user only gets pushes for events they created; the guest account gets pushes for guest-created and routine-generated events. Keep a device on guest if it should receive everything.
+
 ## 1.6.12
 
 - Remove the brain-dump (Tankehög) feature entirely: the page, sidebar link, and API helpers are gone, and migration 0009 drops the `brain_dump` collection (any captured thoughts are deleted with it).

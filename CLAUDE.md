@@ -4,9 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-calenDHD is a calm, ADHD-friendly calendar PWA for neurodivergent minds. It's a client-only SvelteKit app backed by PocketBase, with IndexedDB (Dexie) as the local data store. Each instance serves as a singleton calendar for a single household — there is no multi-user authentication or household sharing; the app auto-logs in a home account (`home@calendhd.local`).
+calenDHD is a calm, ADHD-friendly calendar PWA for neurodivergent minds. It's a client-only SvelteKit app backed by PocketBase, with IndexedDB (Dexie) as the local data store. Each instance serves as a single household — calendars, events, categories, routines, templates, and subscriptions are shared across the household. Devices can optionally use a named per-device account for personalized settings (theme, density, view) while still seeing the household's shared data.
 
-**Security model:** the network perimeter is the trust boundary. Anyone who can reach the URL has full access to the calendar. The singleton-account password is generated per-deployment by the addon init script (`/config/calendhd/.singleton-password`) and exposed to the frontend via `GET /api/calendhd/bootstrap` — there is **no** hardcoded password in the static bundle. Front the addon with Cloudflare Access, an SSL reverse proxy with auth, or LAN-only access for non-public deployments. See `pocketbase/pb_hooks/005_singleton_init.pb.js`.
+**Auth model.** Two tiers:
+- **Guest (default).** Every browser auto-logs in as `home@calendhd.local` via `/api/calendhd/bootstrap`. This is the "household default" account — all data is created under it by default, and routine-generated events and cron-scheduled reminders fire as this user. New devices land here.
+- **Named user (optional).** Any device can sign in or register a personal account at `/login` or under Settings → Account. Named users share the household's events/categories/routines but get their own `user_settings` and `push_subscriptions`. They CAN create events; the `user` field on shared rows is a soft "originator" tag, not an ACL field. Rules on shared collections (events, categories, templates, routine_templates, calendar_subscriptions, external_events, external_event_reminders) require `@request.auth.id != ''`, not `user = @request.auth.id` — see `pb_migrations/0010_household_users.js`.
+
+**Push notifications stay per-user.** A named user only receives pushes for events that user (or its session) created. The guest account receives pushes for guest-created events plus routine-generator events. Households that want all devices to get every notification should keep those devices on guest.
+
+**Security model:** the network perimeter is the trust boundary. Anyone who can reach the URL gets the bootstrap (guest) credentials and full read/write access. Named accounts add per-device personalization, not access control. The singleton password is generated per-deployment by the addon init script (`/config/calendhd/.singleton-password`) and exposed to the frontend via `GET /api/calendhd/bootstrap` — there is **no** hardcoded password in the static bundle. Front the addon with Cloudflare Access, an SSL reverse proxy with auth, or LAN-only access for non-public deployments. See `pocketbase/pb_hooks/005_singleton_init.pb.js`.
 
 ## Commands
 
@@ -83,7 +89,7 @@ All stores are singletons using Svelte 5 runes in `.svelte.ts` files:
 
 | Store | Key State | Purpose |
 |-------|-----------|---------|
-| `auth.svelte.ts` | user, isAuthenticated | Auto-login singleton account; fetches credentials from `/api/calendhd/bootstrap` (no hardcoded password) |
+| `auth.svelte.ts` | user, isAuthenticated, isGuest | Restores existing session if any (named-user tokens persist across reloads); otherwise bootstraps as guest via `/api/calendhd/bootstrap`. Exposes `signIn`, `register`, `signOut` (returns to guest), `useGuest`. Bootstrap NEVER overwrites a valid session. |
 | `calendar.svelte.ts` | currentDate, viewType, events, displayEvents | Calendar state, event CRUD, flexible timing cascade for routine steps; fires routine-completion celebration toast |
 | `settings.svelte.ts` | settings (15+ keys) | User preferences. Includes ADHD knobs: `buffer_minutes`, `density`, `daily_wins_enabled`, `streak_celebration_enabled` |
 | `categories.svelte.ts` | categories | Category CRUD with 8 default colors, reorderable |
@@ -146,6 +152,7 @@ src/lib/components/
 7. `0007_push_subscriptions.js` — new `push_subscriptions` collection (one row per device, keyed by unique Web Push endpoint); backfills the legacy `user_settings.push_subscription` blob and drops it (no compat shim — see Multi-device push below)
 8. `0008_day_view_style.js` — `user_settings.day_view_style` (timeline/agenda)
 9. `0009_remove_brain_dump.js` — drops the `brain_dump` collection (feature removed from the app)
+10. `0010_household_users.js` — loosens rules on shared collections (events, categories, templates, routine_templates, calendar_subscriptions, external_events, external_event_reminders) so any authenticated user can CRUD; allows authenticated users to register new accounts via `users.createRule`. `user_settings`, `push_subscriptions`, `scheduled_reminders`, `external_scheduled_reminders` stay owner-locked. No data migration: the `user` field on shared rows now means "originator", not ACL.
 
 **Hooks** (`pocketbase/pb_hooks/`):
 - `005_singleton_init.pb.js` — Creates/rotates the singleton `home@calendhd.local` user on bootstrap; serves credentials at `GET /api/calendhd/bootstrap` (same-origin)

@@ -50,6 +50,46 @@ export async function signInWithEmail(email: string, password: string): Promise<
 	return authData.record as unknown as User;
 }
 
+// Singleton/guest account email. Any user with this email is the household
+// "guest" account; any other user is a named per-device account.
+export const SINGLETON_EMAIL = 'home@calendhd.local';
+
+export function isSingletonUser(user: User | null | undefined): boolean {
+	return user?.email === SINGLETON_EMAIL;
+}
+
+// Register a new household member. Caller must already be authenticated
+// (the users.createRule requires it). On success, returns the new user
+// record — the new user is NOT signed in; caller decides whether to switch
+// active session via signInWithEmail.
+export async function registerUser(
+	name: string,
+	email: string,
+	password: string
+): Promise<User> {
+	const record = await getPocketBase().collection('users').create({
+		name,
+		email,
+		password,
+		passwordConfirm: password,
+		emailVisibility: false
+	});
+	return record as unknown as User;
+}
+
+// Sign the active session out. Does NOT bootstrap back to guest — caller
+// decides what to do next (typically re-bootstrap via the auth store).
+export function signOut(): void {
+	getPocketBase().authStore.clear();
+}
+
+// List user records. Used by the device-switcher UI to show "other
+// accounts on this household". Caller must be authenticated.
+export async function listUsers(): Promise<User[]> {
+	const records = await getPocketBase().collection('users').getFullList({ batch: 200 });
+	return records as unknown as User[];
+}
+
 export function getCurrentUser(): User | null {
 	const pb = getPocketBase();
 	if (!pb.authStore.isValid) return null;
