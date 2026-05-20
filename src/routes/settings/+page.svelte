@@ -293,25 +293,11 @@
 				</div>
 			</section>
 
-			<!-- Accessibility Settings -->
+			<!-- Focus Settings -->
 			<section class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-neutral-100 dark:border-neutral-700 p-6">
-				<h2 class="text-lg font-semibold text-neutral-800 dark:text-neutral-100 mb-4">{$_('settings.accessibility')}</h2>
+				<h2 class="text-lg font-semibold text-neutral-800 dark:text-neutral-100 mb-4">{$_('settings.focus')}</h2>
 
 				<div class="space-y-4">
-					<Toggle
-						checked={settingsStore.reduceAnimations}
-						onchange={(checked) => handleChange('reduce_animations', checked)}
-						label={$_('settings.reduceAnimations')}
-						description={$_('settings.reduceAnimationsDescription')}
-					/>
-
-					<Toggle
-						checked={settingsStore.highContrast}
-						onchange={(checked) => handleChange('high_contrast', checked)}
-						label={$_('settings.highContrast')}
-						description={$_('settings.highContrastDescription')}
-					/>
-
 					<div>
 						<label for="density" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
 							{$_('settings.density')}

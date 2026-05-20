@@ -57,20 +57,6 @@
 				}
 			}
 
-			// Reduced animations
-			if (settingsStore.reduceAnimations) {
-				html.classList.add('reduce-animations');
-			} else {
-				html.classList.remove('reduce-animations');
-			}
-
-			// High contrast
-			if (settingsStore.highContrast) {
-				html.classList.add('high-contrast');
-			} else {
-				html.classList.remove('high-contrast');
-			}
-
 			// Accent color
 			const accents = ['accent-sage', 'accent-ocean', 'accent-lavender', 'accent-rose', 'accent-amber', 'accent-teal'];
 			html.classList.remove(...accents);
