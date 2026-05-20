@@ -111,23 +111,6 @@ html.dark body {
 	}
 }
 
-/* Custom reduced animations class */
-.reduce-animations *,
-.reduce-animations *::before,
-.reduce-animations *::after {
-	animation-duration: 0.01ms !important;
-	animation-iteration-count: 1 !important;
-	transition-duration: 0.01ms !important;
-}
-
-/* High contrast mode */
-.high-contrast {
-	--color-neutral-50: #ffffff;
-	--color-neutral-100: #f5f5f5;
-	--color-neutral-800: #000000;
-	--color-neutral-900: #000000;
-}
-
 /* Accent color palettes */
 .accent-ocean {
   --color-primary-50: #f0f6fa;

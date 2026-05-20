@@ -368,8 +368,6 @@ describe('Settings', () => {
 			color_palette: 'sage',
 			default_reminders: [],
 			notification_sound: true,
-			reduce_animations: false,
-			high_contrast: false,
 			timezone: 'Europe/Helsinki'
 		};
 
@@ -395,8 +393,6 @@ describe('Settings', () => {
 			color_palette: 'sage',
 			default_reminders: [],
 			notification_sound: false,
-			reduce_animations: false,
-			high_contrast: false,
 			timezone: 'UTC'
 		};
 

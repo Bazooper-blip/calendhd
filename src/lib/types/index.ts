@@ -177,8 +177,6 @@ export interface UserSettings extends BaseRecord {
 	color_palette: 'sage' | 'ocean' | 'lavender' | 'rose' | 'amber' | 'teal';
 	default_reminders: ReminderConfig[];
 	notification_sound: boolean;
-	reduce_animations: boolean;
-	high_contrast: boolean;
 	timezone: string;
 	buffer_minutes?: number; // ADHD: visual transition-time gap between events (default 10)
 	density?: 'compact' | 'comfortable' | 'spacious'; // ADHD: layout density preference
