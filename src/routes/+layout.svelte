@@ -18,23 +18,32 @@
 
 	let sidebarOpen = $state(false);
 	let initialized = $state(false);
+	let loadedSettingsForUserId = $state<string | null>(null);
 
-	// Initialize data when authenticated (only once)
+	// Initialize shared data once on first auth. Categories/events/routines/
+	// templates are household-shared, so they don't need to reload on
+	// user-switch — the data is the same for every account.
 	$effect(() => {
 		if (browser && auth.isAuthenticated && !initialized) {
 			initialized = true;
-
-			// Load user data
-			settingsStore.load();
 			categoriesStore.load();
 			templatesStore.load();
 			routinesStore.load();
 			calendar.loadEvents();
-
-			// Subscribe to realtime updates
 			calendar.subscribeToUpdates();
 			categoriesStore.subscribeToUpdates();
 			routinesStore.subscribeToUpdates();
+		}
+	});
+
+	// Per-user settings: reload whenever the active user changes (sign-in,
+	// sign-out, switching between named user and guest).
+	$effect(() => {
+		if (!browser) return;
+		const userId = auth.user?.id ?? null;
+		if (userId && userId !== loadedSettingsForUserId) {
+			loadedSettingsForUserId = userId;
+			settingsStore.load();
 		}
 	});
 

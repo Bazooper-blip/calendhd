@@ -1,0 +1,1 @@
+import{Mt as e}from"./BBOQNe2v.js";e();

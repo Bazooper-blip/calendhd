@@ -1,1 +1,0 @@
-import{Mt as e}from"./tgleiyTf.js";e();
