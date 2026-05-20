@@ -360,8 +360,6 @@ export function getDefaultSettings(): Omit<UserSettings, 'id' | 'created' | 'upd
 		color_palette: 'sage',
 		default_reminders: [{ minutes_before: 10, type: 'notification' }],
 		notification_sound: true,
-		reduce_animations: false,
-		high_contrast: false,
 		timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
 		buffer_minutes: 10,
 		density: 'comfortable',
