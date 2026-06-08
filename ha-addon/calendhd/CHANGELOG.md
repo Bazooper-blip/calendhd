@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.2
+
+- Bump bundled PocketBase from 0.38.1 -> 0.39.2 (adds cron panic-recovery so a single failing reminder job no longer terminates the server; SQL console; SQLite 3.53.2). No JSVM/hooks/migrations API changes. Also unified the previously-drifted PB_VERSION across build.yaml, Dockerfile, and build-local.sh.
+- Update all frontend dependencies to latest, including the PocketBase JS client 0.26 -> 0.27 (additive only). Svelte, SvelteKit, Vite, Vitest, Tailwind, bits-ui, date-fns, dexie, biome, TypeScript and tooling all refreshed. Type-check, unit tests (109), and production build all green.
+
 ## 1.6.0
 
 - Add Agenda day-view layout. Settings → Calendar → Day view style lets users switch from the existing 24-hour timeline to a chronological list with three sections: **Earlier today** (collapsible, dimmed), **Now** (big card with "X min left"), and **Upcoming** (with "Free for ~30 min" gap hints between events; first item gets a "Next · in Y min" card). Default stays `timeline` so existing setups are unchanged.
