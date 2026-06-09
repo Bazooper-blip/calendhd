@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.6.3
+
+- Fix recurring subscription (iCal/ICS) events. The feed parser in `050_subscription_sync.pb.js` ignored `RRULE` entirely, so every recurring external event was stored as a single instance on its `DTSTART` and never repeated. A new tested `expandRecurrence()` helper in `pb_helpers.js` expands `RRULE` (DAILY/WEEKLY/MONTHLY/YEARLY with INTERVAL, BYDAY including nth forms like `-1SU`, BYMONTH, BYMONTHDAY, COUNT, UNTIL) into concrete occurrences within the sync window -- for both the manual `POST /sync` endpoint and the 15-minute cron.
+- Fix recurring events landing on the wrong weekday. Some feeds emit a `DTSTART` whose weekday disagrees with the rule's `BYDAY` -- a biweekly Friday event arriving with `DTSTART` on Saturday. Calendars honor `BYDAY`, so the parser now snaps a mismatched `DTSTART` onto the `BYDAY` weekday within its own week; occurrences land on the correct day and preserve the intended cadence.
+- Each recurrence instance now gets a unique per-occurrence UID (`uid::<stamp>`) so the external-reminder scheduler (keyed by subscription+uid, which deletes prior rows per key on each write) tracks every occurrence independently instead of collapsing the whole series onto a single reminder. Note: any pre-existing reminder override set on a recurring external event (keyed by the old bare UID) becomes inert and should be re-set.
+- Also fixes recurring events whose `DTSTART` predates the 1-year-back sync window (e.g. annual birthdays/holidays) being dropped entirely; their in-window occurrences now appear.
+
 ## 1.6.2
 
 - Bump bundled PocketBase from 0.38.1 -> 0.39.2 (adds cron panic-recovery so a single failing reminder job no longer terminates the server; SQL console; SQLite 3.53.2). No JSVM/hooks/migrations API changes. Also unified the previously-drifted PB_VERSION across build.yaml, Dockerfile, and build-local.sh.

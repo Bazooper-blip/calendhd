@@ -52,9 +52,217 @@ function pbDateFilter(date) {
     return date.toISOString().replace("T", " ");
 }
 
+// Expand an RRULE into concrete { start, end } occurrences within
+// [rangeStart, rangeEnd]. Pure function (no $app/$dbx) so it is unit-testable
+// under plain Node — see expandRecurrence.test.cjs. When there is no RRULE (or
+// the rule's FREQ can't be understood) it returns the single DTSTART instance
+// if it falls inside the window, preserving the legacy single-row behavior.
+//
+// Each occurrence is built from local calendar fields (year/month/day + the
+// DTSTART wall-clock time), so the time-of-day and DST behavior of every
+// occurrence matches DTSTART — the same timezone assumption the surrounding
+// ICS parser already makes (the PB server runs in the calendar's timezone).
+function expandRecurrence(rruleStr, startDate, endDate, isAllDay, rangeStart, rangeEnd) {
+    function inWindow(d) {
+        return !!d && d.getTime() >= rangeStart.getTime() && d.getTime() <= rangeEnd.getTime();
+    }
+    function singleInstance() {
+        return inWindow(startDate) ? [{ start: startDate, end: endDate }] : [];
+    }
+    if (!rruleStr || !startDate) return singleInstance();
+
+    // --- parse the RRULE into a flat map ---
+    var rule = {};
+    var parts = String(rruleStr).split(";");
+    for (var p = 0; p < parts.length; p++) {
+        var kv = parts[p].split("=");
+        if (kv.length === 2 && kv[0]) rule[kv[0].toUpperCase().trim()] = kv[1].trim();
+    }
+
+    var freq = (rule.FREQ || "").toUpperCase();
+    if (["DAILY", "WEEKLY", "MONTHLY", "YEARLY"].indexOf(freq) === -1) return singleInstance();
+
+    var interval = parseInt(rule.INTERVAL, 10);
+    if (!interval || interval < 1) interval = 1;
+    var count = rule.COUNT ? parseInt(rule.COUNT, 10) : null;
+
+    var DAY = { SU: 0, MO: 1, TU: 2, WE: 3, TH: 4, FR: 5, SA: 6 };
+
+    // BYDAY -> [{ nth: int|null, dow: 0-6 }]  (nth handles e.g. -1SU / 3MO)
+    var byday = [];
+    if (rule.BYDAY) {
+        var bd = rule.BYDAY.split(",");
+        for (var b = 0; b < bd.length; b++) {
+            var bm = bd[b].match(/^([+-]?\d+)?(SU|MO|TU|WE|TH|FR|SA)$/i);
+            if (bm) byday.push({ nth: bm[1] ? parseInt(bm[1], 10) : null, dow: DAY[bm[2].toUpperCase()] });
+        }
+    }
+    var bymonth = rule.BYMONTH ? rule.BYMONTH.split(",").map(function (x) { return parseInt(x, 10); }) : null;
+    var bymonthday = rule.BYMONTHDAY ? rule.BYMONTHDAY.split(",").map(function (x) { return parseInt(x, 10); }) : null;
+    var wkst = (rule.WKST && DAY[rule.WKST.toUpperCase()] !== undefined) ? DAY[rule.WKST.toUpperCase()] : 1;
+    var until = parseUntil(rule.UNTIL);
+
+    var H = startDate.getHours(), MIN = startDate.getMinutes(), SEC = startDate.getSeconds();
+    var durationMs = (endDate && endDate.getTime() > startDate.getTime()) ? (endDate.getTime() - startDate.getTime()) : null;
+    var effEnd = (until && until.getTime() < rangeEnd.getTime()) ? until : rangeEnd;
+
+    var MAX_ITERS = 10000;
+    var CAP = 1000;
+    var out = [];
+    var emitted = 0; // counted from series start (for COUNT, which counts pre-window too)
+    var stopped = false;
+
+    function mk(y, mo, d) {
+        return isAllDay ? new Date(y, mo, d) : new Date(y, mo, d, H, MIN, SEC);
+    }
+    // Generators below emit in chronological order, so once we pass effEnd we stop.
+    function pushOcc(s) {
+        if (s.getTime() > effEnd.getTime()) { stopped = true; return false; }
+        emitted++;
+        if (s.getTime() >= rangeStart.getTime()) {
+            out.push({ start: s, end: durationMs != null ? new Date(s.getTime() + durationMs) : null });
+            if (out.length >= CAP) { stopped = true; return false; }
+        }
+        if (count && emitted >= count) { stopped = true; return false; }
+        return true;
+    }
+
+    function daysInMonth(y, mo) { return new Date(y, mo + 1, 0).getDate(); }
+    function addDays(d, n) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); }
+    function startOfWeek(d) {
+        var base = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        return addDays(base, -((base.getDay() - wkst + 7) % 7));
+    }
+    // nth weekday of a month -> day-of-month (1..31), or null if it doesn't exist
+    function nthWeekday(y, mo, dow, nth) {
+        var dim = daysInMonth(y, mo);
+        if (nth > 0) {
+            var first = new Date(y, mo, 1).getDay();
+            var day = 1 + ((dow - first + 7) % 7) + (nth - 1) * 7;
+            return day <= dim ? day : null;
+        }
+        var lastDow = new Date(y, mo, dim).getDay();
+        var dayN = dim - ((lastDow - dow + 7) % 7) + (nth + 1) * 7;
+        return dayN >= 1 ? dayN : null;
+    }
+    function allWeekdays(y, mo, dow) {
+        var dim = daysInMonth(y, mo), res = [];
+        for (var d = 1 + ((dow - new Date(y, mo, 1).getDay() + 7) % 7); d <= dim; d += 7) res.push(d);
+        return res;
+    }
+    // Resolve candidate day-of-month values for one MONTHLY/YEARLY period.
+    function monthDayCandidates(y, mo) {
+        var days = [];
+        if (bymonthday) {
+            var dim = daysInMonth(y, mo);
+            for (var i = 0; i < bymonthday.length; i++) {
+                var n = bymonthday[i];
+                var day = n > 0 ? n : dim + n + 1; // -1 => last day of month
+                if (day >= 1 && day <= dim) days.push(day);
+            }
+        } else if (byday.length) {
+            for (var j = 0; j < byday.length; j++) {
+                if (byday[j].nth) {
+                    var nd = nthWeekday(y, mo, byday[j].dow, byday[j].nth);
+                    if (nd) days.push(nd);
+                } else {
+                    days = days.concat(allWeekdays(y, mo, byday[j].dow));
+                }
+            }
+        } else {
+            days.push(startDate.getDate());
+        }
+        days.sort(function (a, c) { return a - c; });
+        var uniq = [];
+        for (var k = 0; k < days.length; k++) if (uniq.indexOf(days[k]) === -1) uniq.push(days[k]);
+        return uniq;
+    }
+
+    if (freq === "WEEKLY") {
+        var dows = byday.length ? byday.map(function (x) { return x.dow; }) : [startDate.getDay()];
+        // Some calendar exporters write DTSTART one day off from the BYDAY they
+        // also emit (e.g. DTSTART Saturday + BYDAY=FR). Calendars honor BYDAY, so
+        // snap a mismatched DTSTART onto the BYDAY weekday within its own week.
+        var seriesStart = startDate;
+        if (byday.length && dows.indexOf(startDate.getDay()) === -1) {
+            var ws0 = startOfWeek(startDate), bestDay = null, bestDiff = Infinity;
+            for (var s = 0; s < dows.length; s++) {
+                var cand = addDays(ws0, (dows[s] - wkst + 7) % 7);
+                var diff = Math.abs(cand.getTime() - startDate.getTime());
+                if (diff < bestDiff) { bestDiff = diff; bestDay = cand; }
+            }
+            seriesStart = mk(bestDay.getFullYear(), bestDay.getMonth(), bestDay.getDate());
+        }
+        var offs = dows.map(function (x) { return (x - wkst + 7) % 7; }).sort(function (a, c) { return a - c; });
+        var weekCursor = startOfWeek(seriesStart), iterW = 0;
+        while (!stopped && weekCursor.getTime() <= effEnd.getTime() + 7 * 86400000 && iterW < MAX_ITERS) {
+            iterW++;
+            for (var o = 0; o < offs.length; o++) {
+                var od = addDays(weekCursor, offs[o]);
+                var occ = mk(od.getFullYear(), od.getMonth(), od.getDate());
+                if (occ.getTime() < seriesStart.getTime()) continue;
+                if (!pushOcc(occ)) break;
+            }
+            weekCursor = addDays(weekCursor, interval * 7);
+        }
+    } else if (freq === "DAILY") {
+        var dc = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()), iterD = 0;
+        while (!stopped && iterD < MAX_ITERS) {
+            iterD++;
+            if (!pushOcc(mk(dc.getFullYear(), dc.getMonth(), dc.getDate()))) break;
+            dc = addDays(dc, interval);
+            if (dc.getTime() > effEnd.getTime()) break;
+        }
+    } else if (freq === "MONTHLY") {
+        var my = startDate.getFullYear(), mm = startDate.getMonth(), iterM = 0;
+        while (!stopped && iterM < MAX_ITERS) {
+            iterM++;
+            var candM = monthDayCandidates(my, mm);
+            for (var c = 0; c < candM.length; c++) {
+                var occM = mk(my, mm, candM[c]);
+                if (occM.getTime() < startDate.getTime()) continue;
+                if (!pushOcc(occM)) break;
+            }
+            mm += interval;
+            while (mm > 11) { mm -= 12; my++; }
+            if (new Date(my, mm, 1).getTime() > effEnd.getTime()) break;
+        }
+    } else { // YEARLY
+        var yy = startDate.getFullYear();
+        var months = bymonth ? bymonth.map(function (x) { return x - 1; }).sort(function (a, c) { return a - c; }) : [startDate.getMonth()];
+        var iterY = 0;
+        while (!stopped && iterY < MAX_ITERS) {
+            iterY++;
+            for (var mi = 0; mi < months.length && !stopped; mi++) {
+                var candY = monthDayCandidates(yy, months[mi]);
+                for (var c2 = 0; c2 < candY.length; c2++) {
+                    var occY = mk(yy, months[mi], candY[c2]);
+                    if (occY.getTime() < startDate.getTime()) continue;
+                    if (!pushOcc(occY)) break;
+                }
+            }
+            yy += interval;
+            if (new Date(yy, 0, 1).getTime() > effEnd.getTime()) break;
+        }
+    }
+
+    return out;
+
+    function parseUntil(str) {
+        if (!str) return null;
+        var um = String(str).trim().match(/^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})(Z)?)?$/);
+        if (!um) return null;
+        var y = parseInt(um[1], 10), mo = parseInt(um[2], 10) - 1, d = parseInt(um[3], 10);
+        if (um[4] === undefined) return new Date(y, mo, d, 23, 59, 59); // date-only UNTIL is inclusive of the day
+        var h = parseInt(um[4], 10), mn = parseInt(um[5], 10), sc = parseInt(um[6], 10);
+        return um[7] === "Z" ? new Date(Date.UTC(y, mo, d, h, mn, sc)) : new Date(y, mo, d, h, mn, sc);
+    }
+}
+
 module.exports = {
     parseJsonField: parseJsonField,
     pbDateFilter: pbDateFilter,
+    expandRecurrence: expandRecurrence,
 
     deleteRoutineEventsForDate: function(routineId, targetDate) {
         var dayStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 0, 0, 0);

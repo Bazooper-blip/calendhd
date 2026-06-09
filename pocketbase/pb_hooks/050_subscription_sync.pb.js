@@ -7,6 +7,7 @@ routerAdd("POST", "/api/subscriptions/{id}/sync", function(e) {
         return e.json(401, { error: "Authentication required" });
     }
 
+    var helpers = require(__hooks + "/pb_helpers.js");
     var userId = authRecord.id;
     var subscriptionId = e.request.pathValue("id");
 
@@ -169,6 +170,7 @@ routerAdd("POST", "/api/subscriptions/{id}/sync", function(e) {
             var dtstartInfo = extractPropertyWithParams(vevent, "DTSTART");
             var dtstart = dtstartInfo ? dtstartInfo.value : null;
             var dtend = extractProperty(vevent, "DTEND");
+            var rrule = extractProperty(vevent, "RRULE");
 
             if (!dtstart) continue;
 
@@ -181,20 +183,32 @@ routerAdd("POST", "/api/subscriptions/{id}/sync", function(e) {
 
             if (!startDate) continue;
 
-            // Filter by date range
-            if (startDate < rangeStart || startDate > rangeEnd) {
-                continue;
-            }
+            // Expand recurrence into concrete, in-window occurrences. For a
+            // non-recurring event this returns the single DTSTART instance
+            // (window-filtered, same as before); for a recurring event it emits
+            // one instance per occurrence on the day the RRULE actually dictates
+            // -- fixing feeds that put DTSTART on the wrong weekday (e.g.
+            // Saturday) while BYDAY says Friday.
+            var occurrences = helpers.expandRecurrence(rrule, startDate, endDate, isAllDay, rangeStart, rangeEnd);
 
-            events.push({
-                uid: uid,
-                title: unescapeICalText(summary),
-                description: description ? unescapeICalText(description) : null,
-                start_time: startDate.toISOString(),
-                end_time: endDate ? endDate.toISOString() : null,
-                is_all_day: isAllDay,
-                location: location ? unescapeICalText(location) : null
-            });
+            for (var oi = 0; oi < occurrences.length; oi++) {
+                var occ = occurrences[oi];
+                // Recurring instances share one UID in the feed. Give each a
+                // unique per-occurrence UID so the reminder scheduler (keyed by
+                // subscription+uid, and deleting prior rows for that key on each
+                // write) tracks every occurrence instead of collapsing the whole
+                // series onto a single reminder.
+                var occUid = rrule ? (uid + "::" + icalStamp(occ.start)) : uid;
+                events.push({
+                    uid: occUid,
+                    title: unescapeICalText(summary),
+                    description: description ? unescapeICalText(description) : null,
+                    start_time: occ.start.toISOString(),
+                    end_time: occ.end ? occ.end.toISOString() : null,
+                    is_all_day: isAllDay,
+                    location: location ? unescapeICalText(location) : null
+                });
+            }
         }
 
         return events;
@@ -282,10 +296,20 @@ routerAdd("POST", "/api/subscriptions/{id}/sync", function(e) {
             .replace(/\\;/g, ";")
             .replace(/\\\\/g, "\\");
     }
+
+    // Compact local-time stamp (YYYYMMDDTHHMMSS) used to make each recurrence
+    // instance's UID unique. Local fields match how expandRecurrence builds
+    // occurrence dates, so the suffix is deterministic across syncs.
+    function icalStamp(d) {
+        function pad(n) { return (n < 10 ? "0" : "") + n; }
+        return "" + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) +
+               "T" + pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds());
+    }
 }, $apis.requireAuth());
 
 // Cron job: auto-sync subscriptions based on refresh interval
 cronAdd("subscription_sync", "*/15 * * * *", function() {
+    var helpers = require(__hooks + "/pb_helpers.js");
     var now = new Date();
 
     // Find subscriptions that are due for refresh
@@ -439,6 +463,7 @@ cronAdd("subscription_sync", "*/15 * * * *", function() {
             var dtstartInfo = extractPropWithParams(unfolded, "DTSTART");
             var dtstart = dtstartInfo ? dtstartInfo.value : null;
             var dtend = extractProp(unfolded, "DTEND");
+            var rrule = extractProp(unfolded, "RRULE");
 
             if (!dtstart) continue;
 
@@ -447,17 +472,26 @@ cronAdd("subscription_sync", "*/15 * * * *", function() {
             var isAllDay = (dtstartInfo && dtstartInfo.params.indexOf("VALUE=DATE") !== -1) ||
                           (dtstart.length <= 8 || /^\d{8}$/.test(dtstart));
 
-            if (!startDate || startDate < rangeStart || startDate > rangeEnd) continue;
+            if (!startDate) continue;
 
-            events.push({
-                uid: uid,
-                title: unescape(summary),
-                description: description ? unescape(description) : null,
-                start_time: startDate.toISOString(),
-                end_time: endDate ? endDate.toISOString() : null,
-                is_all_day: isAllDay,
-                location: location ? unescape(location) : null
-            });
+            // Expand recurrence into concrete in-window occurrences (see the
+            // POST /sync handler above for rationale and the per-occurrence
+            // UID scheme).
+            var occurrences = helpers.expandRecurrence(rrule, startDate, endDate, isAllDay, rangeStart, rangeEnd);
+
+            for (var oi = 0; oi < occurrences.length; oi++) {
+                var occ = occurrences[oi];
+                var occUid = rrule ? (uid + "::" + icalStamp(occ.start)) : uid;
+                events.push({
+                    uid: occUid,
+                    title: unescape(summary),
+                    description: description ? unescape(description) : null,
+                    start_time: occ.start.toISOString(),
+                    end_time: occ.end ? occ.end.toISOString() : null,
+                    is_all_day: isAllDay,
+                    location: location ? unescape(location) : null
+                });
+            }
         }
 
         return events;
@@ -510,5 +544,11 @@ cronAdd("subscription_sync", "*/15 * * * *", function() {
     function unescape(text) {
         if (!text) return text;
         return text.replace(/\\n/g, "\n").replace(/\\,/g, ",").replace(/\\;/g, ";").replace(/\\\\/g, "\\");
+    }
+
+    function icalStamp(d) {
+        function pad(n) { return (n < 10 ? "0" : "") + n; }
+        return "" + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) +
+               "T" + pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds());
     }
 });
