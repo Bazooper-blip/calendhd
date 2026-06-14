@@ -117,7 +117,24 @@ cronAdd("reminder_sender", "* * * * *", function() {
         var hours = eventDate.getHours();
         var minutes = eventDate.getMinutes();
         var timeStr = (hours < 10 ? "0" : "") + hours + ":" + (minutes < 10 ? "0" : "") + minutes;
-        return title + " at " + timeStr;
+        // Include a day label so reminders sent a day or more ahead aren't
+        // misread as "happening now". Same-day reminders read "<title> today
+        // at HH:mm"; further-out ones read "<title> on Tue, Jun 16 at HH:mm".
+        return title + " " + relativeDayLabel(eventDate, new Date()) + " at " + timeStr;
+    }
+
+    // Human-friendly day label relative to `now`: "today" / "tomorrow" for the
+    // near term, otherwise "on <Dow>, <Mon> <D>". Uses local calendar fields —
+    // the PB server runs in the calendar's timezone (same assumption the
+    // formatting above and the ICS parser already make).
+    function relativeDayLabel(eventDate, now) {
+        function startOfDay(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+        var diffDays = Math.round((startOfDay(eventDate).getTime() - startOfDay(now).getTime()) / 86400000);
+        if (diffDays === 0) return "today";
+        if (diffDays === 1) return "tomorrow";
+        var DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        var MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        return "on " + DOW[eventDate.getDay()] + ", " + MON[eventDate.getMonth()] + " " + eventDate.getDate();
     }
 
     function markReminderSent(reminder, nowISO, errorMessage, deliveryMethod) {
