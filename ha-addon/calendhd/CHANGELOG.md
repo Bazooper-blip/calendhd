@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.4
+
+- Reminder notifications now include the event's date. Previously the push body was just `<title> at HH:mm`, so a reminder sent a day or more ahead could be misread as the event happening right then. It now reads `<title> today at HH:mm`, `<title> tomorrow at HH:mm`, or `<title> on Tue, Jun 16 at HH:mm` for events further out. Applies to both internal and external (iCal) event reminders.
+
 ## 1.6.3
 
 - Fix recurring subscription (iCal/ICS) events. The feed parser in `050_subscription_sync.pb.js` ignored `RRULE` entirely, so every recurring external event was stored as a single instance on its `DTSTART` and never repeated. A new tested `expandRecurrence()` helper in `pb_helpers.js` expands `RRULE` (DAILY/WEEKLY/MONTHLY/YEARLY with INTERVAL, BYDAY including nth forms like `-1SU`, BYMONTH, BYMONTHDAY, COUNT, UNTIL) into concrete occurrences within the sync window -- for both the manual `POST /sync` endpoint and the 15-minute cron.
