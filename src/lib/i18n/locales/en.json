@@ -44,7 +44,7 @@
 		"isTaskDescription": "Show checkbox to mark as complete",
 		"firstStep": "First physical action",
 		"firstStepHelp": "ADHD tip: what's the smallest concrete action that gets you started? This is what reminders will show, instead of the abstract task name.",
-		"firstStepPlaceholder": "e.g., Open the laptop, Lay out gym clothes…",
+		"firstStepPlaceholder": "e.g., Open the laptop, Lay out gym clothesâ€¦",
 		"category": "Category",
 		"color": "Color",
 		"reminders": "Reminders",
@@ -134,7 +134,7 @@
 		"addStarterPackDesc": "Three calm starting points: morning, evening wind-down, and weekly admin. Edit them to fit you.",
 		"starterPackAdded": "Added 3 starter routines",
 		"streakBadge": "{count, plural, one {# day} other {# days}}",
-		"streakLabel": "🔥 {count}-day streak",
+		"streakLabel": "ðŸ”¥ {count}-day streak",
 		"completedToday": "Routine complete!"
 	},
 	"energy": {
@@ -309,15 +309,15 @@
 	},
 	"wins": {
 		"title": "Today's wins",
-		"summary": "{count, plural, one {# thing done} other {# things done}} · {minutes} of focus · {routines, plural, =0 {no routines fully complete} one {# routine fully complete} other {# routines fully complete}}"
+		"summary": "{count, plural, one {# thing done} other {# things done}} Â· {minutes} of focus Â· {routines, plural, =0 {no routines fully complete} one {# routine fully complete} other {# routines fully complete}}"
 	},
 	"brainDump": {
 		"title": "Brain dump",
-		"placeholder": "Quick thought…",
+		"placeholder": "Quick thoughtâ€¦",
 		"notesPlaceholder": "Notes (optional)",
 		"add": "Capture",
 		"empty": "Nothing here yet",
-		"emptyDesc": "Type a thought and tap Capture. No date, no category — just get it out of your head.",
+		"emptyDesc": "Type a thought and tap Capture. No date, no category â€” just get it out of your head.",
 		"convertToEvent": "Schedule",
 		"delete": "Delete",
 		"captured": "Captured",
@@ -366,12 +366,6 @@
 		"tomorrow": "Tomorrow",
 		"yesterday": "Yesterday",
 		"now": "now"
-	},
-	"status": {
-		"online": "Back online",
-		"offline": "You're offline",
-		"offlineMessage": "Changes will sync when connected",
-		"dismiss": "Dismiss"
 	},
 	"progress": {
 		"dayProgress": "Day progress"
