@@ -31,19 +31,25 @@
 
 	async function hydrate(subscriptionId: string, uid: string) {
 		loaded = false;
-		const rows = await getExternalEventReminders(subscriptionId);
-		const row = rows.find((r) => r.ical_uid === uid);
-		if (!row) {
+		try {
+			const rows = await getExternalEventReminders(subscriptionId);
+			const row = rows.find((r) => r.ical_uid === uid);
+			if (!row) {
+				mode = 'default';
+			} else if (row.disabled) {
+				mode = 'off';
+			} else if (row.minutes_before !== null && row.minutes_before !== undefined) {
+				mode = 'custom';
+				customMinutes = row.minutes_before;
+			} else {
+				mode = 'default';
+			}
+		} catch {
 			mode = 'default';
-		} else if (row.disabled) {
-			mode = 'off';
-		} else if (row.minutes_before !== null && row.minutes_before !== undefined) {
-			mode = 'custom';
-			customMinutes = row.minutes_before;
-		} else {
-			mode = 'default';
+			toast.error($_('errors.generic'));
+		} finally {
+			loaded = true;
 		}
-		loaded = true;
 	}
 
 	async function persist() {
