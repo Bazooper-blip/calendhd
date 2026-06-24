@@ -1,14 +1,7 @@
 import { browser } from '$app/environment';
 import { getTemplates, createTemplate, updateTemplate, deleteTemplate } from '$api/pocketbase';
-import {
-	db,
-	getLocalTemplates,
-	createLocalTemplate,
-	updateLocalTemplate,
-	deleteLocalTemplate
-} from '$db';
 import { auth } from './auth.svelte';
-import type { Template, LocalTemplate, ReminderConfig } from '$types';
+import type { Template, ReminderConfig } from '$types';
 
 // Templates store using Svelte 5 runes
 function createTemplatesStore() {
@@ -41,28 +34,11 @@ function createTemplatesStore() {
 			}
 
 			loading = true;
-
-			// Load from local DB first
 			try {
-				const localTemplates = await getLocalTemplates(userId);
-				templates = localTemplates.map((lt) => ({
-					...lt,
-					id: lt.id || lt.local_id,
-					created: '',
-					updated: ''
-				})) as Template[];
-			} catch {
-				// IndexedDB may not be available
+				templates = await getTemplates();
+			} catch (error) {
+				console.error('Failed to load templates:', error);
 			}
-
-			// Sync from server
-			try {
-				const serverTemplates = await getTemplates();
-				templates = serverTemplates;
-			} catch {
-				// Offline, use local data
-			}
-
 			loading = false;
 		},
 
@@ -78,80 +54,21 @@ function createTemplatesStore() {
 			const userId = auth.user?.id;
 			if (!userId) throw new Error('Not authenticated');
 
-			// Create locally first
-			const localTemplate = await createLocalTemplate({
-				...data,
-				user: userId
-			});
-
-			// Optimistically add
-			const tempTemplate: Template = {
-				...localTemplate,
-				id: localTemplate.local_id,
-				created: new Date().toISOString(),
-				updated: new Date().toISOString()
-			} as Template;
-
-			templates = [...templates, tempTemplate].sort((a, b) => a.name.localeCompare(b.name));
-
-			// Try to sync to server
-			try {
-				const serverTemplate = await createTemplate(data);
-				templates = templates
-					.map((t) => (t.id === localTemplate.local_id ? serverTemplate : t))
-					.sort((a, b) => a.name.localeCompare(b.name));
-			} catch {
-				// Offline, keep local version
-			}
-
-			return tempTemplate;
+			const serverTemplate = await createTemplate(data);
+			templates = [...templates, serverTemplate].sort((a, b) => a.name.localeCompare(b.name));
+			return serverTemplate;
 		},
 
 		async update(id: string, changes: Partial<Template>) {
-			const template = templates.find((t) => t.id === id);
-			if (!template) return;
-
-			const localRecord = await db.templates.where('id').equals(id).first()
-				|| await db.templates.get(id);
-			if (localRecord) {
-				await updateLocalTemplate(localRecord.local_id, changes);
-			}
-
-			// Optimistically update
+			const serverTemplate = await updateTemplate(id, changes);
 			templates = templates
-				.map((t) => (t.id === id ? { ...t, ...changes } : t))
+				.map((t) => (t.id === id ? serverTemplate : t))
 				.sort((a, b) => a.name.localeCompare(b.name));
-
-			// Try to sync to server
-			try {
-				const serverTemplate = await updateTemplate(id, changes);
-				templates = templates
-					.map((t) => (t.id === id ? serverTemplate : t))
-					.sort((a, b) => a.name.localeCompare(b.name));
-			} catch {
-				// Offline, keep local changes
-			}
 		},
 
 		async delete(id: string) {
-			const template = templates.find((t) => t.id === id);
-			if (!template) return;
-
-			const localRecord = await db.templates.where('id').equals(id).first()
-				|| await db.templates.get(id);
-			if (localRecord) {
-				await deleteLocalTemplate(localRecord.local_id);
-			}
-
-			// Optimistically remove
+			await deleteTemplate(id);
 			templates = templates.filter((t) => t.id !== id);
-
-			// Try to sync to server
-			try {
-				await deleteTemplate(id);
-			} catch {
-				// Offline, deletion will sync later
-			}
 		}
 	};
 }
