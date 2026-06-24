@@ -3,13 +3,9 @@
 	import { toast } from 'svelte-sonner';
 	import {
 		upsertExternalEventReminderRemote,
-		deleteExternalEventReminderRemote
+		deleteExternalEventReminderRemote,
+		getExternalEventReminders
 	} from '$api/pocketbase';
-	import {
-		upsertExternalEventReminder,
-		deleteExternalEventReminder,
-		getExternalEventReminder
-	} from '$db';
 	import type { CalendarSubscription, ExternalEvent } from '$types';
 
 	interface Props {
@@ -35,7 +31,8 @@
 
 	async function hydrate(subscriptionId: string, uid: string) {
 		loaded = false;
-		const row = await getExternalEventReminder(subscriptionId, uid);
+		const rows = await getExternalEventReminders(subscriptionId);
+		const row = rows.find((r) => r.ical_uid === uid);
 		if (!row) {
 			mode = 'default';
 		} else if (row.disabled) {
@@ -55,37 +52,15 @@
 		try {
 			if (mode === 'default') {
 				await deleteExternalEventReminderRemote(external.subscription, external.uid);
-				await deleteExternalEventReminder(external.subscription, external.uid);
 			} else if (mode === 'off') {
-				const remote = await upsertExternalEventReminderRemote(
-					external.subscription,
-					external.uid,
-					null,
-					true
-				);
-				await upsertExternalEventReminder({
-					id: remote.id,
-					user: external.user,
-					subscription: external.subscription,
-					ical_uid: external.uid,
-					minutes_before: undefined,
-					disabled: true
-				});
+				await upsertExternalEventReminderRemote(external.subscription, external.uid, null, true);
 			} else {
-				const remote = await upsertExternalEventReminderRemote(
+				await upsertExternalEventReminderRemote(
 					external.subscription,
 					external.uid,
 					customMinutes,
 					false
 				);
-				await upsertExternalEventReminder({
-					id: remote.id,
-					user: external.user,
-					subscription: external.subscription,
-					ical_uid: external.uid,
-					minutes_before: customMinutes,
-					disabled: false
-				});
 			}
 			toast.success($_('externalEvent.reminderSaved'));
 		} catch (err) {
