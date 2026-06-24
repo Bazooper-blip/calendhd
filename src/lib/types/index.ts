@@ -66,13 +66,6 @@ export interface RoutineTemplate extends BaseRecord {
 	target_end_time?: string;
 }
 
-// Local version for IndexedDB
-export interface LocalRoutineTemplate extends Omit<RoutineTemplate, 'id' | 'created' | 'updated'> {
-	id?: string;
-	local_id: string;
-	sync_status: 'synced' | 'pending' | 'conflict';
-}
-
 // Event recurrence configuration
 export interface RecurrenceRule {
 	frequency: 'daily' | 'every_other_day' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
@@ -110,8 +103,6 @@ export interface CalendarEvent extends BaseRecord {
 	energy_level?: EnergyLevel;
 	reminders: ReminderConfig[];
 	completed_at?: string; // when task was completed
-	local_id?: string; // for offline sync
-	last_synced?: string;
 }
 
 // Calendar subscription (for remote iCal feeds)
@@ -190,27 +181,6 @@ export interface BrainDump extends BaseRecord {
 	user: string;
 	title: string;
 	notes?: string;
-}
-
-// Local-only types for Dexie/IndexedDB
-
-export interface LocalEvent extends Omit<CalendarEvent, 'id' | 'created' | 'updated'> {
-	id?: string; // may not have server ID yet
-	local_id: string;
-	sync_status: 'synced' | 'pending' | 'conflict' | 'deleted';
-	pending_changes?: Partial<CalendarEvent>;
-}
-
-export interface LocalCategory extends Omit<Category, 'id' | 'created' | 'updated'> {
-	id?: string;
-	local_id: string;
-	sync_status: 'synced' | 'pending' | 'conflict';
-}
-
-export interface LocalTemplate extends Omit<Template, 'id' | 'created' | 'updated'> {
-	id?: string;
-	local_id: string;
-	sync_status: 'synced' | 'pending' | 'conflict';
 }
 
 // Calendar view event (expanded for display)
