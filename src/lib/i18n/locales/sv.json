@@ -367,12 +367,6 @@
 		"yesterday": "Igår",
 		"now": "nu"
 	},
-	"status": {
-		"online": "Åter online",
-		"offline": "Du är offline",
-		"offlineMessage": "Ändringar synkas när du är ansluten",
-		"dismiss": "Stäng"
-	},
 	"progress": {
 		"dayProgress": "Dagens framsteg"
 	},

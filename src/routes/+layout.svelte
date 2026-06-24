@@ -3,7 +3,6 @@
 	import { browser } from '$app/environment';
 	import { auth, settingsStore, categoriesStore, templatesStore, calendar, routinesStore } from '$stores';
 	import { Sidebar, Header } from '$components/layout';
-	import { OfflineIndicator } from '$components/ui';
 	import { Toaster } from 'svelte-sonner';
 	import { QuickAdd } from '$components/event';
 	import { initI18n, _, isLoading as i18nLoading, locale } from '$lib/i18n';
@@ -119,6 +118,3 @@
 		duration: 4000
 	}}
 />
-
-<!-- Offline indicator -->
-<OfflineIndicator />
