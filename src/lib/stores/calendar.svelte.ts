@@ -22,25 +22,13 @@ import {
 	updateEvent as updateServerEvent,
 	deleteEvent as deleteServerEvent
 } from '$api/pocketbase';
-import {
-	db,
-	getLocalEvents,
-	getLocalExternalEvents,
-	setExternalEvents,
-	createLocalEvent,
-	updateLocalEvent,
-	deleteLocalEvent,
-	hardDeleteLocalEvent,
-	getPendingDeleteEvents,
-	markEventSynced
-} from '$db';
 import { auth } from './auth.svelte';
 import { settingsStore } from './settings.svelte';
 import { routinesStore } from './routines.svelte';
 import { toast } from 'svelte-sonner';
 import { get } from 'svelte/store';
 import { _ } from 'svelte-i18n';
-import type { CalendarEvent, CalendarSubscription, ExternalEvent, DisplayEvent, LocalEvent } from '$types';
+import type { CalendarEvent, CalendarSubscription, ExternalEvent, DisplayEvent } from '$types';
 
 export type ViewType = 'day' | 'week' | 'month';
 
@@ -226,72 +214,17 @@ function createCalendarStore() {
 			loading = true;
 			const { start, end } = getViewRange();
 
-			// Load from local DB first (offline-first)
-			try {
-				const localEvents = await getLocalEvents(userId, start, end);
-				if (isStale()) return;
-				events = localEvents.map((le) => ({
-					...le,
-					id: le.id || le.local_id,
-					created: '',
-					updated: ''
-				})) as CalendarEvent[];
-
-				const localExternal = await getLocalExternalEvents(userId, start, end);
-				if (isStale()) return;
-				externalEvents = localExternal;
-			} catch (error) {
-				console.warn('Failed to load from local DB:', error);
-			}
-
-			// Retry any pending deletions before fetching server state
-			try {
-				const pendingDeletes = await getPendingDeleteEvents();
-				for (const pending of pendingDeletes) {
-					if (pending.id) {
-						try {
-							await deleteServerEvent(pending.id);
-						} catch {
-							// Server delete failed again — keep soft-deleted for next retry
-							continue;
-						}
-					}
-					// Server confirmed or was never synced — hard-delete locally
-					await hardDeleteLocalEvent(pending.local_id);
-				}
-			} catch {
-				// Failed to read pending deletes — continue with load
-			}
-
-			// Try to sync from server
 			try {
 				const [serverEvents, serverExternalEvents] = await Promise.all([
 					getEvents(start, end),
 					getExternalEvents(start, end)
 				]);
 				if (isStale()) return;
-
-				// Filter out events that are still pending deletion locally
-				const stillPendingDeletes = await getPendingDeleteEvents();
-				if (isStale()) return;
-				const pendingDeleteIds = new Set(stillPendingDeletes.map((e) => e.id).filter(Boolean));
-				events = pendingDeleteIds.size > 0
-					? serverEvents.filter((e) => !pendingDeleteIds.has(e.id))
-					: serverEvents;
+				events = serverEvents;
 				externalEvents = serverExternalEvents;
-
-				// Save external events to IndexedDB for offline access
-				// Clear old external events first to remove stale entries
-				await db.external_events.where('user').equals(userId).delete();
-				if (isStale()) return;
-				if (serverExternalEvents.length > 0) {
-					await setExternalEvents(serverExternalEvents);
-				}
-
-				console.log(`Loaded ${serverEvents.length} events and ${serverExternalEvents.length} external events from server`);
 			} catch (error) {
 				console.error('Failed to load events from server:', error);
-				// Keep local data if server fails
+				// Keep whatever is currently displayed on a transient failure
 			}
 
 			if (!isStale()) loading = false;
@@ -319,10 +252,6 @@ function createCalendarStore() {
 						break;
 					case 'delete':
 						events = events.filter((e) => e.id !== record.id);
-						// Hard-delete from local DB (server confirmed deletion)
-						db.events.where('id').equals(record.id).first().then((local) => {
-							if (local) hardDeleteLocalEvent(local.local_id);
-						});
 						break;
 				}
 			});
@@ -335,93 +264,26 @@ function createCalendarStore() {
 			}
 		},
 
-		// Event CRUD (offline-first with immediate sync)
-		async createEvent(data: Omit<LocalEvent, 'local_id' | 'sync_status' | 'user'>) {
+		// Event CRUD (server-first: await PocketBase, then update UI state)
+		async createEvent(data: Omit<CalendarEvent, 'id' | 'created' | 'updated' | 'user'>) {
 			const userId = auth.user?.id;
 			if (!userId) throw new Error('Not authenticated');
 
-			const localEvent = await createLocalEvent({
-				...data,
-				user: userId
-			});
-
-			// Optimistically add to events with local ID
-			const tempEvent = {
-				...localEvent,
-				id: localEvent.local_id,
-				created: new Date().toISOString(),
-				updated: new Date().toISOString()
-			} as CalendarEvent;
-
-			events = [...events, tempEvent];
-
-			// Sync to server
-			try {
-				const serverEvent = await createServerEvent(data);
-				// Update local DB with server ID
-				await markEventSynced(localEvent.local_id, serverEvent.id);
-				// Replace temp event with server event
-				events = events.map((e) =>
-					e.id === localEvent.local_id ? serverEvent : e
-				);
-
-				return serverEvent;
-			} catch (error) {
-				// Keep local event for offline mode
-				console.error('Failed to sync event to server:', error);
-				return localEvent;
+			const serverEvent = await createServerEvent(data);
+			if (!events.some((e) => e.id === serverEvent.id)) {
+				events = [...events, serverEvent];
 			}
+			return serverEvent;
 		},
 
 		async updateEvent(id: string, changes: Partial<CalendarEvent>) {
-			// Optimistically update
-			events = events.map((e) => (e.id === id ? { ...e, ...changes } : e));
-
-			// Update local DB — look up by server id or local_id
-			const localRecord = await db.events.where('id').equals(id).first()
-				|| await db.events.get(id);
-			if (localRecord) {
-				await updateLocalEvent(localRecord.local_id, changes);
-			}
-
-			// Sync to server
-			try {
-				const serverEvent = await updateServerEvent(id, changes);
-				events = events.map((e) => (e.id === id ? serverEvent : e));
-			} catch (error) {
-				console.error('Failed to sync event update to server:', error);
-				// Keep optimistic update for offline mode
-			}
+			const serverEvent = await updateServerEvent(id, changes);
+			events = events.map((e) => (e.id === id ? serverEvent : e));
 		},
 
 		async deleteEvent(id: string) {
-			// Optimistically remove from UI
+			await deleteServerEvent(id);
 			events = events.filter((e) => e.id !== id);
-
-			// Soft-delete in local DB (marks sync_status: 'deleted')
-			// For pending events (local_id as id), use that; for synced events, find by server id
-			const localRecord = await db.events.where('id').equals(id).first()
-				?? await db.events.get(id);
-			if (localRecord) {
-				await deleteLocalEvent(localRecord.local_id);
-			}
-
-			// Try to delete from server (only if it has a server id)
-			if (localRecord?.id) {
-				try {
-					await deleteServerEvent(localRecord.id);
-					// Server confirmed deletion — hard-delete local record
-					if (localRecord) {
-						await hardDeleteLocalEvent(localRecord.local_id);
-					}
-				} catch (error) {
-					console.error('Failed to sync event deletion to server:', error);
-					// Stays soft-deleted locally, will retry on next loadEvents
-				}
-			} else if (localRecord) {
-				// Pending event never reached server — hard-delete immediately
-				await hardDeleteLocalEvent(localRecord.local_id);
-			}
 		},
 
 		// Toggle task completion with flexible timing cascade
@@ -429,94 +291,100 @@ function createCalendarStore() {
 			const event = events.find((e) => e.id === id);
 			if (!event || !event.is_task) return;
 
-			const completed_at = event.completed_at ? undefined : new Date().toISOString();
-			const justCompleted = !!completed_at;
-			await this.updateEvent(id, { completed_at });
+			try {
+				const completed_at = event.completed_at ? undefined : new Date().toISOString();
+				const justCompleted = !!completed_at;
+				await this.updateEvent(id, { completed_at });
 
-			// Celebrate: if this completion finished today's last open step of a
-			// routine, fire a one-shot toast (when enabled in settings).
-			if (justCompleted && event.routine_template && settingsStore.streakCelebrationEnabled) {
-				const dayKey = new Date(event.start_time).toDateString();
-				const sameRoutineToday = events.filter(
-					(e) =>
-						e.routine_template === event.routine_template &&
-						e.start_time &&
-						new Date(e.start_time).toDateString() === dayKey
-				);
-				const stillOpen = sameRoutineToday.filter((e) => e.id !== id && !e.completed_at).length;
-				if (sameRoutineToday.length >= 1 && stillOpen === 0) {
-					const t = get(_);
-					toast.success(`✨ ${t('routine.completedToday')}`);
-				}
-			}
-
-			// Flexible timing cascade for routine steps
-			if (event.routine_template && event.routine_step_index !== undefined) {
-				const routineTemplate = routinesStore.getById(event.routine_template);
-				if (!routineTemplate) return;
-
-				const routineSteps = routineTemplate.steps;
-				const currentStepIdx = event.routine_step_index;
-
-				// Find all events for this routine today, sorted by step index
-				const routineEvents = events
-					.filter((e) =>
-						e.routine_template === event.routine_template &&
-						e.start_time &&
-						new Date(e.start_time).toDateString() === new Date(event.start_time).toDateString()
-					)
-					.sort((a, b) => (a.routine_step_index ?? 0) - (b.routine_step_index ?? 0));
-
-				if (completed_at) {
-					// Completing: shift subsequent flexible steps from completion time
-					let cursor = new Date(completed_at);
-
-					for (let i = currentStepIdx + 1; i < routineSteps.length; i++) {
-						const step = routineSteps[i];
-						if (step.timing_mode !== 'flexible') break;
-
-						const nextEvent = routineEvents.find((e) => e.routine_step_index === i);
-						if (!nextEvent) continue;
-
-						const duration = (step.duration_minutes || 15) * 60000;
-						const newStart = cursor.toISOString();
-						const newEnd = new Date(cursor.getTime() + duration).toISOString();
-
-						await this.updateEvent(nextEvent.id, {
-							start_time: newStart,
-							end_time: newEnd
-						});
-
-						cursor = new Date(cursor.getTime() + duration);
-					}
-				} else {
-					// Uncompleting: revert subsequent flexible steps to original calculated times
-					const scheduleTime = routineTemplate.schedule.time;
-					const [hStr, mStr] = scheduleTime.split(':');
-					const baseDate = new Date(event.start_time);
-					let cursor = new Date(
-						baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(),
-						parseInt(hStr, 10), parseInt(mStr, 10), 0
+				// Celebrate: if this completion finished today's last open step of a
+				// routine, fire a one-shot toast (when enabled in settings).
+				if (justCompleted && event.routine_template && settingsStore.streakCelebrationEnabled) {
+					const dayKey = new Date(event.start_time).toDateString();
+					const sameRoutineToday = events.filter(
+						(e) =>
+							e.routine_template === event.routine_template &&
+							e.start_time &&
+							new Date(e.start_time).toDateString() === dayKey
 					);
-
-					// Walk from step 0 to rebuild original times
-					for (let i = 0; i < routineSteps.length; i++) {
-						const step = routineSteps[i];
-						const duration = (step.duration_minutes || 15) * 60000;
-
-						if (i > currentStepIdx && step.timing_mode === 'flexible') {
-							const nextEvent = routineEvents.find((e) => e.routine_step_index === i);
-							if (nextEvent) {
-								await this.updateEvent(nextEvent.id, {
-									start_time: cursor.toISOString(),
-									end_time: new Date(cursor.getTime() + duration).toISOString()
-								});
-							}
-						}
-
-						cursor = new Date(cursor.getTime() + duration);
+					const stillOpen = sameRoutineToday.filter((e) => e.id !== id && !e.completed_at).length;
+					if (sameRoutineToday.length >= 1 && stillOpen === 0) {
+						const t = get(_);
+						toast.success(`✨ ${t('routine.completedToday')}`);
 					}
 				}
+
+				// Flexible timing cascade for routine steps
+				if (event.routine_template && event.routine_step_index !== undefined) {
+					const routineTemplate = routinesStore.getById(event.routine_template);
+					if (!routineTemplate) return;
+
+					const routineSteps = routineTemplate.steps;
+					const currentStepIdx = event.routine_step_index;
+
+					// Find all events for this routine today, sorted by step index
+					const routineEvents = events
+						.filter((e) =>
+							e.routine_template === event.routine_template &&
+							e.start_time &&
+							new Date(e.start_time).toDateString() === new Date(event.start_time).toDateString()
+						)
+						.sort((a, b) => (a.routine_step_index ?? 0) - (b.routine_step_index ?? 0));
+
+					if (completed_at) {
+						// Completing: shift subsequent flexible steps from completion time
+						let cursor = new Date(completed_at);
+
+						for (let i = currentStepIdx + 1; i < routineSteps.length; i++) {
+							const step = routineSteps[i];
+							if (step.timing_mode !== 'flexible') break;
+
+							const nextEvent = routineEvents.find((e) => e.routine_step_index === i);
+							if (!nextEvent) continue;
+
+							const duration = (step.duration_minutes || 15) * 60000;
+							const newStart = cursor.toISOString();
+							const newEnd = new Date(cursor.getTime() + duration).toISOString();
+
+							await this.updateEvent(nextEvent.id, {
+								start_time: newStart,
+								end_time: newEnd
+							});
+
+							cursor = new Date(cursor.getTime() + duration);
+						}
+					} else {
+						// Uncompleting: revert subsequent flexible steps to original calculated times
+						const scheduleTime = routineTemplate.schedule.time;
+						const [hStr, mStr] = scheduleTime.split(':');
+						const baseDate = new Date(event.start_time);
+						let cursor = new Date(
+							baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(),
+							parseInt(hStr, 10), parseInt(mStr, 10), 0
+						);
+
+						// Walk from step 0 to rebuild original times
+						for (let i = 0; i < routineSteps.length; i++) {
+							const step = routineSteps[i];
+							const duration = (step.duration_minutes || 15) * 60000;
+
+							if (i > currentStepIdx && step.timing_mode === 'flexible') {
+								const nextEvent = routineEvents.find((e) => e.routine_step_index === i);
+								if (nextEvent) {
+									await this.updateEvent(nextEvent.id, {
+										start_time: cursor.toISOString(),
+										end_time: new Date(cursor.getTime() + duration).toISOString()
+									});
+								}
+							}
+
+							cursor = new Date(cursor.getTime() + duration);
+						}
+					}
+				}
+			} catch (error) {
+				console.error('Failed to toggle task completion:', error);
+				const t = get(_);
+				toast.error(t('errors.generic'));
 			}
 		}
 	};
