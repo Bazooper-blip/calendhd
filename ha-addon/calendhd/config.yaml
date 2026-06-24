@@ -1,7 +1,7 @@
 name: calenDHD
-version: "1.6.5"
+version: "1.6.6"
 slug: calendhd
-description: "A calm, ADHD-friendly calendar PWA with offline support"
+description: "A calm, ADHD-friendly calendar PWA for neurodivergent minds"
 url: "https://github.com/Bazooper-blip/calendhd"
 arch:
   - aarch64

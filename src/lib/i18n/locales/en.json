@@ -367,12 +367,6 @@
 		"yesterday": "Yesterday",
 		"now": "now"
 	},
-	"status": {
-		"online": "Back online",
-		"offline": "You're offline",
-		"offlineMessage": "Changes will sync when connected",
-		"dismiss": "Dismiss"
-	},
 	"progress": {
 		"dayProgress": "Day progress"
 	},
