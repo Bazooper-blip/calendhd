@@ -1,6 +1,5 @@
 import { browser } from '$app/environment';
 import { getUserSettings, updateUserSettings, getDefaultSettings } from '$api/pocketbase';
-import { getLocalSettings, setLocalSettings } from '$db';
 import { auth } from './auth.svelte';
 import { setLocale } from '$lib/i18n';
 import { setTimezone, setDateLocale } from '$lib/utils/date';
@@ -69,6 +68,7 @@ function createSettingsStore() {
 			const val = settings?.day_view_style ?? defaults.day_view_style;
 			return val === 'agenda' ? 'agenda' : 'timeline';
 		},
+
 		async load() {
 			if (!browser) return;
 
@@ -81,43 +81,18 @@ function createSettingsStore() {
 				return;
 			}
 
-			// Try to load from local DB first (for offline support)
-			const localSettings = await getLocalSettings(userId);
-			if (localSettings) {
-				settings = localSettings;
-				// Sync locale with i18n
-				if (localSettings.locale) {
-					setLocale(localSettings.locale);
-					setDateLocale(localSettings.locale);
-				}
-				// Sync timezone with date utils
-				if (localSettings.timezone) {
-					setTimezone(localSettings.timezone);
-				}
-			}
-
-			// Then try to sync from server
 			try {
 				const serverSettings = await getUserSettings();
-				if (serverSettings) {
-					settings = serverSettings;
-					await setLocalSettings(serverSettings);
-					// Sync locale with i18n
-					if (serverSettings.locale) {
-						setLocale(serverSettings.locale);
+				settings = serverSettings;
+				if (serverSettings?.locale) {
+					setLocale(serverSettings.locale);
 					setDateLocale(serverSettings.locale);
-					}
-					// Sync timezone with date utils
-					if (serverSettings.timezone) {
-						setTimezone(serverSettings.timezone);
-					}
-				} else if (localSettings) {
-					// Server has no settings but we have local - clear stale local cache
-					// The ID in local settings is no longer valid
-					settings = null;
 				}
-			} catch {
-				// Offline, use local settings
+				if (serverSettings?.timezone) {
+					setTimezone(serverSettings.timezone);
+				}
+			} catch (error) {
+				console.error('Failed to load settings:', error);
 			}
 
 			loading = false;
@@ -127,42 +102,17 @@ function createSettingsStore() {
 			const userId = auth.user?.id;
 			if (!userId) return;
 
-			// If no settings exist yet, create with defaults + changes
-			const baseSettings = settings || {
-				...defaults,
-				id: '',
-				created: '',
-				updated: '',
-				user: userId
-			} as UserSettings;
+			const existingId = settings?.id || undefined;
+			const serverSettings = await updateUserSettings(changes, existingId);
+			settings = serverSettings;
 
-			// Optimistically update local state
-			settings = { ...baseSettings, ...changes };
-
-			// Sync locale with i18n if changed
-			if (changes.locale) {
-				setLocale(changes.locale);
-				setDateLocale(changes.locale);
+			// Apply UI side-effects from the persisted result
+			if (serverSettings.locale) {
+				setLocale(serverSettings.locale);
+				setDateLocale(serverSettings.locale);
 			}
-			// Sync timezone with date utils if changed
-			if (changes.timezone) {
-				setTimezone(changes.timezone);
-			}
-
-			// Try to sync to server first (this will create settings if they don't exist)
-			// Pass the existing ID if we have one to avoid creating duplicates
-			try {
-				const existingId = baseSettings.id || undefined;
-				const serverSettings = await updateUserSettings(changes, existingId);
-				settings = serverSettings;
-				// Only save to local DB after we have a valid server response with ID
-				await setLocalSettings(serverSettings);
-			} catch (error) {
-				console.error('Failed to update settings:', error);
-				// Offline, keep local changes (but don't save to local DB without valid ID)
-				if (baseSettings.id) {
-					await setLocalSettings({ ...baseSettings, ...changes });
-				}
+			if (serverSettings.timezone) {
+				setTimezone(serverSettings.timezone);
 			}
 		}
 	};
