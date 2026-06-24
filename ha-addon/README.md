@@ -17,7 +17,6 @@ Features:
 - Categories with color coding
 - Recurring events (daily, weekly, monthly, yearly)
 - Push notification reminders (Web Push / VAPID)
-- Offline support (IndexedDB)
 - iCal subscription support (Google Calendar, Outlook, etc.)
 - Calm, soft color palette
 - Multi-language support (English, Swedish)
