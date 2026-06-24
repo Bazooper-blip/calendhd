@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.6
+
+- Removed the offline / local-first layer. The app is now strictly server-first: it reads and writes directly to PocketBase (the single source of truth) instead of caching everything in the browser (IndexedDB/Dexie) and syncing in the background. This removes a large amount of sync complexity that added little value for an always-online server. A connection to your calenDHD server is now required.
+- The service worker now exists only for push notifications — offline asset caching and the "You're offline" status banner were removed. Push notifications and realtime updates are unchanged.
+
 ## 1.6.5
 
 - Maintenance / dependency-bump release.
