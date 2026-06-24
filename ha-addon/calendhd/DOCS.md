@@ -148,7 +148,7 @@ The addon serves plain HTTP. PWA install requires HTTPS, and you'll usually want
 On your phone or tablet:
 1. Open calenDHD in your browser
 2. Tap "Add to Home Screen" (Safari) or "Install" (Chrome)
-3. The app works offline!
+3. The app opens from your home screen like a native app (a connection to your calenDHD server is required)
 
 ## Troubleshooting
 

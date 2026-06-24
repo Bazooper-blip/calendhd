@@ -6,4 +6,3 @@ export { default as Toggle } from './Toggle.svelte';
 export { default as ColorPicker } from './ColorPicker.svelte';
 export { default as EventIcon } from './EventIcon.svelte';
 export { default as IconPicker } from './IconPicker.svelte';
-export { default as OfflineIndicator } from './OfflineIndicator.svelte';
