@@ -6,15 +6,8 @@ import {
 	deleteCategory,
 	subscribeToCategories
 } from '$api/pocketbase';
-import {
-	db,
-	getLocalCategories,
-	createLocalCategory,
-	updateLocalCategory,
-	deleteLocalCategory
-} from '$db';
 import { auth } from './auth.svelte';
-import type { Category, LocalCategory } from '$types';
+import type { Category } from '$types';
 
 // Categories store using Svelte 5 runes
 function createCategoriesStore() {
@@ -69,28 +62,11 @@ function createCategoriesStore() {
 			}
 
 			loading = true;
-
-			// Load from local DB first
 			try {
-				const localCategories = await getLocalCategories(userId);
-				categories = localCategories.map((lc) => ({
-					...lc,
-					id: lc.id || lc.local_id,
-					created: '',
-					updated: ''
-				})) as Category[];
-			} catch {
-				// IndexedDB may not be available
+				categories = await getCategories();
+			} catch (error) {
+				console.error('Failed to load categories:', error);
 			}
-
-			// Sync from server
-			try {
-				const serverCategories = await getCategories();
-				categories = serverCategories;
-			} catch {
-				// Offline, use local data
-			}
-
 			loading = false;
 		},
 
@@ -104,7 +80,6 @@ function createCategoriesStore() {
 			unsubscribe = subscribeToCategories((action, record) => {
 				switch (action) {
 					case 'create':
-						// Only add if not already present (avoid duplicate from optimistic update)
 						if (!categories.some((c) => c.id === record.id)) {
 							categories = [...categories, record].sort((a, b) => a.sort_order - b.sort_order);
 						}
@@ -135,92 +110,26 @@ function createCategoriesStore() {
 			const sortOrder =
 				categories.length > 0 ? Math.max(...categories.map((c) => c.sort_order)) + 1 : 0;
 
-			// Create locally first
-			const localCategory = await createLocalCategory({
-				...data,
-				user: userId,
-				sort_order: sortOrder
-			});
-
-			// Optimistically add
-			const tempCategory: Category = {
-				...localCategory,
-				id: localCategory.local_id,
-				created: new Date().toISOString(),
-				updated: new Date().toISOString()
-			} as Category;
-
-			categories = [...categories, tempCategory].sort((a, b) => a.sort_order - b.sort_order);
-
-			// Try to sync to server
-			try {
-				const serverCategory = await createCategory({
-					...data,
-					sort_order: sortOrder
-				});
-				// Replace temp category with server data, also remove any duplicate from realtime subscription
-				categories = [
-					...categories.filter((c) => c.id !== localCategory.local_id && c.id !== serverCategory.id),
-					serverCategory
-				].sort((a, b) => a.sort_order - b.sort_order);
-			} catch {
-				// Offline, keep local version
+			const serverCategory = await createCategory({ ...data, sort_order: sortOrder });
+			if (!categories.some((c) => c.id === serverCategory.id)) {
+				categories = [...categories, serverCategory].sort((a, b) => a.sort_order - b.sort_order);
 			}
-
-			return tempCategory;
+			return serverCategory;
 		},
 
 		async update(id: string, changes: Partial<Category>) {
-			const category = categories.find((c) => c.id === id);
-			if (!category) return;
-
-			// Look up by server id or local_id in IndexedDB
-			const localRecord = await db.categories.where('id').equals(id).first()
-				|| await db.categories.get(id);
-			if (localRecord) {
-				await updateLocalCategory(localRecord.local_id, changes);
-			}
-
-			// Optimistically update
+			const serverCategory = await updateCategory(id, changes);
 			categories = categories
-				.map((c) => (c.id === id ? { ...c, ...changes } : c))
+				.map((c) => (c.id === id ? serverCategory : c))
 				.sort((a, b) => a.sort_order - b.sort_order);
-
-			// Try to sync to server
-			try {
-				const serverCategory = await updateCategory(id, changes);
-				categories = categories
-					.map((c) => (c.id === id ? serverCategory : c))
-					.sort((a, b) => a.sort_order - b.sort_order);
-			} catch {
-				// Offline, keep local changes
-			}
 		},
 
 		async delete(id: string) {
-			const category = categories.find((c) => c.id === id);
-			if (!category) return;
-
-			// Look up by server id or local_id in IndexedDB
-			const localRecord = await db.categories.where('id').equals(id).first()
-				|| await db.categories.get(id);
-			if (localRecord) {
-				await deleteLocalCategory(localRecord.local_id);
-			}
-
-			// Optimistically remove
+			await deleteCategory(id);
 			categories = categories.filter((c) => c.id !== id);
-
-			// Try to sync to server
-			try {
-				await deleteCategory(id);
-			} catch {
-				// Offline, deletion will sync later
-			}
 		},
 
 		async reorder(orderedIds: string[]) {
-			// Update sort orders locally
 			const updates = orderedIds.map((id, index) => ({
 				id,
 				sort_order: index
