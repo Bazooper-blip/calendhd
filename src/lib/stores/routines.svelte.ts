@@ -6,15 +6,8 @@ import {
 	deleteRoutineTemplate,
 	subscribeToRoutineTemplates
 } from '$api/pocketbase';
-import { db } from '$db';
-import {
-	getLocalRoutines,
-	createLocalRoutine,
-	updateLocalRoutine,
-	deleteLocalRoutine
-} from '$db/routines';
 import { auth } from './auth.svelte';
-import type { RoutineTemplate, LocalRoutineTemplate, RoutineStep, RoutineSchedule } from '$types';
+import type { RoutineTemplate, RoutineStep, RoutineSchedule } from '$types';
 
 function createRoutinesStore() {
 	let routines = $state<RoutineTemplate[]>([]);
@@ -47,28 +40,11 @@ function createRoutinesStore() {
 			}
 
 			loading = true;
-
-			// Load from local DB first
 			try {
-				const localRoutines = await getLocalRoutines(userId);
-				routines = localRoutines.map((lr) => ({
-					...lr,
-					id: lr.id || lr.local_id,
-					created: '',
-					updated: ''
-				})) as RoutineTemplate[];
-			} catch {
-				// IndexedDB may not be available
+				routines = await getRoutineTemplates();
+			} catch (error) {
+				console.error('Failed to load routines:', error);
 			}
-
-			// Sync from server
-			try {
-				const serverRoutines = await getRoutineTemplates();
-				routines = serverRoutines;
-			} catch {
-				// Offline, use local data
-			}
-
 			loading = false;
 		},
 
@@ -117,59 +93,18 @@ function createRoutinesStore() {
 			const userId = auth.user?.id;
 			if (!userId) throw new Error('Not authenticated');
 
-			const localRoutine = await createLocalRoutine({
-				...data,
-				user: userId
-			});
-
-			const tempRoutine: RoutineTemplate = {
-				...localRoutine,
-				id: localRoutine.local_id,
-				created: new Date().toISOString(),
-				updated: new Date().toISOString()
-			} as RoutineTemplate;
-
-			routines = [...routines, tempRoutine].sort((a, b) => a.name.localeCompare(b.name));
-
-			try {
-				const serverRoutine = await createRoutineTemplate(data);
-				// Remove temp record and any realtime-subscription duplicate, then add server version
-				routines = [
-					...routines.filter(
-						(r) => r.id !== localRoutine.local_id && r.id !== serverRoutine.id
-					),
-					serverRoutine
-				].sort((a, b) => a.name.localeCompare(b.name));
-			} catch (err) {
-				console.warn('[routines] Failed to sync routine to server:', err);
+			const serverRoutine = await createRoutineTemplate(data);
+			if (!routines.some((r) => r.id === serverRoutine.id)) {
+				routines = [...routines, serverRoutine].sort((a, b) => a.name.localeCompare(b.name));
 			}
-
-			return tempRoutine;
+			return serverRoutine;
 		},
 
 		async update(id: string, changes: Partial<RoutineTemplate>) {
-			const routine = routines.find((r) => r.id === id);
-			if (!routine) return;
-
-			const localRecord =
-				(await db.routine_templates.where('id').equals(id).first()) ||
-				(await db.routine_templates.get(id));
-			if (localRecord) {
-				await updateLocalRoutine(localRecord.local_id, changes);
-			}
-
+			const serverRoutine = await updateRoutineTemplate(id, changes);
 			routines = routines
-				.map((r) => (r.id === id ? { ...r, ...changes } : r))
+				.map((r) => (r.id === id ? serverRoutine : r))
 				.sort((a, b) => a.name.localeCompare(b.name));
-
-			try {
-				const serverRoutine = await updateRoutineTemplate(id, changes);
-				routines = routines
-					.map((r) => (r.id === id ? serverRoutine : r))
-					.sort((a, b) => a.name.localeCompare(b.name));
-			} catch {
-				// Offline, keep local changes
-			}
 		},
 
 		async toggleActive(id: string) {
@@ -179,23 +114,8 @@ function createRoutinesStore() {
 		},
 
 		async delete(id: string) {
-			const routine = routines.find((r) => r.id === id);
-			if (!routine) return;
-
-			const localRecord =
-				(await db.routine_templates.where('id').equals(id).first()) ||
-				(await db.routine_templates.get(id));
-			if (localRecord) {
-				await deleteLocalRoutine(localRecord.local_id);
-			}
-
+			await deleteRoutineTemplate(id);
 			routines = routines.filter((r) => r.id !== id);
-
-			try {
-				await deleteRoutineTemplate(id);
-			} catch {
-				// Offline, deletion will sync later
-			}
 		}
 	};
 }
