@@ -7,6 +7,7 @@ import {
 	formatTimeRange,
 	formatMonthYear,
 	formatDayOfWeek,
+	formatRelativeTime,
 	parseTimeToDate,
 	getDaysInRange,
 	getEventPosition,
@@ -275,5 +276,18 @@ describe('REMINDER_OPTIONS', () => {
 			expect(opt.i18nKey).toBeDefined();
 			expect(opt.i18nKey).toMatch(/^reminder\./);
 		}
+	});
+});
+
+describe('formatRelativeTime', () => {
+	it('renders English relative times with the en locale', () => {
+		const date = new Date(Date.now() - 18 * 60 * 1000);
+		expect(formatRelativeTime(date)).toBe('18 minutes ago');
+	});
+
+	it('renders Swedish relative times when the app locale is sv', () => {
+		setDateLocale('sv');
+		const date = new Date(Date.now() - 18 * 60 * 1000);
+		expect(formatRelativeTime(date)).toBe('18 minuter sedan');
 	});
 });

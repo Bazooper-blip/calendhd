@@ -15,6 +15,7 @@
 	} from '$utils';
 	import type { DisplayEvent } from '$types';
 	import ExternalEventModal from './ExternalEventModal.svelte';
+	import { _ } from '$lib/i18n';
 
 	interface MonthRoutineGroup {
 		kind: 'routine-group';
@@ -210,7 +211,7 @@
 
 							{#if dayData.moreCount > 0}
 								<div class="px-1 text-xs text-neutral-500 dark:text-neutral-400">
-									+{dayData.moreCount} more
+									{$_('calendar.moreEvents', { values: { count: dayData.moreCount } })}
 								</div>
 							{/if}
 						</div>

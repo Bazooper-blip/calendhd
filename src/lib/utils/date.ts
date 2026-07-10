@@ -1,23 +1,21 @@
+import type { Locale } from 'date-fns';
 import {
-	format,
+	isThisWeek as dateFnsIsThisWeek,
+	isThisYear as dateFnsIsThisYear,
 	isToday as dateFnsIsToday,
 	isTomorrow as dateFnsIsTomorrow,
 	isYesterday as dateFnsIsYesterday,
-	isThisWeek as dateFnsIsThisWeek,
-	isThisYear as dateFnsIsThisYear,
 	differenceInMinutes,
-	differenceInHours,
-	differenceInDays,
-	differenceInSeconds,
+	eachDayOfInterval,
+	format,
+	formatDistanceToNow,
 	setHours,
 	setMinutes,
-	startOfDay,
-	endOfDay,
-	eachDayOfInterval
+	startOfDay
 } from 'date-fns';
-import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import { enUS, sv } from 'date-fns/locale';
-import type { Locale } from 'date-fns';
+import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
+import { dateConfig } from './date-config.svelte';
 
 // Available locales
 const locales: Record<string, Locale> = {
@@ -25,51 +23,50 @@ const locales: Record<string, Locale> = {
 	sv: sv
 };
 
-// Current timezone context - can be set by the app based on user settings
-let currentTimezone: string = Intl.DateTimeFormat().resolvedOptions().timeZone;
-let currentLocale: Locale = enUS;
-
 // Set the global timezone for date formatting
 export function setTimezone(tz: string): void {
-	currentTimezone = tz;
+	dateConfig.timezone = tz;
 }
 
 // Set the locale for date formatting (e.g., 'en', 'sv')
 export function setDateLocale(localeCode: string): void {
-	currentLocale = locales[localeCode] || enUS;
+	dateConfig.locale = locales[localeCode] || enUS;
 }
 
 // Format time based on user preference and timezone
 export function formatTime(date: Date, format24h: boolean = false): string {
 	const formatStr = format24h ? 'HH:mm' : 'h:mm a';
-	return formatInTimeZone(date, currentTimezone, formatStr, { locale: currentLocale });
+	return formatInTimeZone(date, dateConfig.timezone, formatStr, { locale: dateConfig.locale });
 }
 
 // Format date with smart relative formatting (timezone-aware)
-export function formatDateSmart(date: Date, translations?: { today?: string; tomorrow?: string; yesterday?: string }): string {
-	const zonedDate = toZonedTime(date, currentTimezone);
+export function formatDateSmart(
+	date: Date,
+	translations?: { today?: string; tomorrow?: string; yesterday?: string }
+): string {
+	const zonedDate = toZonedTime(date, dateConfig.timezone);
 
 	if (dateFnsIsToday(zonedDate)) return translations?.today || 'Today';
 	if (dateFnsIsTomorrow(zonedDate)) return translations?.tomorrow || 'Tomorrow';
 	if (dateFnsIsYesterday(zonedDate)) return translations?.yesterday || 'Yesterday';
 	if (dateFnsIsThisWeek(zonedDate, { weekStartsOn: 0 })) {
-		return formatInTimeZone(date, currentTimezone, 'EEEE', { locale: currentLocale });
+		return formatInTimeZone(date, dateConfig.timezone, 'EEEE', { locale: dateConfig.locale });
 	}
 	if (dateFnsIsThisYear(zonedDate)) {
-		return formatInTimeZone(date, currentTimezone, 'MMM d', { locale: currentLocale });
+		return formatInTimeZone(date, dateConfig.timezone, 'MMM d', { locale: dateConfig.locale });
 	}
-	return formatInTimeZone(date, currentTimezone, 'MMM d, yyyy', { locale: currentLocale });
+	return formatInTimeZone(date, dateConfig.timezone, 'MMM d, yyyy', { locale: dateConfig.locale });
 }
 
 // Format date for month view header
 export function formatMonthYear(date: Date): string {
-	return formatInTimeZone(date, currentTimezone, 'MMMM yyyy', { locale: currentLocale });
+	return formatInTimeZone(date, dateConfig.timezone, 'MMMM yyyy', { locale: dateConfig.locale });
 }
 
 // Format day of week
 export function formatDayOfWeek(date: Date, short: boolean = false): string {
 	const formatStr = short ? 'EEE' : 'EEEE';
-	return formatInTimeZone(date, currentTimezone, formatStr, { locale: currentLocale });
+	return formatInTimeZone(date, dateConfig.timezone, formatStr, { locale: dateConfig.locale });
 }
 
 // Format time range
@@ -112,9 +109,7 @@ export function getEventPosition(
 	dayStart: Date
 ): { top: number; height: number } {
 	const startMinutes = differenceInMinutes(start, startOfDay(dayStart));
-	const endMinutes = end
-		? differenceInMinutes(end, startOfDay(dayStart))
-		: startMinutes + 60; // Default 1 hour if no end
+	const endMinutes = end ? differenceInMinutes(end, startOfDay(dayStart)) : startMinutes + 60; // Default 1 hour if no end
 
 	// Convert to percentage of day (24 hours = 1440 minutes)
 	const top = (startMinutes / 1440) * 100;
@@ -131,21 +126,21 @@ export function getEventPosition(
 
 // Timezone-aware isToday check
 export function isToday(date: Date): boolean {
-	const zonedDate = toZonedTime(date, currentTimezone);
+	const zonedDate = toZonedTime(date, dateConfig.timezone);
 	return dateFnsIsToday(zonedDate);
 }
 
 // Timezone-aware isSameDay check
 export function isSameDay(date1: Date, date2: Date): boolean {
-	const zoned1 = toZonedTime(date1, currentTimezone);
-	const zoned2 = toZonedTime(date2, currentTimezone);
+	const zoned1 = toZonedTime(date1, dateConfig.timezone);
+	const zoned2 = toZonedTime(date2, dateConfig.timezone);
 	return format(zoned1, 'yyyy-MM-dd') === format(zoned2, 'yyyy-MM-dd');
 }
 
 // Timezone-aware isSameMonth check
 export function isSameMonth(date1: Date, date2: Date): boolean {
-	const zoned1 = toZonedTime(date1, currentTimezone);
-	const zoned2 = toZonedTime(date2, currentTimezone);
+	const zoned1 = toZonedTime(date1, dateConfig.timezone);
+	const zoned2 = toZonedTime(date2, dateConfig.timezone);
 	return format(zoned1, 'yyyy-MM') === format(zoned2, 'yyyy-MM');
 }
 
@@ -162,44 +157,7 @@ export const REMINDER_OPTIONS = [
 	{ value: 2880, i18nKey: 'reminder.2days' }
 ];
 
-// Format relative time (e.g., "5 minutes ago", "2 hours ago", "Yesterday")
+// Format relative time (e.g., "18 minutes ago" / "för 18 minuter sedan")
 export function formatRelativeTime(date: Date): string {
-	const now = new Date();
-	const secondsAgo = differenceInSeconds(now, date);
-	const minutesAgo = differenceInMinutes(now, date);
-	const hoursAgo = differenceInHours(now, date);
-	const daysAgo = differenceInDays(now, date);
-
-	if (secondsAgo < 60) {
-		return 'Just now';
-	}
-
-	if (minutesAgo < 60) {
-		return minutesAgo === 1 ? '1 minute ago' : `${minutesAgo} minutes ago`;
-	}
-
-	if (hoursAgo < 24) {
-		return hoursAgo === 1 ? '1 hour ago' : `${hoursAgo} hours ago`;
-	}
-
-	if (daysAgo === 1) {
-		return 'Yesterday';
-	}
-
-	if (daysAgo < 7) {
-		return `${daysAgo} days ago`;
-	}
-
-	if (daysAgo < 30) {
-		const weeks = Math.floor(daysAgo / 7);
-		return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`;
-	}
-
-	if (daysAgo < 365) {
-		const months = Math.floor(daysAgo / 30);
-		return months === 1 ? '1 month ago' : `${months} months ago`;
-	}
-
-	const years = Math.floor(daysAgo / 365);
-	return years === 1 ? '1 year ago' : `${years} years ago`;
+	return formatDistanceToNow(date, { addSuffix: true, locale: dateConfig.locale });
 }

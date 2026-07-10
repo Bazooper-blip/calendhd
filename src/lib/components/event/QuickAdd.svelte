@@ -89,16 +89,20 @@
 	$effect(() => {
 		if (!browser) return;
 
-		let lastScrollY = window.scrollY;
+		let lastScrollTop = 0;
 
-		function handleScroll() {
-			const currentScrollY = window.scrollY;
-			showFab = currentScrollY < lastScrollY || currentScrollY < 100;
-			lastScrollY = currentScrollY;
+		// Capture phase: scroll events don't bubble, and the app scrolls inside
+		// <main> (and inner grids), not the window
+		function handleScroll(e: Event) {
+			const target = e.target;
+			const currentScrollTop =
+				target instanceof Element ? target.scrollTop : window.scrollY;
+			showFab = currentScrollTop < lastScrollTop || currentScrollTop < 100;
+			lastScrollTop = currentScrollTop;
 		}
 
-		window.addEventListener('scroll', handleScroll, { passive: true });
-		return () => window.removeEventListener('scroll', handleScroll);
+		window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
+		return () => window.removeEventListener('scroll', handleScroll, { capture: true });
 	});
 </script>
 

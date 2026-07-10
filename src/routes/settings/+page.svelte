@@ -414,13 +414,13 @@
 
 			<!-- Timezone -->
 			<section class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-neutral-100 dark:border-neutral-700 p-6">
-				<h2 class="text-lg font-semibold text-neutral-800 dark:text-neutral-100 mb-4">Time Zone</h2>
+				<h2 class="text-lg font-semibold text-neutral-800 dark:text-neutral-100 mb-4">{$_('settings.timezone')}</h2>
 
 				<p class="text-sm text-neutral-600 dark:text-neutral-400">
-					Current timezone: <strong class="text-neutral-800 dark:text-neutral-200">{settingsStore.timezone}</strong>
+					{$_('settings.timezoneCurrent')} <strong class="text-neutral-800 dark:text-neutral-200">{settingsStore.timezone}</strong>
 				</p>
 				<p class="text-xs text-neutral-400 dark:text-neutral-500 mt-1">
-					Timezone is automatically detected from your device
+					{$_('settings.timezoneAutoDetected')}
 				</p>
 			</section>
 		</div>
