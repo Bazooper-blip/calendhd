@@ -183,6 +183,9 @@
 		"timeFormat": "Time format",
 		"time12h": "12-hour",
 		"time24h": "24-hour",
+		"timezone": "Time Zone",
+		"timezoneCurrent": "Current timezone:",
+		"timezoneAutoDetected": "Timezone is automatically detected from your device",
 		"notifications": "Notifications",
 		"defaultReminders": "Default reminders",
 		"notificationSound": "Notification sound",
@@ -329,7 +332,8 @@
 		"in": "in",
 		"tomorrow": "tomorrow",
 		"routineFallback": "Routine",
-		"by": "by"
+		"by": "by",
+		"moreEvents": "+{count} more"
 	},
 	"agenda": {
 		"earlierToday": "{count, plural, one {# earlier today} other {# earlier today}}",

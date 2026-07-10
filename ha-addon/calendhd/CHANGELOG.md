@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.6.7
+
+- Fix week view (and day timeline) never auto-scrolling to the current time: the app shell had no bounded height, so the time grid's own scrollbar never activated and the view always opened at 00:00. The shell is now viewport-height with `<main>` as the scroll container; the week view opens centered on the red "now" line. The quick-add FAB's hide-on-scroll was updated to listen to inner scroll containers accordingly.
+- Fix mixed-language dates in a non-English UI (e.g. "Friday" / "July 2026" headers while everything else was Swedish). The date-fns locale/timezone now lives in reactive state, so date strings rendered before user settings finish loading re-render in the right language instead of sticking in English.
+- Localize the remaining hardcoded English strings: relative sync times on the Subscriptions page ("18 minutes ago" → "18 minuter sedan", now via date-fns `formatDistanceToNow` with the app locale), the month view's "+N more" overflow chip ("+N till"), and the Settings Time Zone section.
+- Update frontend dependencies: Vite 8.1.0 → 8.1.4 — this also fixes the dev server being completely broken under 8.1.0 (its import-analysis mangled the PocketBase client's `CollectionService.import()` method into invalid JS, so every page 500'd in dev; production builds were unaffected). Also SvelteKit 2.67 → 2.69, vite-plugin-svelte 7.2, Biome 2.5.3, Tailwind 4.3.2, svelte-check 4.7.2, Vitest 4.1.10, @types/node 26.1.1. TypeScript intentionally stays on 6.0.3: TypeScript 7 (the native port) does not expose the JS compiler API (`ts.sys`) that svelte-check depends on.
+- Type-check (0 errors), 77 unit tests, production build, and headless-browser end-to-end verification (13 assertions across week/day/month/settings/subscriptions/quick-add) all green.
+
 ## 1.6.6
 
 - Removed the offline / local-first layer. The app is now strictly server-first: it reads and writes directly to PocketBase (the single source of truth) instead of caching everything in the browser (IndexedDB/Dexie) and syncing in the background. This removes a large amount of sync complexity that added little value for an always-online server. A connection to your calenDHD server is now required.

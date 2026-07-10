@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '../app.css';
 	import { browser } from '$app/environment';
+	import { afterNavigate } from '$app/navigation';
 	import { auth, settingsStore, categoriesStore, templatesStore, calendar, routinesStore } from '$stores';
 	import { Sidebar, Header } from '$components/layout';
 	import { Toaster } from 'svelte-sonner';
@@ -17,6 +18,12 @@
 
 	let sidebarOpen = $state(false);
 	let initialized = $state(false);
+	let mainRef = $state<HTMLElement>();
+
+	// <main> is the app's scroll container; reset it on navigation like a page scroll
+	afterNavigate(() => {
+		mainRef?.scrollTo(0, 0);
+	});
 
 	// Initialize data when authenticated (only once)
 	$effect(() => {
@@ -89,8 +96,9 @@
 		</div>
 	</div>
 {:else}
-	<!-- Main app layout -->
-	<div class="min-h-screen bg-neutral-50 dark:bg-neutral-900 flex">
+	<!-- Main app layout: bounded viewport height so inner grids (week/day
+	     timeline) can own their scroll; page-level scrolling happens in <main> -->
+	<div class="h-dvh bg-neutral-50 dark:bg-neutral-900 flex">
 		<Sidebar
 			open={sidebarOpen}
 			onClose={() => (sidebarOpen = false)}
@@ -99,7 +107,7 @@
 		<div class="flex-1 flex flex-col min-w-0">
 			<Header onMenuClick={() => (sidebarOpen = true)} />
 
-			<main class="flex-1 overflow-hidden">
+			<main class="flex-1 overflow-y-auto" bind:this={mainRef}>
 				{@render children()}
 			</main>
 		</div>

@@ -183,6 +183,9 @@
 		"timeFormat": "Tidsformat",
 		"time12h": "12-timmar",
 		"time24h": "24-timmar",
+		"timezone": "Tidszon",
+		"timezoneCurrent": "Aktuell tidszon:",
+		"timezoneAutoDetected": "Tidszonen identifieras automatiskt från din enhet",
 		"notifications": "Notifikationer",
 		"defaultReminders": "Standardpåminnelser",
 		"notificationSound": "Notifikationsljud",
@@ -329,7 +332,8 @@
 		"in": "om",
 		"tomorrow": "imorgon",
 		"routineFallback": "Rutin",
-		"by": "senast"
+		"by": "senast",
+		"moreEvents": "+{count} till"
 	},
 	"agenda": {
 		"earlierToday": "{count, plural, one {# tidigare idag} other {# tidigare idag}}",
