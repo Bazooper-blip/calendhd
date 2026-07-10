@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { page } from '$app/stores';
 	import { format, addHours, setHours, setMinutes } from 'date-fns';
 	import { calendar } from '$stores';
 	import { toast } from 'svelte-sonner';
@@ -9,6 +10,8 @@
 	let showModal = $state(false);
 	let showFab = $state(true);
 	let loading = $state(false);
+
+	const onMonthView = $derived($page.url.pathname.startsWith('/calendar/month'));
 
 	// Form state
 	let title = $state('');
@@ -104,22 +107,38 @@
 		window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
 		return () => window.removeEventListener('scroll', handleScroll, { capture: true });
 	});
+
+	// One-time discoverability hint for the N shortcut; keyboard-y devices only
+	$effect(() => {
+		if (!browser) return;
+		if (!window.matchMedia('(pointer: fine)').matches) return;
+		if (localStorage.getItem('calendhd_quickadd_hint_shown')) return;
+
+		const timer = setTimeout(() => {
+			toast($_('event.quickAddTip', { values: { key: 'N' } }));
+			localStorage.setItem('calendhd_quickadd_hint_shown', '1');
+		}, 2500);
+		return () => clearTimeout(timer);
+	});
 </script>
 
-<!-- Floating Action Button -->
-<button
-	type="button"
-	onclick={openQuickAdd}
-	class="fixed right-6 z-40 w-14 h-14 bg-primary-500 text-white rounded-full shadow-lg hover:bg-primary-600 hover:shadow-xl active:scale-95 transition-all flex items-center justify-center {showFab
-		? 'translate-y-0 opacity-100'
-		: 'translate-y-20 opacity-0'}"
-	style="bottom: calc(1.5rem + env(safe-area-inset-bottom))"
-	aria-label={$_('event.quickAddAria')}
->
-	<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-		<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-	</svg>
-</button>
+<!-- Floating Action Button (not on month view: it covers the last grid row,
+     and the header's add button is always available there) -->
+{#if !onMonthView}
+	<button
+		type="button"
+		onclick={openQuickAdd}
+		class="fixed right-6 z-40 w-14 h-14 bg-primary-500 text-white rounded-full shadow-lg hover:bg-primary-600 hover:shadow-xl active:scale-95 transition-all flex items-center justify-center {showFab
+			? 'translate-y-0 opacity-100'
+			: 'translate-y-20 opacity-0'}"
+		style="bottom: calc(1.5rem + env(safe-area-inset-bottom))"
+		aria-label={$_('event.quickAddAria')}
+	>
+		<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+		</svg>
+	</button>
+{/if}
 
 <!-- Quick Add Modal -->
 <Modal bind:open={showModal} title={$_('event.quickAdd')} size="sm">

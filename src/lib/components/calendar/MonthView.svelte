@@ -4,6 +4,7 @@
 	import { EventIcon } from '$components/ui';
 	import {
 		formatDayOfWeek,
+		getContrastColor,
 		getDaysInRange,
 		isToday,
 		isSameDay,
@@ -177,8 +178,9 @@
 								<!-- svelte-ignore a11y_no_static_element_interactions -->
 								{#if item.kind === 'single'}
 									<div
-										class="px-1 py-0.5 rounded text-xs font-medium text-white truncate cursor-pointer hover:ring-1 hover:ring-white/50"
+										class="px-1 py-0.5 rounded text-xs font-medium truncate cursor-pointer hover:ring-1 hover:ring-white/50"
 										style:background-color={item.event.color}
+										style:color={getContrastColor(item.event.color)}
 										onclick={(e) => { e.stopPropagation(); handleEventClick(item.event); }}
 									>
 										{#if item.event.is_all_day}
@@ -188,7 +190,8 @@
 											</span>
 										{:else}
 											<span class="inline-flex items-center gap-0.5">
-												<span class="opacity-70">{item.event.start.getHours()}:{item.event.start.getMinutes().toString().padStart(2, '0')}</span>
+												<!-- On narrow screens the time prefix would eat the whole chip; title first -->
+												<span class="opacity-70 hidden sm:inline">{item.event.start.getHours()}:{item.event.start.getMinutes().toString().padStart(2, '0')}</span>
 												{#if item.event.icon}<EventIcon icon={item.event.icon} size="sm" />{/if}
 												{item.event.title}
 											</span>
@@ -196,8 +199,9 @@
 									</div>
 								{:else}
 									<div
-										class="px-1 py-0.5 rounded text-xs font-medium text-white truncate cursor-pointer hover:ring-1 hover:ring-white/50"
+										class="px-1 py-0.5 rounded text-xs font-medium truncate cursor-pointer hover:ring-1 hover:ring-white/50"
 										style:background-color={item.color}
+										style:color={getContrastColor(item.color)}
 										onclick={(e) => { e.stopPropagation(); goto(`/routines/${item.routine_template}`); }}
 									>
 										<span class="inline-flex items-center gap-0.5">

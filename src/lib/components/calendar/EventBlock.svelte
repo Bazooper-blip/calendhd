@@ -25,7 +25,7 @@
 	});
 	// Past = ended (or single-point start older than a minute). Dimmed so the
 	// eye lands on what's ahead, not what's done. Orthogonal to `is_completed`
-	// (which adds strikethrough) — both can apply at once.
+	// (which adds strikethrough) - both can apply at once.
 	const isPast = $derived.by(() => {
 		if (!now || isHappeningNow) return false;
 		if (event.end) return now >= event.end;

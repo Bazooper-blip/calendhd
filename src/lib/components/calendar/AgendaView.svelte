@@ -10,6 +10,7 @@
 	import { calendar, routinesStore, settingsStore } from '$stores';
 	import { _ } from '$lib/i18n';
 	import {
+		addDays,
 		cn,
 		formatTime,
 		formatTimeRange,
@@ -127,6 +128,18 @@
 			const bStart = b.kind === 'single' ? b.event.start : b.start;
 			return aStart.getTime() - bStart.getTime();
 		});
+	});
+
+	// Tomorrow's first event, for the footer preview (today only). The calendar
+	// store's day-view range includes tomorrow for exactly this.
+	const tomorrowFirst = $derived.by((): DisplayEvent | null => {
+		if (!isToday(date)) return null;
+		const tomorrow = addDays(date, 1);
+		const events = calendar.displayEvents.filter((e) => isSameDay(e.start, tomorrow));
+		if (events.length === 0) return null;
+		const timed = events.filter((e) => !e.is_all_day);
+		if (timed.length === 0) return events[0];
+		return timed.toSorted((a, b) => a.start.getTime() - b.start.getTime())[0];
 	});
 
 	function itemStart(item: ProcessedEvent): Date {
@@ -260,8 +273,9 @@
 				{#each allDayEvents as event (event.id)}
 					<button
 						type="button"
-						class="w-full px-3 py-2 rounded-lg text-left text-sm font-medium text-white truncate flex items-center gap-2"
+						class="w-full px-3 py-2 rounded-lg text-left text-sm font-medium truncate flex items-center gap-2"
 						style:background-color={event.color}
+						style:color={getContrastColor(event.color)}
 						onclick={() => handleEventClick(event)}
 					>
 						{#if event.icon}
@@ -357,6 +371,18 @@
 				{/each}
 			</div>
 		</section>
+	{/if}
+
+	<!-- Tomorrow preview: soften the day boundary without cluttering today -->
+	{#if tomorrowFirst}
+		<div class="flex items-center gap-1.5 px-1 pt-3 border-t border-neutral-100 dark:border-neutral-800 text-xs text-neutral-400 dark:text-neutral-500">
+			<span class="flex-shrink-0">{$_('common.tomorrow')}:</span>
+			{#if tomorrowFirst.icon}<EventIcon icon={tomorrowFirst.icon} size="sm" />{/if}
+			<span class="truncate">{tomorrowFirst.title}</span>
+			{#if !tomorrowFirst.is_all_day}
+				<span class="flex-shrink-0 tabular-nums">{formatTime(tomorrowFirst.start, format24h)}</span>
+			{/if}
+		</div>
 	{/if}
 </div>
 
@@ -568,11 +594,18 @@
 				<EventIcon icon={ev.icon} size="md" />
 			{/if}
 			<span class={cn(
-				'flex-1 truncate text-neutral-800 dark:text-neutral-100',
+				'min-w-0 truncate text-neutral-800 dark:text-neutral-100',
 				ev.is_completed && 'line-through'
 			)}>
 				{ev.title}
 			</span>
+			<!-- End time hugs the title; a far-right time reads as detached from its row -->
+			{#if end}
+				<span class="flex-shrink-0 text-xs text-neutral-400 dark:text-neutral-500 tabular-nums">
+					&ndash;&thinsp;{formatTime(end, format24h)}
+				</span>
+			{/if}
+			<span class="flex-1"></span>
 			{#if ev.energy_level}
 				<span
 					class="flex-shrink-0 w-1.5 h-1.5 rounded-full"
@@ -580,11 +613,6 @@
 					class:bg-amber-400={ev.energy_level === 'medium'}
 					class:bg-red-400={ev.energy_level === 'high'}
 				></span>
-			{/if}
-			{#if end}
-				<span class="flex-shrink-0 text-xs text-neutral-400 dark:text-neutral-500 tabular-nums">
-					{formatTime(end, format24h)}
-				</span>
 			{/if}
 		</button>
 	{:else}
