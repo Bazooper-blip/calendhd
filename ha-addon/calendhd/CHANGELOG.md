@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.6.8
+
+- Month view: event chips on narrow screens now lead with the title instead of a time prefix that truncated titles to a couple of characters ("10:00 Si" → "Simning"); the time still shows on wider screens.
+- Readability: event/routine chips (month view and the all-day rows in day/week/agenda views) now pick dark or light text based on the chip's background color via the existing contrast helper, instead of always-white text — fixes washed-out chips in light mode and improves dark mode too.
+- The quick-add floating button is hidden on the month view, where it covered the last row of the grid (worst on phones); the header add button and the `N` shortcut still work there.
+- Agenda view: an event's end time now sits right next to its title ("Simning – 12:00") instead of floating at the far edge of the row, visually detached on wide screens.
+- Agenda view: today's list ends with a subtle "Tomorrow: <first event> <time>" preview to soften the day boundary (day view now loads one extra day of events to feed it). Only shown when viewing today and tomorrow has events.
+- A one-time toast points out the `N` quick-add keyboard shortcut on first visit (fine-pointer devices only) — the shortcut was previously only discoverable inside the quick-add modal itself.
+- Repo hygiene: `EventBlock.svelte` contained a stray cp1252-encoded dash (invalid UTF-8) in a comment, which Vite 8.1.4's rolldown refuses to load (`stream did not contain valid UTF-8`); replaced with ASCII.
+
 ## 1.6.7
 
 - Fix week view (and day timeline) never auto-scrolling to the current time: the app shell had no bounded height, so the time grid's own scrollbar never activated and the view always opened at 00:00. The shell is now viewport-height with `<main>` as the scroll container; the week view opens centered on the red "now" line. The quick-add FAB's hide-on-scroll was updated to listen to inner scroll containers accordingly.

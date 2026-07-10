@@ -53,9 +53,11 @@ function createCalendarStore() {
 
 		switch (viewType) {
 			case 'day':
+				// Include tomorrow so the agenda can preview the next day's first
+				// event; every consumer filters displayEvents per-day anyway.
 				return {
 					start: startOfDay(currentDate),
-					end: endOfDay(currentDate)
+					end: endOfDay(addDays(currentDate, 1))
 				};
 			case 'week':
 				return {

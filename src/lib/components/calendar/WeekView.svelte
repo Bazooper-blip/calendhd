@@ -4,6 +4,7 @@
 	import { calendar, settingsStore, routinesStore } from '$stores';
 	import {
 		formatDayOfWeek,
+		getContrastColor,
 		getDaysInRange,
 		getEventPosition,
 		isToday,
@@ -198,8 +199,9 @@
 					{#each getEventsForDay(day, true) as event (event.id)}
 						<button
 							type="button"
-							class="w-full px-1 py-0.5 rounded text-left text-xs font-medium text-white truncate"
+							class="w-full px-1 py-0.5 rounded text-left text-xs font-medium truncate"
 							style:background-color={event.color}
+							style:color={getContrastColor(event.color)}
 							onclick={() => handleEventClick(event)}
 						>
 							{event.title}

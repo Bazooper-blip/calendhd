@@ -5,6 +5,7 @@
 	import { _ } from '$lib/i18n';
 	import {
 		formatDayOfWeek,
+		getContrastColor,
 		getEventPosition,
 		isToday,
 		isSameDay
@@ -267,8 +268,9 @@
 			{#each allDayEvents as event}
 				<button
 					type="button"
-					class="w-full px-2 py-1 rounded text-left text-sm font-medium text-white truncate flex items-center gap-1"
+					class="w-full px-2 py-1 rounded text-left text-sm font-medium truncate flex items-center gap-1"
 					style:background-color={event.color}
+					style:color={getContrastColor(event.color)}
 					onclick={() => handleEventClick(event)}
 				>
 					{#if event.icon}
