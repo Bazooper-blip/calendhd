@@ -89,10 +89,11 @@ calenDHD supports Web Push notifications for event reminders via VAPID. To enabl
 
 calenDHD can feed a [TRMNL](https://usetrmnl.com) e-ink display (original or TRMNL X) as a view-only dashboard — today's agenda, the current/next event, and the days ahead. PocketBase remains the source of truth; nothing is writable from the display.
 
-1. The addon already serves the feed at `GET /api/calendhd/trmnl?days=5`.
-2. TRMNL's cloud must be able to reach that URL — expose it via your Cloudflare Tunnel / reverse proxy (LAN-only installs can use TRMNL BYOS instead).
-3. Optionally set the **TRMNL feed token** addon option and restart; the feed then requires `Authorization: Bearer <token>`. Recommended when you punch a single-path hole through an auth proxy for TRMNL — bypass only `/api/calendhd/trmnl`, never other paths.
-4. Set up the TRMNL private plugin using the templates and instructions in [`trmnl-plugin/`](https://github.com/Bazooper-blip/calendhd/tree/main/trmnl-plugin).
+1. The addon already serves the feed at `GET /api/calendhd/trmnl?days=5`. Times come out in Home Assistant's configured timezone automatically.
+2. Decide how the screen gets rendered. **Even when the TRMNL device is on the same LAN as Home Assistant**, the standard TRMNL service polls the feed from TRMNL's *cloud* and the device downloads the rendered screen from the cloud — so either:
+   - **TRMNL Cloud:** expose the feed URL via your Cloudflare Tunnel / reverse proxy so TRMNL's servers can reach it, and set the **TRMNL feed token** addon option (restart after). The feed then requires `Authorization: Bearer <token>`. Bypass your auth proxy only for `/api/calendhd/trmnl`, never other paths.
+   - **Fully local (BYOS):** run a self-hosted TRMNL server on your LAN and point the device's firmware at it; it can poll `http://homeassistant.local:8090/api/calendhd/trmnl` directly. Nothing is exposed to the internet and no token is needed.
+3. Set up the TRMNL private plugin using the templates and instructions in [`trmnl-plugin/`](https://github.com/Bazooper-blip/calendhd/tree/main/trmnl-plugin).
 
 ### SMTP Configuration (Optional)
 

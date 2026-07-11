@@ -28,8 +28,14 @@ All four TRMNL layouts are provided: full, half-horizontal, half-vertical, quadr
 ## Requirements
 
 - calenDHD ≥ the version that ships hook `070_trmnl_feed.pb.js` (HA addon 1.7.0+).
-- Your calenDHD instance must be reachable **from TRMNL's cloud** (e.g. Cloudflare Tunnel, reverse proxy). For LAN-only installs, TRMNL's cloud cannot poll you — use [TRMNL BYOS](https://docs.usetrmnl.com/go/diy/byos) pointed at the same feed, or expose only this one path through your proxy (see *Security*, below).
 - A TRMNL device + account (private plugins are available on all plans; the developer add-on is not required to *use* your own plugin via the UI).
+
+### Operating modes — read this if your server and TRMNL share a LAN
+
+Being on the same LAN as the device does **not** by itself keep traffic local. With the standard TRMNL service the device never talks to your server: TRMNL's **cloud** polls your feed URL over the internet and renders the screen, and the device downloads the finished image from the cloud. Pick one of:
+
+1. **TRMNL Cloud (default, simplest).** Your calenDHD instance must be reachable from TRMNL's servers — expose it (or ideally just the `/api/calendhd/trmnl` path) via Cloudflare Tunnel / reverse proxy, and set a feed token (see *Security*). Same-LAN placement is irrelevant in this mode.
+2. **Fully local (BYOS).** TRMNL's firmware is open and supports self-hosted servers: run a [BYOS server](https://docs.usetrmnl.com/go/diy/byos) (e.g. the official Terminus) on your LAN and point the device at it. The BYOS server polls the feed at its LAN address — e.g. `http://homeassistant.local:8090/api/calendhd/trmnl` for the HA addon — so nothing is exposed to the internet and no feed token is needed. Note: Liquid private-plugin/recipe support varies by BYOS implementation; where it's unsupported, reuse the feed JSON with the BYOS server's own screen templating.
 
 ## Setup A — TRMNL web UI (no tooling)
 
@@ -106,7 +112,7 @@ Response (abridged):
 }
 ```
 
-Semantics deliberately mirror the app: events are bucketed by the local day of their stored start time, `current_event`/`next_event` follow the `/now` screen's rules (timed events only), `day_progress` is the waking-hours (06–22) percentage, and time strings honor the household's 12 h/24 h and English/Swedish settings. Wall-clock times are computed in the **server's timezone** — the same assumption the routine generator and iCal sync already make.
+Semantics deliberately mirror the app: events are bucketed by the local day of their stored start time, `current_event`/`next_event` follow the `/now` screen's rules (timed events only), `day_progress` is the waking-hours (06–22) percentage, and time strings honor the household's 12 h/24 h and English/Swedish settings. Wall-clock times are computed in the **server's timezone** — the same assumption the routine generator and iCal sync already make. On the HA addon this is automatic (the Supervisor passes Home Assistant's configured timezone into the container as `TZ`); on Docker, set `TZ` on the `pocketbase` service if your host isn't already on the household timezone.
 
 Events are capped at 10 per day (`more_count` reports the overflow) to keep the polled payload small.
 
@@ -114,7 +120,7 @@ Events are capped at 10 per day (`more_count` reports the overflow) to keep the 
 
 The feed is read-only, but it does expose your calendar. Options, matching calenDHD's perimeter-trust model:
 
-- **Perimeter-protected instance (default):** if the whole instance is already LAN-only or behind auth, the feed inherits that. No token needed (but TRMNL cloud can't poll a LAN-only host — see BYOS above).
+- **Perimeter-protected instance (default):** if the whole instance is already LAN-only or behind auth, the feed inherits that. No token needed — but remember TRMNL Cloud can't poll a LAN-only host, so LAN-only means BYOS (mode 2 above).
 - **Public or selectively exposed instance:** set the `TRMNL_FEED_TOKEN` environment variable for PocketBase and configure the same token in the plugin. Requests without `Authorization: Bearer <token>` (or `?token=`) get a 401.
   - **HA addon:** set the *TRMNL feed token* option in the addon configuration.
   - **Docker:** set `TRMNL_FEED_TOKEN` in the `pocketbase` service environment.
