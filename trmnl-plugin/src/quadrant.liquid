@@ -1,0 +1,38 @@
+{% comment %}
+  calenDHD — quadrant: the /now screen in miniature.
+{% endcomment %}
+{% assign today = days | first %}
+
+<div class="layout layout--col">
+  {% if current_event %}
+    <div class="item">
+      <div class="content">
+        <span class="label label--small">NOW · {{ current_event.left_label }} left</span>
+        <span class="title title--small">{% if current_event.icon != blank %}{{ current_event.icon }} {% endif %}{{ current_event.title }}</span>
+        <span class="label label--small label--underline">{{ current_event.time_range }}</span>
+      </div>
+    </div>
+  {% elsif next_event %}
+    <div class="item">
+      <div class="content">
+        <span class="label label--small">NEXT · in {{ next_event.in_label }}{% unless next_event.day_label == today.label %} ({{ next_event.day_label }}){% endunless %}</span>
+        <span class="title title--small">{% if next_event.icon != blank %}{{ next_event.icon }} {% endif %}{{ next_event.title }}</span>
+        <span class="label label--small label--underline">{{ next_event.time_range }}</span>
+      </div>
+    </div>
+  {% else %}
+    <div class="item">
+      <div class="content">
+        <span class="title title--small">Nothing scheduled</span>
+        <span class="description">Enjoy the calm.</span>
+      </div>
+    </div>
+  {% endif %}
+
+  <span class="label label--small">{{ today.event_count }} today{% if tasks_total_today > 0 %} · ✓ {{ tasks_done_today }}/{{ tasks_total_today }}{% endif %}</span>
+</div>
+
+<div class="title_bar">
+  <img class="image" src="https://usetrmnl.com/images/plugins/trmnl--render.svg" />
+  <span class="title">calenDHD</span>
+</div>

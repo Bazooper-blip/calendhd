@@ -14,6 +14,8 @@ services:
     environment:
       - PB_ENCRYPTION_KEY=${PB_ENCRYPTION_KEY:-}
       - PUSH_SERVICE_URL=http://push-service:3001
+      # Optional shared token for the TRMNL dashboard feed (see trmnl-plugin/)
+      - TRMNL_FEED_TOKEN=${TRMNL_FEED_TOKEN:-}
     depends_on:
       push-service:
         condition: service_healthy

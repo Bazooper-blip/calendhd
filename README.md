@@ -15,6 +15,7 @@ A calm, ADHD-friendly calendar PWA designed for neurodivergent minds.
 - **PWA**: Install on any device, including iOS
 - **Multi-language**: English and Swedish support
 - **Timezone Support**: Full timezone-aware date handling
+- **TRMNL E-Ink Dashboard**: View-only agenda for TRMNL devices (incl. TRMNL X) — see [trmnl-plugin/](./trmnl-plugin)
 
 ## Tech Stack
 
@@ -110,6 +111,7 @@ calendhd/
 │   └── pb_migrations/    # Database schema
 │
 ├── push-service/         # Web Push notification service
+├── trmnl-plugin/         # TRMNL e-ink dashboard plugin (view-only)
 ├── static/               # PWA manifest + icons
 ├── ha-addon/             # Home Assistant Add-on
 └── docker/               # Docker configuration

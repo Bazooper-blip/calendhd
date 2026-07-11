@@ -11,3 +11,6 @@ configuration:
   vapid_email:
     name: VAPID Email
     description: Contact email for the push service (e.g. mailto:you@example.com). Required by the Web Push protocol.
+  trmnl_feed_token:
+    name: TRMNL feed token
+    description: Optional shared token for the read-only TRMNL dashboard feed (/api/calendhd/trmnl). Leave empty to keep the feed open within your network perimeter; set it if you expose the feed path publicly for TRMNL's cloud to poll.

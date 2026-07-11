@@ -15,6 +15,12 @@ echo -n "${VAPID_PRIVATE_KEY}" > /var/run/s6/container_environment/VAPID_PRIVATE
 echo -n "${VAPID_EMAIL}" > /var/run/s6/container_environment/VAPID_EMAIL
 echo -n "http://localhost:3001" > /var/run/s6/container_environment/PUSH_SERVICE_URL
 
+# Optional shared token for the TRMNL e-ink dashboard feed
+# (GET /api/calendhd/trmnl — see trmnl-plugin/ in the repo). Empty = open,
+# consistent with the perimeter-trust security model.
+TRMNL_FEED_TOKEN=$(bashio::config 'trmnl_feed_token')
+echo -n "${TRMNL_FEED_TOKEN}" > /var/run/s6/container_environment/TRMNL_FEED_TOKEN
+
 # Create data directories
 mkdir -p /config/calendhd/pb_data
 mkdir -p /config/calendhd/pb_public

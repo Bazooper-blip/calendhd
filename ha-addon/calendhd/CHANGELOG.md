@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.7.0
+
+- New: TRMNL e-ink dashboard support. A new read-only endpoint `GET /api/calendhd/trmnl?days=5` (hook `070_trmnl_feed.pb.js`) serves today + upcoming days as JSON shaped for TRMNL's Liquid merge variables: per-day event buckets (timed + all-day), a `/now`-style current/next event, today's task tally, and the waking-hours day-progress percentage. Times honor the household's 12h/24h and English/Swedish settings; colors resolve like the app (override → category → default). Covered by a Node test harness (`pocketbase/tests/trmnlFeed.test.cjs`, 45 checks).
+- The matching TRMNL private plugin lives in `trmnl-plugin/` in the repo — Liquid templates for all four layouts (full, half-horizontal, half-vertical, quadrant; works on the original TRMNL and the TRMNL X), ready to paste into the TRMNL UI or push with `trmnlp`. See `trmnl-plugin/README.md`.
+- New addon option: `trmnl_feed_token`. Optional shared token for the feed endpoint — when set, requests must send `Authorization: Bearer <token>` (or `?token=`); when empty the feed stays open, consistent with the perimeter-trust security model. Useful when punching a single-path hole through an auth proxy (e.g. a Cloudflare Access bypass rule for `/api/calendhd/trmnl` only).
+
 ## 1.6.12
 
 - Remove the brain-dump (Tankehög) feature entirely: the page, sidebar link, and API helpers are gone, and migration 0009 drops the `brain_dump` collection (any captured thoughts are deleted with it).

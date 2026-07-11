@@ -1,5 +1,5 @@
 name: calenDHD
-version: "1.6.12"
+version: "1.7.0"
 slug: calendhd
 description: "A calm, ADHD-friendly calendar PWA for neurodivergent minds"
 url: "https://github.com/Bazooper-blip/calendhd"
@@ -22,8 +22,10 @@ options:
   vapid_public_key: ""
   vapid_private_key: ""
   vapid_email: "mailto:admin@calendhd.local"
+  trmnl_feed_token: ""
 schema:
   log_level: list(trace|debug|info|warn|error)
   vapid_public_key: str
   vapid_private_key: password
   vapid_email: str
+  trmnl_feed_token: password

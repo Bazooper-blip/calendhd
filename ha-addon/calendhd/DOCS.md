@@ -85,6 +85,15 @@ calenDHD supports Web Push notifications for event reminders via VAPID. To enabl
 5. Restart the add-on
 6. In calenDHD, go to **Settings** and enable push notifications — your browser will ask for permission
 
+### TRMNL E-Ink Dashboard (Optional)
+
+calenDHD can feed a [TRMNL](https://usetrmnl.com) e-ink display (original or TRMNL X) as a view-only dashboard — today's agenda, the current/next event, and the days ahead. PocketBase remains the source of truth; nothing is writable from the display.
+
+1. The addon already serves the feed at `GET /api/calendhd/trmnl?days=5`.
+2. TRMNL's cloud must be able to reach that URL — expose it via your Cloudflare Tunnel / reverse proxy (LAN-only installs can use TRMNL BYOS instead).
+3. Optionally set the **TRMNL feed token** addon option and restart; the feed then requires `Authorization: Bearer <token>`. Recommended when you punch a single-path hole through an auth proxy for TRMNL — bypass only `/api/calendhd/trmnl`, never other paths.
+4. Set up the TRMNL private plugin using the templates and instructions in [`trmnl-plugin/`](https://github.com/Bazooper-blip/calendhd/tree/main/trmnl-plugin).
+
 ### SMTP Configuration (Optional)
 
 For email reminders and password reset:
