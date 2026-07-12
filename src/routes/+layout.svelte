@@ -1,7 +1,10 @@
 <script lang="ts">
 	import '../app.css';
 	import { browser } from '$app/environment';
-	import { afterNavigate } from '$app/navigation';
+	import { afterNavigate, goto } from '$app/navigation';
+	import { page } from '$app/stores';
+	import { format } from 'date-fns';
+	import { isSameDay } from '$utils';
 	import { auth, settingsStore, categoriesStore, templatesStore, calendar, routinesStore } from '$stores';
 	import { Sidebar, Header } from '$components/layout';
 	import { Toaster } from 'svelte-sonner';
@@ -42,6 +45,78 @@
 			categoriesStore.subscribeToUpdates();
 			routinesStore.subscribeToUpdates();
 		}
+	});
+
+	// Refresh on resume: mobile OSes (iOS especially) freeze a backgrounded PWA
+	// and resume it as-is rather than reloading, so the once-per-launch load
+	// above goes stale while the app is suspended — each day's routine events
+	// are generated server-side overnight (after our last fetch) and the
+	// realtime stream has no replay for anything missed while frozen. Refetch
+	// when the app comes back after a meaningful gap, and follow the calendar
+	// day if it rolled over while we were away.
+	let hiddenAt: number | null = null;
+
+	function markHidden() {
+		hiddenAt = Date.now();
+	}
+
+	function handleResume() {
+		if (hiddenAt === null) return;
+		const hiddenDate = new Date(hiddenAt);
+		const hiddenForMs = Date.now() - hiddenAt;
+		hiddenAt = null;
+
+		if (!auth.isAuthenticated) return;
+		// Quick same-day app/tab switches don't need a refetch
+		if (hiddenForMs < 30_000 && isSameDay(hiddenDate, new Date())) return;
+
+		const dayRolledOver = !isSameDay(hiddenDate, new Date());
+		const wasAnchoredOnToday = isSameDay(calendar.currentDate, hiddenDate);
+
+		if (dayRolledOver && wasAnchoredOnToday) {
+			// The user was looking at "today" when the app was suspended —
+			// follow the new day instead of waking up on yesterday's view.
+			if ($page.url.pathname.startsWith('/calendar')) {
+				// Calendar URLs may pin a date param that would override a bare
+				// setDate(), so navigate the same way the Today button does.
+				const today = format(new Date(), 'yyyy-MM-dd');
+				goto(`/calendar/${calendar.viewType}/${today}`, { replaceState: true });
+			} else {
+				calendar.setDate(new Date());
+			}
+		} else {
+			// Keep whatever period the user chose, but refresh its events.
+			calendar.loadEvents();
+		}
+	}
+
+	function handleVisibilityChange() {
+		if (document.visibilityState === 'hidden') {
+			markHidden();
+		} else {
+			handleResume();
+		}
+	}
+
+	function handleOnline() {
+		// loadEvents() swallows fetch failures (e.g. the network isn't up yet
+		// in the first moments after iOS resumes the app) — refetch as soon as
+		// connectivity returns.
+		if (auth.isAuthenticated) calendar.loadEvents();
+	}
+
+	$effect(() => {
+		if (!browser) return;
+		document.addEventListener('visibilitychange', handleVisibilityChange);
+		window.addEventListener('pagehide', markHidden);
+		window.addEventListener('pageshow', handleResume);
+		window.addEventListener('online', handleOnline);
+		return () => {
+			document.removeEventListener('visibilitychange', handleVisibilityChange);
+			window.removeEventListener('pagehide', markHidden);
+			window.removeEventListener('pageshow', handleResume);
+			window.removeEventListener('online', handleOnline);
+		};
 	});
 
 	// Apply theme and accessibility settings
