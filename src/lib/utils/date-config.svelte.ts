@@ -7,5 +7,6 @@ import { enUS } from 'date-fns/locale';
 // a plain module variable would leave them stuck in English (see settings store).
 export const dateConfig = $state({
 	timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-	locale: enUS as Locale
+	locale: enUS as Locale,
+	weekStartsOn: 1 as 0 | 1 | 6 // Monday by default; a saved setting overrides
 });

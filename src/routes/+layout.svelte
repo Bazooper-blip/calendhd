@@ -1,5 +1,6 @@
 <script lang="ts">
 	import '../app.css';
+	import { untrack } from 'svelte';
 	import { browser } from '$app/environment';
 	import { afterNavigate, goto } from '$app/navigation';
 	import { page } from '$app/stores';
@@ -33,12 +34,19 @@
 		if (browser && auth.isAuthenticated && !initialized) {
 			initialized = true;
 
-			// Load user data
-			settingsStore.load();
+			// Load user data. Settings must land BEFORE the first event fetch:
+			// the week range is computed from week_starts_on, and fetching with
+			// the default (Sunday-start) while the user's setting (Monday-start)
+			// is still in flight loads a range that barely overlaps the week the
+			// grid then displays — on Sundays the two ranges share only a single
+			// day and the week renders (near-)empty until something refetches.
+			(async () => {
+				await settingsStore.load();
+				calendar.loadEvents();
+			})();
 			categoriesStore.load();
 			templatesStore.load();
 			routinesStore.load();
-			calendar.loadEvents();
 
 			// Subscribe to realtime updates
 			calendar.subscribeToUpdates();
@@ -47,42 +55,59 @@
 		}
 	});
 
+	// Refetch when week_starts_on changes after data has loaded (e.g. the user
+	// toggles it in settings) — the loaded range no longer matches the grid.
+	let prevWeekStartsOn: number | null = null;
+	$effect(() => {
+		const ws = settingsStore.weekStartsOn;
+		untrack(() => {
+			if (prevWeekStartsOn !== null && ws !== prevWeekStartsOn && calendar.lastLoadSuccessAt !== null) {
+				calendar.loadEvents();
+			}
+			prevWeekStartsOn = ws;
+		});
+	});
+
 	// Refresh on resume: mobile OSes (iOS especially) freeze a backgrounded PWA
 	// and resume it as-is rather than reloading, so the once-per-launch load
 	// above goes stale while the app is suspended — each day's routine events
 	// are generated server-side overnight (after our last fetch) and the
-	// realtime stream has no replay for anything missed while frozen. Refetch
-	// when the app comes back after a meaningful gap, and follow the calendar
-	// day if it rolled over while we were away.
-	let hiddenAt: number | null = null;
+	// realtime stream has no replay for anything missed while frozen.
+	//
+	// iOS delivers the lifecycle events around suspension unreliably: the
+	// `hidden` half is often skipped entirely, so pairing hide/show events
+	// fails closed. Instead, "how long ago did a load last succeed" is the
+	// source of truth, checked from every wake-ish signal — plus a slow
+	// watchdog for wakes where no event fires at all.
+	const STALE_AFTER_WAKE_MS = 30_000; // threshold for wake signals
+	const STALE_WATCHDOG_MS = 5 * 60_000; // threshold for the periodic backstop
 
-	function markHidden() {
-		hiddenAt = Date.now();
-	}
-
-	function handleResume() {
-		if (hiddenAt === null) return;
-		const hiddenDate = new Date(hiddenAt);
-		const hiddenForMs = Date.now() - hiddenAt;
-		hiddenAt = null;
-
+	function refreshIfStale(staleAfterMs: number) {
 		if (!auth.isAuthenticated) return;
-		// Quick same-day app/tab switches don't need a refetch
-		if (hiddenForMs < 30_000 && isSameDay(hiddenDate, new Date())) return;
 
-		const dayRolledOver = !isSameDay(hiddenDate, new Date());
-		const wasAnchoredOnToday = isSameDay(calendar.currentDate, hiddenDate);
+		const lastAt = calendar.lastLoadSuccessAt;
+		if (lastAt === null) {
+			// No load has succeeded yet this session (e.g. the fetch right
+			// after a cold launch failed) — try again unless one is in flight.
+			if (!calendar.loading) calendar.loadEvents();
+			return;
+		}
 
-		if (dayRolledOver && wasAnchoredOnToday) {
-			// The user was looking at "today" when the app was suspended —
-			// follow the new day instead of waking up on yesterday's view.
+		const now = new Date();
+		const lastLoad = new Date(lastAt);
+		const dayChanged = !isSameDay(lastLoad, now);
+		if (!dayChanged && now.getTime() - lastAt < staleAfterMs) return;
+
+		if (dayChanged && isSameDay(calendar.currentDate, lastLoad)) {
+			// The view was anchored on "today" as of the last refresh — follow
+			// the new day instead of waking up on yesterday's dates.
 			if ($page.url.pathname.startsWith('/calendar')) {
 				// Calendar URLs may pin a date param that would override a bare
 				// setDate(), so navigate the same way the Today button does.
-				const today = format(new Date(), 'yyyy-MM-dd');
+				const today = format(now, 'yyyy-MM-dd');
 				goto(`/calendar/${calendar.viewType}/${today}`, { replaceState: true });
 			} else {
-				calendar.setDate(new Date());
+				calendar.setDate(now);
 			}
 		} else {
 			// Keep whatever period the user chose, but refresh its events.
@@ -90,32 +115,29 @@
 		}
 	}
 
-	function handleVisibilityChange() {
-		if (document.visibilityState === 'hidden') {
-			markHidden();
-		} else {
-			handleResume();
-		}
-	}
-
-	function handleOnline() {
-		// loadEvents() swallows fetch failures (e.g. the network isn't up yet
-		// in the first moments after iOS resumes the app) — refetch as soon as
-		// connectivity returns.
-		if (auth.isAuthenticated) calendar.loadEvents();
+	function handleWakeSignal() {
+		if (document.visibilityState !== 'visible') return;
+		refreshIfStale(STALE_AFTER_WAKE_MS);
 	}
 
 	$effect(() => {
 		if (!browser) return;
-		document.addEventListener('visibilitychange', handleVisibilityChange);
-		window.addEventListener('pagehide', markHidden);
-		window.addEventListener('pageshow', handleResume);
-		window.addEventListener('online', handleOnline);
+		document.addEventListener('visibilitychange', handleWakeSignal);
+		window.addEventListener('pageshow', handleWakeSignal);
+		window.addEventListener('focus', handleWakeSignal);
+		window.addEventListener('online', handleWakeSignal);
+		// Backstop for resumes that fire no event at all; also keeps an
+		// always-on display fresh (and rolls it to the new day at midnight)
+		// even if the realtime connection silently died.
+		const watchdog = setInterval(() => {
+			if (document.visibilityState === 'visible') refreshIfStale(STALE_WATCHDOG_MS);
+		}, 60_000);
 		return () => {
-			document.removeEventListener('visibilitychange', handleVisibilityChange);
-			window.removeEventListener('pagehide', markHidden);
-			window.removeEventListener('pageshow', handleResume);
-			window.removeEventListener('online', handleOnline);
+			document.removeEventListener('visibilitychange', handleWakeSignal);
+			window.removeEventListener('pageshow', handleWakeSignal);
+			window.removeEventListener('focus', handleWakeSignal);
+			window.removeEventListener('online', handleWakeSignal);
+			clearInterval(watchdog);
 		};
 	});
 

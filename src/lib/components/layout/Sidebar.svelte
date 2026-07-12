@@ -127,5 +127,10 @@
 			{/if}
 		</nav>
 
+		<!-- Build version: tells you which frontend bundle this device runs,
+		     independent of what the HA addon page claims is installed -->
+		<div class="px-4 py-2 border-t border-neutral-100 dark:border-neutral-700 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
+			<span class="text-xs text-neutral-400 dark:text-neutral-500">v{__APP_VERSION__}</span>
 		</div>
+	</div>
 </aside>
