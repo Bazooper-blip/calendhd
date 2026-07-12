@@ -40,6 +40,11 @@ function createCalendarStore() {
 	let externalEvents = $state<ExternalEvent[]>([]);
 	let loading = $state(false);
 
+	// Timestamp of the last successful loadEvents(). The layout's resume
+	// logic uses this to decide staleness — it deliberately does NOT depend
+	// on visibility lifecycle events, which iOS delivers unreliably.
+	let lastLoadSuccessAt = $state<number | null>(null);
+
 	// Unsubscribe function for realtime events
 	let unsubscribe: (() => void) | null = null;
 
@@ -90,6 +95,9 @@ function createCalendarStore() {
 		},
 		get loading() {
 			return loading;
+		},
+		get lastLoadSuccessAt() {
+			return lastLoadSuccessAt;
 		},
 		get viewRange() {
 			return getViewRange();
@@ -196,7 +204,7 @@ function createCalendarStore() {
 		},
 
 		// Load events for current view
-		async loadEvents() {
+		async loadEvents(retryAttempt = 0) {
 			if (!browser) return;
 
 			const userId = auth.user?.id;
@@ -224,9 +232,18 @@ function createCalendarStore() {
 				if (isStale()) return;
 				events = serverEvents;
 				externalEvents = serverExternalEvents;
+				lastLoadSuccessAt = Date.now();
 			} catch (error) {
 				console.error('Failed to load events from server:', error);
-				// Keep whatever is currently displayed on a transient failure
+				// Keep whatever is currently displayed and retry with backoff:
+				// right after an iOS PWA wakes up, the first fetch regularly
+				// fires before the network is ready, and no `online` event
+				// follows because connectivity never "changed" for the OS.
+				if (retryAttempt < 3) {
+					setTimeout(() => {
+						if (!isStale()) this.loadEvents(retryAttempt + 1);
+					}, 2000 * 2 ** retryAttempt);
+				}
 			}
 
 			if (!isStale()) loading = false;

@@ -51,38 +51,42 @@
 	// and resume it as-is rather than reloading, so the once-per-launch load
 	// above goes stale while the app is suspended — each day's routine events
 	// are generated server-side overnight (after our last fetch) and the
-	// realtime stream has no replay for anything missed while frozen. Refetch
-	// when the app comes back after a meaningful gap, and follow the calendar
-	// day if it rolled over while we were away.
-	let hiddenAt: number | null = null;
+	// realtime stream has no replay for anything missed while frozen.
+	//
+	// iOS delivers the lifecycle events around suspension unreliably: the
+	// `hidden` half is often skipped entirely, so pairing hide/show events
+	// fails closed. Instead, "how long ago did a load last succeed" is the
+	// source of truth, checked from every wake-ish signal — plus a slow
+	// watchdog for wakes where no event fires at all.
+	const STALE_AFTER_WAKE_MS = 30_000; // threshold for wake signals
+	const STALE_WATCHDOG_MS = 5 * 60_000; // threshold for the periodic backstop
 
-	function markHidden() {
-		hiddenAt = Date.now();
-	}
-
-	function handleResume() {
-		if (hiddenAt === null) return;
-		const hiddenDate = new Date(hiddenAt);
-		const hiddenForMs = Date.now() - hiddenAt;
-		hiddenAt = null;
-
+	function refreshIfStale(staleAfterMs: number) {
 		if (!auth.isAuthenticated) return;
-		// Quick same-day app/tab switches don't need a refetch
-		if (hiddenForMs < 30_000 && isSameDay(hiddenDate, new Date())) return;
 
-		const dayRolledOver = !isSameDay(hiddenDate, new Date());
-		const wasAnchoredOnToday = isSameDay(calendar.currentDate, hiddenDate);
+		const lastAt = calendar.lastLoadSuccessAt;
+		if (lastAt === null) {
+			// No load has succeeded yet this session (e.g. the fetch right
+			// after a cold launch failed) — try again unless one is in flight.
+			if (!calendar.loading) calendar.loadEvents();
+			return;
+		}
 
-		if (dayRolledOver && wasAnchoredOnToday) {
-			// The user was looking at "today" when the app was suspended —
-			// follow the new day instead of waking up on yesterday's view.
+		const now = new Date();
+		const lastLoad = new Date(lastAt);
+		const dayChanged = !isSameDay(lastLoad, now);
+		if (!dayChanged && now.getTime() - lastAt < staleAfterMs) return;
+
+		if (dayChanged && isSameDay(calendar.currentDate, lastLoad)) {
+			// The view was anchored on "today" as of the last refresh — follow
+			// the new day instead of waking up on yesterday's dates.
 			if ($page.url.pathname.startsWith('/calendar')) {
 				// Calendar URLs may pin a date param that would override a bare
 				// setDate(), so navigate the same way the Today button does.
-				const today = format(new Date(), 'yyyy-MM-dd');
+				const today = format(now, 'yyyy-MM-dd');
 				goto(`/calendar/${calendar.viewType}/${today}`, { replaceState: true });
 			} else {
-				calendar.setDate(new Date());
+				calendar.setDate(now);
 			}
 		} else {
 			// Keep whatever period the user chose, but refresh its events.
@@ -90,32 +94,29 @@
 		}
 	}
 
-	function handleVisibilityChange() {
-		if (document.visibilityState === 'hidden') {
-			markHidden();
-		} else {
-			handleResume();
-		}
-	}
-
-	function handleOnline() {
-		// loadEvents() swallows fetch failures (e.g. the network isn't up yet
-		// in the first moments after iOS resumes the app) — refetch as soon as
-		// connectivity returns.
-		if (auth.isAuthenticated) calendar.loadEvents();
+	function handleWakeSignal() {
+		if (document.visibilityState !== 'visible') return;
+		refreshIfStale(STALE_AFTER_WAKE_MS);
 	}
 
 	$effect(() => {
 		if (!browser) return;
-		document.addEventListener('visibilitychange', handleVisibilityChange);
-		window.addEventListener('pagehide', markHidden);
-		window.addEventListener('pageshow', handleResume);
-		window.addEventListener('online', handleOnline);
+		document.addEventListener('visibilitychange', handleWakeSignal);
+		window.addEventListener('pageshow', handleWakeSignal);
+		window.addEventListener('focus', handleWakeSignal);
+		window.addEventListener('online', handleWakeSignal);
+		// Backstop for resumes that fire no event at all; also keeps an
+		// always-on display fresh (and rolls it to the new day at midnight)
+		// even if the realtime connection silently died.
+		const watchdog = setInterval(() => {
+			if (document.visibilityState === 'visible') refreshIfStale(STALE_WATCHDOG_MS);
+		}, 60_000);
 		return () => {
-			document.removeEventListener('visibilitychange', handleVisibilityChange);
-			window.removeEventListener('pagehide', markHidden);
-			window.removeEventListener('pageshow', handleResume);
-			window.removeEventListener('online', handleOnline);
+			document.removeEventListener('visibilitychange', handleWakeSignal);
+			window.removeEventListener('pageshow', handleWakeSignal);
+			window.removeEventListener('focus', handleWakeSignal);
+			window.removeEventListener('online', handleWakeSignal);
+			clearInterval(watchdog);
 		};
 	});
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.6.10
+
+- Harden the 1.6.9 resume-refresh fix, which could still miss on iOS. The old logic only refetched if the browser had delivered the "app was hidden" event first — iOS often freezes a PWA without firing it, so reopening did nothing until you pressed "Today". Refresh now keys off "how long ago did events last load successfully" instead, checked on every wake signal (visibility, pageshow, focus, connectivity) with no dependence on the hidden event ever firing.
+- Failed event fetches now retry with backoff (2s/4s/8s). Right after iOS wakes an app, the first request regularly fires before the network is ready and no `online` event follows; previously that failure was silently swallowed and the calendar sat empty until manual navigation.
+- A once-a-minute watchdog refetches when data is >5 minutes stale (or the day changed) even if iOS delivers no lifecycle event at all — this also keeps an always-open display fresh and rolls it to the new day at midnight, even if the realtime connection silently died.
+- The sidebar now shows the frontend build version (e.g. "v1.6.10") so you can check which bundle a device is actually running, independent of what the HA addon page claims — useful when an update didn't reach a device.
+
 ## 1.6.9
 
 - Fix stale/empty calendar after reopening the app (worst on iOS PWA): iOS freezes a backgrounded PWA and resumes it as-is instead of reloading, but the app only fetched events once per launch — so events created while it was suspended (e.g. each day's routine events, generated server-side overnight) never appeared until you pressed "Today". The app now refetches events whenever it returns to the foreground after more than 30 seconds (or after a day change). If the calendar day rolled over while you were away and you had been viewing "today", the view follows along to the new day instead of waking up on yesterday's dates; a deliberately chosen other week/day is kept and just refreshed. The app also refetches when the browser regains connectivity, covering a first fetch that failed because the network wasn't up yet right after resume.
