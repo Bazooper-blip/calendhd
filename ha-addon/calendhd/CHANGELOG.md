@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.9
+
+- Fix stale/empty calendar after reopening the app (worst on iOS PWA): iOS freezes a backgrounded PWA and resumes it as-is instead of reloading, but the app only fetched events once per launch — so events created while it was suspended (e.g. each day's routine events, generated server-side overnight) never appeared until you pressed "Today". The app now refetches events whenever it returns to the foreground after more than 30 seconds (or after a day change). If the calendar day rolled over while you were away and you had been viewing "today", the view follows along to the new day instead of waking up on yesterday's dates; a deliberately chosen other week/day is kept and just refreshed. The app also refetches when the browser regains connectivity, covering a first fetch that failed because the network wasn't up yet right after resume.
+
 ## 1.6.8
 
 - Month view: event chips on narrow screens now lead with the title instead of a time prefix that truncated titles to a couple of characters ("10:00 Si" → "Simning"); the time still shows on wider screens.
