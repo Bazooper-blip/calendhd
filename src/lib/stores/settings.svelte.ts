@@ -2,7 +2,7 @@ import { browser } from '$app/environment';
 import { getUserSettings, updateUserSettings, getDefaultSettings } from '$api/pocketbase';
 import { auth } from './auth.svelte';
 import { setLocale } from '$lib/i18n';
-import { setTimezone, setDateLocale } from '$lib/utils/date';
+import { setTimezone, setDateLocale, setWeekStartsOn } from '$lib/utils/date';
 import type { UserSettings } from '$types';
 
 // Settings store using Svelte 5 runes
@@ -91,6 +91,7 @@ function createSettingsStore() {
 				if (serverSettings?.timezone) {
 					setTimezone(serverSettings.timezone);
 				}
+				setWeekStartsOn(serverSettings?.week_starts_on ?? defaults.week_starts_on);
 			} catch (error) {
 				console.error('Failed to load settings:', error);
 			}
@@ -114,6 +115,7 @@ function createSettingsStore() {
 			if (serverSettings.timezone) {
 				setTimezone(serverSettings.timezone);
 			}
+			setWeekStartsOn(serverSettings.week_starts_on ?? defaults.week_starts_on);
 		}
 	};
 }

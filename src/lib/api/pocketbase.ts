@@ -353,7 +353,7 @@ export async function updateUserSettings(data: Partial<UserSettings>, existingId
 export function getDefaultSettings(): Omit<UserSettings, 'id' | 'created' | 'updated' | 'user'> {
 	return {
 		default_view: 'week',
-		week_starts_on: 0,
+		week_starts_on: 1,
 		time_format: '12h',
 		theme: 'system',
 		locale: 'en',

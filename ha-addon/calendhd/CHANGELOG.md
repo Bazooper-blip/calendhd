@@ -7,6 +7,7 @@
 - Failed event fetches now retry with backoff (2s/4s/8s). Right after iOS wakes an app, the first request regularly fires before the network is ready and no `online` event follows; previously that failure was silently swallowed and the calendar sat empty until manual navigation.
 - A once-a-minute watchdog refetches when data is >5 minutes stale (or the day changed) even if iOS delivers no lifecycle event at all — this also keeps an always-open display fresh and rolls it to the new day at midnight, even if the realtime connection silently died.
 - The sidebar now shows the frontend build version (e.g. "v1.6.10") so you can check which bundle a device is actually running, independent of what the HA addon page claims — useful when an update didn't reach a device.
+- Monday is now the default first day of the week (fresh installs and the moment before settings load). A saved week-start choice always wins, so instances explicitly set to Sunday or Saturday keep it. Relative date labels ("this week" → weekday name) now also follow the configured week start instead of assuming Sunday.
 
 ## 1.6.9
 

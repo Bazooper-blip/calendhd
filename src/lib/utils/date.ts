@@ -33,6 +33,11 @@ export function setDateLocale(localeCode: string): void {
 	dateConfig.locale = locales[localeCode] || enUS;
 }
 
+// Set the first day of the week used by "this week"-style formatting
+export function setWeekStartsOn(day: 0 | 1 | 6): void {
+	dateConfig.weekStartsOn = day;
+}
+
 // Format time based on user preference and timezone
 export function formatTime(date: Date, format24h: boolean = false): string {
 	const formatStr = format24h ? 'HH:mm' : 'h:mm a';
@@ -49,7 +54,7 @@ export function formatDateSmart(
 	if (dateFnsIsToday(zonedDate)) return translations?.today || 'Today';
 	if (dateFnsIsTomorrow(zonedDate)) return translations?.tomorrow || 'Tomorrow';
 	if (dateFnsIsYesterday(zonedDate)) return translations?.yesterday || 'Yesterday';
-	if (dateFnsIsThisWeek(zonedDate, { weekStartsOn: 0 })) {
+	if (dateFnsIsThisWeek(zonedDate, { weekStartsOn: dateConfig.weekStartsOn })) {
 		return formatInTimeZone(date, dateConfig.timezone, 'EEEE', { locale: dateConfig.locale });
 	}
 	if (dateFnsIsThisYear(zonedDate)) {
