@@ -1,5 +1,6 @@
 <script lang="ts">
 	import '../app.css';
+	import { untrack } from 'svelte';
 	import { browser } from '$app/environment';
 	import { afterNavigate, goto } from '$app/navigation';
 	import { page } from '$app/stores';
@@ -33,18 +34,38 @@
 		if (browser && auth.isAuthenticated && !initialized) {
 			initialized = true;
 
-			// Load user data
-			settingsStore.load();
+			// Load user data. Settings must land BEFORE the first event fetch:
+			// the week range is computed from week_starts_on, and fetching with
+			// the default (Sunday-start) while the user's setting (Monday-start)
+			// is still in flight loads a range that barely overlaps the week the
+			// grid then displays — on Sundays the two ranges share only a single
+			// day and the week renders (near-)empty until something refetches.
+			(async () => {
+				await settingsStore.load();
+				calendar.loadEvents();
+			})();
 			categoriesStore.load();
 			templatesStore.load();
 			routinesStore.load();
-			calendar.loadEvents();
 
 			// Subscribe to realtime updates
 			calendar.subscribeToUpdates();
 			categoriesStore.subscribeToUpdates();
 			routinesStore.subscribeToUpdates();
 		}
+	});
+
+	// Refetch when week_starts_on changes after data has loaded (e.g. the user
+	// toggles it in settings) — the loaded range no longer matches the grid.
+	let prevWeekStartsOn: number | null = null;
+	$effect(() => {
+		const ws = settingsStore.weekStartsOn;
+		untrack(() => {
+			if (prevWeekStartsOn !== null && ws !== prevWeekStartsOn && calendar.lastLoadSuccessAt !== null) {
+				calendar.loadEvents();
+			}
+			prevWeekStartsOn = ws;
+		});
 	});
 
 	// Refresh on resume: mobile OSes (iOS especially) freeze a backgrounded PWA
