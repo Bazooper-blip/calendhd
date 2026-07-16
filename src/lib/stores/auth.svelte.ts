@@ -57,11 +57,9 @@ function createAuthStore() {
 		loading = false;
 	}
 
-	let unsubscribeAuth: (() => void) | null = null;
-
 	if (browser) {
-		// Listen for auth changes
-		unsubscribeAuth = onAuthChange((newUser) => {
+		// Listen for auth changes (store is a singleton — never unsubscribed)
+		onAuthChange((newUser) => {
 			user = newUser;
 		});
 

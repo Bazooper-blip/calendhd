@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
-	import { format, addHours, setHours, setMinutes } from 'date-fns';
+	import { format, addHours, setMinutes } from 'date-fns';
 	import { calendar } from '$stores';
 	import { toast } from 'svelte-sonner';
 	import { _ } from '$lib/i18n';

@@ -7,6 +7,7 @@
 - PocketBase upgraded 0.39.4 → 0.39.7 in the addon image.
 - Docker deployment images move from `node:20-alpine` (end-of-life April 2026) to `node:24-alpine` (current LTS).
 - TypeScript stays on 6.0.3: the TypeScript 7 line (Go-based compiler) does not yet expose the JS compiler API that svelte-check depends on.
+- Remove nine unused imports/locals across the frontend (found via a `noUnusedLocals` sweep); `noUnusedLocals` is now enabled in `tsconfig.json` so `npm run check` catches future ones.
 
 ## 1.6.10
 
