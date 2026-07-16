@@ -67,7 +67,7 @@ Defined in `svelte.config.js`:
 |--------|------|---------|
 | Database | `src/lib/db/index.ts` | Dexie schema (events, categories, templates, subscriptions, external_events, settings, routine_templates) |
 | Routines DB | `src/lib/db/routines.ts` | Routine template local DB helpers |
-| API | `src/lib/api/pocketbase.ts` | PocketBase client, collection helpers, realtime subscriptions, brain-dump CRUD |
+| API | `src/lib/api/pocketbase.ts` | PocketBase client, collection helpers, realtime subscriptions |
 | Stores | `src/lib/stores/*.svelte.ts` | Rune-based stores: auth, calendar, categories, templates, settings, routines |
 | i18n | `src/lib/i18n/` | English (default, sync-loaded) and Swedish (lazy-loaded) via svelte-i18n; locale files must stay key-balanced (Python structural diff in CI-style sweeps) |
 | Date Utils | `src/lib/utils/date.ts` | Timezone-aware date formatting/manipulation via date-fns + date-fns-tz |
@@ -75,7 +75,7 @@ Defined in `svelte.config.js`:
 | Notifications | `src/lib/utils/notifications.ts` | Web Push API, VAPID key handling |
 | Streak | `src/lib/utils/streak.ts` | `computeRoutineStreak()` — counts consecutive past days a routine was fully completed |
 | Sample routines | `src/lib/utils/sampleRoutines.ts` | Hardcoded starter-pack routines used by the empty-state button on `/routines` |
-| Types | `src/lib/types/index.ts` | Core types: CalendarEvent/LocalEvent, Category/LocalCategory, Template, RoutineTemplate, BrainDump, DisplayEvent, RecurrenceRule, UserSettings |
+| Types | `src/lib/types/index.ts` | Core types: CalendarEvent/LocalEvent, Category/LocalCategory, Template, RoutineTemplate, DisplayEvent, RecurrenceRule, UserSettings |
 
 ### Stores
 
@@ -115,9 +115,8 @@ src/lib/components/
 - `/` — Redirects to user's default calendar view
 - `/now` — Right-now focus screen (current event / next-up / idle); auto-refreshes every 30s
 - `/calendar/day/[[date]]`, `/calendar/week/[[date]]`, `/calendar/month/[[date]]` — Calendar views (optional date param)
-- `/event/new`, `/event/[id]` — Event creation/editing; `/event/new` reads `?title=&notes=` query params for brain-dump pre-fill
+- `/event/new`, `/event/[id]` — Event creation/editing
 - `/routines`, `/routines/new`, `/routines/[id]` — Routine template management; empty-state offers "Add starter routines"
-- `/brain-dump` — Quick thought capture (no date/category required); per-item "Schedule" / "Delete"
 - `/categories`, `/templates`, `/subscriptions`, `/settings` — Management pages
 
 ### Dexie Database Schema
@@ -141,10 +140,12 @@ src/lib/components/
 1. `0001_initial_schema.js` — Core collections: categories, events, templates, calendar_subscriptions, external_events, user_settings, scheduled_reminders
 2. `0002_routine_templates.js` — Routine templates collection + routine fields on events
 3. `0003_routine_target_end.js` — target_end_time field on routine_templates
-4. `0004_adhd_features.js` — `events.first_step` (text); `user_settings.{buffer_minutes, density, daily_wins_enabled, streak_celebration_enabled}`; new `brain_dump` collection
+4. `0004_adhd_features.js` — `events.first_step` (text); `user_settings.{buffer_minutes, density, daily_wins_enabled, streak_celebration_enabled}`; new `brain_dump` collection (dropped again in 0009)
 5. `0005_external_event_reminders.js` — `calendar_subscriptions.{reminders_enabled, default_reminder_minutes}`; new `external_event_reminders` collection (per-event overrides keyed by subscription+ical_uid); new `external_scheduled_reminders` collection (parallel to `scheduled_reminders` for the external-event reminder pipeline)
 6. `0006_scheduled_reminders_web_push.js` — adds `"web_push"` to `scheduled_reminders.delivery_method` allowed values (was masked before 1.5.4 because the cron never ran)
 7. `0007_push_subscriptions.js` — new `push_subscriptions` collection (one row per device, keyed by unique Web Push endpoint); backfills the legacy `user_settings.push_subscription` blob and drops it (no compat shim — see Multi-device push below)
+8. `0008_day_view_style.js` — `user_settings.day_view_style` (timeline/agenda)
+9. `0009_remove_brain_dump.js` — drops the `brain_dump` collection (feature removed from the app)
 
 **Hooks** (`pocketbase/pb_hooks/`):
 - `005_singleton_init.pb.js` — Creates/rotates the singleton `home@calendhd.local` user on bootstrap; serves credentials at `GET /api/calendhd/bootstrap` (same-origin)

@@ -176,13 +176,6 @@ export interface UserSettings extends BaseRecord {
 	day_view_style?: 'timeline' | 'agenda'; // ADHD: 24h grid vs chronological list with past/now/upcoming sections
 }
 
-// Brain dump (quick thought capture without scheduling)
-export interface BrainDump extends BaseRecord {
-	user: string;
-	title: string;
-	notes?: string;
-}
-
 // Calendar view event (expanded for display)
 export interface DisplayEvent {
 	id: string;

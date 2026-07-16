@@ -9,7 +9,6 @@ import type {
 	ExternalEvent,
 	ExternalEventReminder,
 	UserSettings,
-	BrainDump,
 	DevicePushSubscription
 } from '$types';
 
@@ -42,32 +41,8 @@ const collections = {
 	user_settings: () => getPocketBase().collection('user_settings'),
 	push_subscriptions: () => getPocketBase().collection('push_subscriptions'),
 	scheduled_reminders: () => getPocketBase().collection('scheduled_reminders'),
-	routine_templates: () => getPocketBase().collection('routine_templates'),
-	brain_dump: () => getPocketBase().collection('brain_dump')
+	routine_templates: () => getPocketBase().collection('routine_templates')
 };
-
-// Brain dump CRUD
-export async function getBrainDumps(): Promise<BrainDump[]> {
-	// Sort client-side: server-side `sort=-created` rejected when brain_dump
-	// collection's auto-created system fields aren't exposed as queryable
-	// columns at the API layer in PB 0.37. Volume is small (single household,
-	// quick captures), so post-fetch sort is fine.
-	// `batch: 200` keeps perPage well under PB's MaxPerPage=500.
-	const records = await collections.brain_dump().getFullList({ batch: 200 });
-	const list = records as unknown as BrainDump[];
-	return list.sort((a, b) => b.created.localeCompare(a.created));
-}
-
-export async function createBrainDump(title: string, notes?: string): Promise<BrainDump> {
-	const userId = getCurrentUser()?.id;
-	if (!userId) throw new Error('Not authenticated');
-	const record = await collections.brain_dump().create({ user: userId, title, notes: notes ?? '' });
-	return record as unknown as BrainDump;
-}
-
-export async function deleteBrainDump(id: string): Promise<void> {
-	await collections.brain_dump().delete(id);
-}
 
 // Auth helpers
 export async function signInWithEmail(email: string, password: string): Promise<User> {
