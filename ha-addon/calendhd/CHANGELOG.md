@@ -10,6 +10,7 @@
 - Remove nine unused imports/locals across the frontend (found via a `noUnusedLocals` sweep); `noUnusedLocals` is now enabled in `tsconfig.json` so `npm run check` catches future ones.
 - Remove the vestigial `@playwright/test` dependency and `test:e2e` script (no Playwright config or e2e tests ever existed) and the empty leftover vitest setup file from the deleted Dexie era.
 - Delete orphaned one-off PocketBase scripts (`add_household_fields.cjs`, `import.cjs`) and the unused `pb_setup/import.cjs` that shipped inside the addon image.
+- Slim the addon image: `npm`, `unzip`, and `wget` are no longer shipped at runtime — build tools are installed and removed within their own build step (`apk --virtual`), the PocketBase download uses the base image's `curl`, and the npm cache is cleaned. Saves roughly 12–18 MiB per architecture with no runtime change.
 
 ## 1.6.10
 
