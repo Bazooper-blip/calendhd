@@ -2,7 +2,6 @@
 	import { t } from 'svelte-i18n';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
-	import { calendar } from '$stores';
 	import { getEvent, updateEvent, deleteEvent } from '$api/pocketbase';
 	import { EventForm } from '$components/event';
 	import { Button, Modal } from '$components/ui';

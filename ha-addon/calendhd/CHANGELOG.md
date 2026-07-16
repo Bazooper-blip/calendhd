@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.6.11
+
+- Dependency maintenance release: bump all npm dependencies to latest (Svelte 5.56.5, SvelteKit 2.69.3, Vite 8.1.5, svelte-check 4.7.3, Biome 2.5.4) and refresh transitive dependencies in the lockfiles.
+- Migrate from the deprecated `lucide-svelte` package to its renamed successor `@lucide/svelte` (same icons, same API — the old package no longer receives updates).
+- PocketBase upgraded 0.39.4 → 0.39.7 in the addon image.
+- Docker deployment images move from `node:20-alpine` (end-of-life April 2026) to `node:24-alpine` (current LTS).
+- TypeScript stays on 6.0.3: the TypeScript 7 line (Go-based compiler) does not yet expose the JS compiler API that svelte-check depends on.
+- Remove nine unused imports/locals across the frontend (found via a `noUnusedLocals` sweep); `noUnusedLocals` is now enabled in `tsconfig.json` so `npm run check` catches future ones.
+- Remove the vestigial `@playwright/test` dependency and `test:e2e` script (no Playwright config or e2e tests ever existed) and the empty leftover vitest setup file from the deleted Dexie era.
+- Delete orphaned one-off PocketBase scripts (`add_household_fields.cjs`, `import.cjs`) and the unused `pb_setup/import.cjs` that shipped inside the addon image.
+- Slim the addon image: `npm`, `unzip`, and `wget` are no longer shipped at runtime — build tools are installed and removed within their own build step (`apk --virtual`), the PocketBase download uses the base image's `curl`, and the npm cache is cleaned. Saves roughly 12–18 MiB per architecture with no runtime change.
+
 ## 1.6.10
 
 - Fix the real cause of "week view is empty until you press Today", which reproduced on desktop too and was worst on Sundays: on app start, events were fetched in parallel with user settings, so the week range was computed with the default Sunday-start week before the saved Monday-start setting arrived. The grid then displayed the Monday-start week while the loaded data covered the Sunday-start one — on a Sunday those two ranges overlap on a single day, so the displayed week rendered (near-)empty, and nothing ever refetched. Events now load after settings, and changing the week-start setting triggers a refetch.

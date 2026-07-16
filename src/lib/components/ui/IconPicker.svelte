@@ -167,7 +167,7 @@
 	$effect(() => {
 		if (activeTab !== 'lucide' || lucideLoaded) return;
 
-		import('lucide-svelte').then((mod: Record<string, any>) => {
+		import('@lucide/svelte').then((mod: Record<string, any>) => {
 			const loaded: Record<string, Component<any>> = {};
 			for (const iconName of allLucideIcons) {
 				const pascalName = kebabToPascal(iconName);
@@ -193,7 +193,7 @@
 		const name = value!.slice(7);
 		const pascalName = kebabToPascal(name);
 
-		import('lucide-svelte').then((mod: Record<string, any>) => {
+		import('@lucide/svelte').then((mod: Record<string, any>) => {
 			if (value === `lucide:${name}`) {
 				triggerLucideComponent = mod[pascalName] ?? null;
 			}

@@ -22,14 +22,6 @@
 	// Check if we're on a calendar route
 	const isCalendarRoute = $derived($page.url.pathname.startsWith('/calendar'));
 
-	// Get current view type from URL
-	const currentView = $derived(() => {
-		const path = $page.url.pathname;
-		if (path.includes('/calendar/day')) return 'day';
-		if (path.includes('/calendar/week')) return 'week';
-		if (path.includes('/calendar/month')) return 'month';
-		return 'week';
-	});
 
 	function getCalendarTitle(): string {
 		const { currentDate, viewType } = calendar;

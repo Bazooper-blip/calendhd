@@ -3,7 +3,7 @@
 	import { format } from 'date-fns';
 	import { Button, Input, Select, Toggle, ColorPicker, IconPicker } from '$components/ui';
 	import { categoriesStore, templatesStore, settingsStore } from '$stores';
-	import { REMINDER_OPTIONS, RECURRENCE_PRESETS, formatRecurrenceRule } from '$utils';
+	import { REMINDER_OPTIONS, RECURRENCE_PRESETS } from '$utils';
 	import type { EventFormData, ReminderConfig, RecurrenceRule } from '$types';
 
 	interface Props {

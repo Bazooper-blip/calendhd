@@ -35,7 +35,6 @@
 
 	const WEEKDAYS = ['mon', 'tue', 'wed', 'thu', 'fri'] as const;
 	const WEEKEND = ['sat', 'sun'] as const;
-	const ALL_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
 
 	function formatSchedule(routine: RoutineTemplate): string {
 		const days = routine.schedule?.days ?? [];

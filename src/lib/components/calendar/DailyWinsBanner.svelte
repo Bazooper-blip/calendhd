@@ -4,7 +4,6 @@
 	import { calendar, settingsStore } from '$stores';
 	import { isToday } from '$utils';
 	import { format } from 'date-fns';
-	import type { DisplayEvent } from '$types';
 
 	// Show only on today's day view, after 21:00 local, and only once per day
 	// (per browser, per origin) until dismissed.

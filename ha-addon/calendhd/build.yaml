@@ -3,7 +3,7 @@ build_from:
   amd64: ghcr.io/hassio-addons/base:21.0.0
   armv7: ghcr.io/hassio-addons/base:21.0.0
 args:
-  PB_VERSION: "0.39.4"
+  PB_VERSION: "0.39.7"
 labels:
   org.opencontainers.image.title: "calenDHD"
   org.opencontainers.image.description: "A calm, ADHD-friendly calendar PWA for Home Assistant"

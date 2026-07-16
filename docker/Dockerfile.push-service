@@ -1,10 +1,10 @@
-FROM node:20-alpine
+FROM node:24-alpine
 
 WORKDIR /app
 
 # Copy package files and install production dependencies
 COPY push-service/package*.json ./
-RUN npm ci --production
+RUN npm ci --omit=dev --no-audit --no-fund && npm cache clean --force
 
 # Copy application files
 COPY push-service/index.js ./

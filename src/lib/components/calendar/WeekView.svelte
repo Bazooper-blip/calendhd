@@ -241,7 +241,7 @@
 
 			<!-- Day columns -->
 			<div class="absolute left-14 right-0 top-0 bottom-0 grid grid-cols-7 gap-px">
-				{#each days as day, dayIndex (day.getTime())}
+				{#each days as day (day.getTime())}
 					<div class="relative border-l border-neutral-100 dark:border-neutral-800">
 						<!-- Current time indicator -->
 						{#if isToday(day)}

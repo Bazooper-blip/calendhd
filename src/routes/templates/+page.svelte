@@ -3,7 +3,7 @@
 	import { templatesStore, categoriesStore } from '$stores';
 	import { Button, Input, Modal, Select, Toggle, ColorPicker } from '$components/ui';
 	import { toast } from 'svelte-sonner';
-	import { REMINDER_OPTIONS, formatDuration } from '$utils';
+	import { formatDuration } from '$utils';
 	import type { Template, ReminderConfig } from '$types';
 
 	let showModal = $state(false);

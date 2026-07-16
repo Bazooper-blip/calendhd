@@ -1,6 +1,6 @@
 {
   "name": "calendhd",
-  "version": "1.6.10",
+  "version": "1.6.11",
   "description": "A calm, ADHD-friendly calendar PWA for neurodivergent minds",
   "private": true,
   "type": "module",
@@ -26,31 +26,29 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "test": "vitest",
-    "test:e2e": "playwright test",
     "lint": "biome check src && svelte-check --tsconfig ./tsconfig.json",
     "format": "biome format --write src",
     "format:check": "biome format src"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.3",
-    "@playwright/test": "^1.61.1",
+    "@biomejs/biome": "^2.5.4",
     "@sveltejs/adapter-static": "^3.0.10",
-    "@sveltejs/kit": "^2.69.2",
+    "@sveltejs/kit": "^2.69.3",
     "@sveltejs/vite-plugin-svelte": "^7.2.0",
     "@tailwindcss/vite": "^4.3.2",
     "@types/node": "^26.1.1",
-    "svelte": "^5.56.4",
-    "svelte-check": "^4.7.2",
+    "svelte": "^5.56.5",
+    "svelte-check": "^4.7.3",
     "tailwindcss": "^4.3.2",
     "typescript": "^6.0.3",
-    "vite": "^8.1.4",
+    "vite": "^8.1.5",
     "vitest": "^4.1.10"
   },
   "dependencies": {
+    "@lucide/svelte": "^1.24.0",
     "bits-ui": "^2.18.1",
     "date-fns": "^4.4.0",
     "date-fns-tz": "^3.2.0",
-    "lucide-svelte": "^1.0.1",
     "pocketbase": "^0.27.0",
     "svelte-i18n": "^4.0.1",
     "svelte-sonner": "^1.1.1"
@@ -58,7 +56,7 @@
   "overrides": {
     "cookie": "^0.7.2",
     "svelte-i18n": {
-      "esbuild": "^0.25.0"
+      "esbuild": "^0.28.0"
     }
   },
   "engines": {
