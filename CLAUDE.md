@@ -156,12 +156,14 @@ src/lib/components/
 - `040_notification_test.pb.js` — Test notification endpoint
 - `050_subscription_sync.pb.js` — Sync external iCal feeds
 - `060_routine_generator.pb.js` — Daily cron generates events from active routines; regenerates on routine create/update; cascades delete
+- `070_trmnl_feed.pb.js` — Read-only JSON feed for the TRMNL e-ink dashboard plugin (`trmnl-plugin/` at repo root); optional bearer-token auth via `TRMNL_FEED_TOKEN` env var; tested by `node pocketbase/tests/trmnlFeed.test.cjs` (Node harness driving the handler with mocked PB globals)
 - `pb_helpers.js` — Shared `require()`'d module; exports `parseJsonField()` (handles all three forms PB JSVM may return for json fields), routine helpers, external-reminder helpers, and `sendPushToAllDevices(userId, title, body, tag)` (fans out to every row in `push_subscriptions` for the user, prunes dead subscriptions when push-service returns 404/410). Must be copied to addon alongside hooks.
 
 **Custom routes** (registered via `routerAdd` in hooks):
 - `GET /api/calendhd/bootstrap` — singleton credentials (auth bootstrap)
 - `GET /api/calendhd/vapid-public-key` — VAPID public key for push subscriptions
 - `POST /api/calendhd/test-notification` — server-side push test (requires auth)
+- `GET /api/calendhd/trmnl` — TRMNL dashboard feed: today + upcoming days as merge-variable-friendly JSON (`?days=1..14`, default 5; requires `Authorization: Bearer`/`?token=` only when `TRMNL_FEED_TOKEN` is set)
 
 ### PocketBase JSVM gotchas (read before touching any `pb_hooks/*.pb.js`)
 
@@ -191,6 +193,7 @@ These have caused multiple production-breaking bugs. They're not optional knowle
 - **Docker**: `docker/` — docker-compose with PocketBase + frontend + push-service + optional nginx reverse proxy
 - **Home Assistant Add-on**: `ha-addon/` — Full HA add-on (see details below)
 - **Push Service**: `push-service/` — Standalone Node.js web-push notification service
+- **TRMNL plugin**: `trmnl-plugin/` — View-only e-ink dashboard for TRMNL devices (original + TRMNL X). trmnlp-compatible private plugin (polling strategy, Liquid templates for all four layouts) that polls the `070_trmnl_feed.pb.js` endpoint; PocketBase stays the source of truth. See `trmnl-plugin/README.md`.
 
 ### Home Assistant Add-on
 
@@ -220,7 +223,7 @@ ha-addon/calendhd/
 - **Architectures**: aarch64, amd64, armv7
 - **Networking**: Port 8090 exposed directly; HA ingress is disabled because the SvelteKit app uses absolute paths (`goto('/calendar/...')`) that escape the dynamic ingress token prefix. Front the addon with a reverse proxy (Cloudflare Tunnel, NGINX SSL Proxy) for HTTPS.
 - **Persistence**: All data stored at `/config/calendhd/` (HA config volume)
-- **Options**: `log_level`, `vapid_public_key`, `vapid_private_key`, `vapid_email`
+- **Options**: `log_level`, `vapid_public_key`, `vapid_private_key`, `vapid_email`, `trmnl_feed_token` (exported as `TRMNL_FEED_TOKEN` by the init script)
 - **Init script** copies hooks, migrations, and frontend to the config volume on each start
 
 **Keeping the addon in sync:**

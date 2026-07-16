@@ -1,0 +1,75 @@
+{% comment %}
+  calenDHD — half horizontal: right-now focus on the left, today's agenda on
+  the right.
+{% endcomment %}
+{% assign today = days | first %}
+
+<div class="layout">
+  <div class="columns">
+
+    <div class="column">
+      {% if current_event %}
+        <div class="item">
+          <div class="content">
+            <span class="label label--small">NOW · {{ current_event.left_label }} left</span>
+            <span class="title">{% if current_event.icon != blank %}{{ current_event.icon }} {% endif %}{{ current_event.title }}</span>
+            <span class="label label--small label--underline">{{ current_event.time_range }}</span>
+          </div>
+        </div>
+      {% elsif next_event %}
+        <div class="item">
+          <div class="content">
+            <span class="label label--small">NEXT · in {{ next_event.in_label }}{% unless next_event.day_label == today.label %} ({{ next_event.day_label }}){% endunless %}</span>
+            <span class="title">{% if next_event.icon != blank %}{{ next_event.icon }} {% endif %}{{ next_event.title }}</span>
+            <span class="label label--small label--underline">{{ next_event.time_range }}</span>
+          </div>
+        </div>
+      {% else %}
+        <div class="item">
+          <div class="content">
+            <span class="title">Nothing scheduled</span>
+            <span class="description">Enjoy the calm.</span>
+          </div>
+        </div>
+      {% endif %}
+      {% if tasks_total_today > 0 %}
+        <span class="label label--small">✓ {{ tasks_done_today }} of {{ tasks_total_today }} done today</span>
+      {% endif %}
+    </div>
+
+    <div class="column">
+      <div class="list" data-list-limit="true" data-list-max-height="170" data-list-hidden-count="true">
+        {% for ev in today.all_day %}
+          <div class="item">
+            <div class="content">
+              <span class="title title--small">{% if ev.icon != blank %}{{ ev.icon }} {% endif %}{{ ev.title }}</span>
+              <span class="label label--small">All day</span>
+            </div>
+          </div>
+        {% endfor %}
+        {% for ev in today.events %}
+          <div class="item">
+            <div class="content">
+              <span class="title title--small">{% if ev.is_task %}{% if ev.done %}✓ {% else %}○ {% endif %}{% endif %}{% if ev.icon != blank %}{{ ev.icon }} {% endif %}{{ ev.title }}</span>
+              <span class="label label--small">{{ ev.time }}</span>
+            </div>
+          </div>
+        {% endfor %}
+        {% if today.event_count == 0 %}
+          <div class="item">
+            <div class="content">
+              <span class="description">No events today</span>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="title_bar">
+  <img class="image" src="https://usetrmnl.com/images/plugins/trmnl--render.svg" />
+  <span class="title">calenDHD</span>
+  <span class="instance">{{ today_label }}</span>
+</div>

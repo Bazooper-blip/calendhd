@@ -85,6 +85,16 @@ calenDHD supports Web Push notifications for event reminders via VAPID. To enabl
 5. Restart the add-on
 6. In calenDHD, go to **Settings** and enable push notifications — your browser will ask for permission
 
+### TRMNL E-Ink Dashboard (Optional)
+
+calenDHD can feed a [TRMNL](https://usetrmnl.com) e-ink display (original or TRMNL X) as a view-only dashboard — today's agenda, the current/next event, and the days ahead. PocketBase remains the source of truth; nothing is writable from the display.
+
+1. The addon already serves the feed at `GET /api/calendhd/trmnl?days=5`. Times come out in Home Assistant's configured timezone automatically.
+2. Decide how the screen gets rendered. **Even when the TRMNL device is on the same LAN as Home Assistant**, the standard TRMNL service polls the feed from TRMNL's *cloud* and the device downloads the rendered screen from the cloud — so either:
+   - **TRMNL Cloud:** expose the feed URL via your Cloudflare Tunnel / reverse proxy so TRMNL's servers can reach it, and set the **TRMNL feed token** addon option (restart after). The feed then requires `Authorization: Bearer <token>`. Bypass your auth proxy only for `/api/calendhd/trmnl`, never other paths.
+   - **Fully local (BYOS):** run a self-hosted TRMNL server on your LAN — [larapaper](https://github.com/usetrmnl/larapaper) is recommended (Docker, auto-joins LAN devices, runs trmnlp-compatible recipes like the one in `trmnl-plugin/`) — and point the device's firmware at it ("Custom Server" option, firmware 1.4.6+). It polls `http://homeassistant.local:8090/api/calendhd/trmnl` directly; nothing is exposed to the internet and no token is needed.
+3. Set up the TRMNL private plugin using the templates and instructions in [`trmnl-plugin/`](https://github.com/Bazooper-blip/calendhd/tree/main/trmnl-plugin).
+
 ### SMTP Configuration (Optional)
 
 For email reminders and password reset:

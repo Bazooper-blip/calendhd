@@ -1,0 +1,54 @@
+{% comment %}
+  calenDHD — half vertical: compact today agenda.
+{% endcomment %}
+{% assign today = days | first %}
+
+<div class="layout layout--col">
+  {% if current_event %}
+    <div class="item">
+      <div class="content">
+        <span class="label label--small">NOW · {{ current_event.left_label }} left</span>
+        <span class="title title--small">{% if current_event.icon != blank %}{{ current_event.icon }} {% endif %}{{ current_event.title }}</span>
+      </div>
+    </div>
+  {% elsif next_event %}
+    <div class="item">
+      <div class="content">
+        <span class="label label--small">NEXT · in {{ next_event.in_label }}</span>
+        <span class="title title--small">{% if next_event.icon != blank %}{{ next_event.icon }} {% endif %}{{ next_event.title }}</span>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="list" data-list-limit="true" data-list-max-height="330" data-list-hidden-count="true">
+    {% for ev in today.all_day %}
+      <div class="item">
+        <div class="content">
+          <span class="title title--small">{% if ev.icon != blank %}{{ ev.icon }} {% endif %}{{ ev.title }}</span>
+          <span class="label label--small">All day</span>
+        </div>
+      </div>
+    {% endfor %}
+    {% for ev in today.events %}
+      <div class="item">
+        <div class="content">
+          <span class="title title--small">{% if ev.is_task %}{% if ev.done %}✓ {% else %}○ {% endif %}{% endif %}{% if ev.icon != blank %}{{ ev.icon }} {% endif %}{{ ev.title }}</span>
+          <span class="label label--small">{{ ev.time }}</span>
+        </div>
+      </div>
+    {% endfor %}
+    {% if today.event_count == 0 %}
+      <div class="item">
+        <div class="content">
+          <span class="description">No events today</span>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="title_bar">
+  <img class="image" src="https://usetrmnl.com/images/plugins/trmnl--render.svg" />
+  <span class="title">calenDHD</span>
+  <span class="instance">{{ today.date_label }}</span>
+</div>

@@ -1,0 +1,11 @@
+# Local dev-server config for trmnlp (https://github.com/usetrmnl/trmnlp).
+# This file is NOT uploaded to TRMNL — put per-developer values here.
+#
+#   CALENDHD_URL=http://192.168.1.50:8090 trmnlp serve
+#
+watch:
+  - src
+
+custom_fields:
+  instance_url: "{{ env.CALENDHD_URL }}"
+  feed_token: "{{ env.CALENDHD_TRMNL_TOKEN }}"
