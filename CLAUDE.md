@@ -264,7 +264,7 @@ ha-addon/calendhd/
   ```
   Avoid the `$_('key') || 'English fallback'` pattern — it masks missing translations.
 - **Accessibility**: Configurable time format (12h/24h) and week start day. The `@media (prefers-reduced-motion)` query in `app.css` honors OS-level reduced-motion automatically.
-- **Icons**: `lucide-svelte` for UI icons; `EventIcon` component for emoji/icon display on events. App branding lives at `static/favicon.svg` (vector source); `static/icons/icon-{72…512}.png` and `apple-touch-icon.png` are rsvg-convert outputs from the SVG; `ha-addon/calendhd/{icon,logo}.png` (256×256) likewise.
+- **Icons**: `@lucide/svelte` for UI icons; `EventIcon` component for emoji/icon display on events. App branding lives at `static/favicon.svg` (vector source); `static/icons/icon-{72…512}.png` and `apple-touch-icon.png` are rsvg-convert outputs from the SVG; `ha-addon/calendhd/{icon,logo}.png` (256×256) likewise.
 - **Toasts**: `svelte-sonner` for toast notifications
 - **UI primitives**: `bits-ui` for accessible component primitives
 - **No backwards-compat layer for the singleton user.** The old hardcoded `calendhd-home-2024` password is **gone**. The bootstrap endpoint is the only way the frontend learns credentials.

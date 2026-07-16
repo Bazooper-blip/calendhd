@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.6.11
+
+- Dependency maintenance release: bump all npm dependencies to latest (Svelte 5.56.5, SvelteKit 2.69.3, Vite 8.1.5, svelte-check 4.7.3, Biome 2.5.4) and refresh transitive dependencies in the lockfiles.
+- Migrate from the deprecated `lucide-svelte` package to its renamed successor `@lucide/svelte` (same icons, same API — the old package no longer receives updates).
+- PocketBase upgraded 0.39.4 → 0.39.7 in the addon image.
+- Docker deployment images move from `node:20-alpine` (end-of-life April 2026) to `node:24-alpine` (current LTS).
+- TypeScript stays on 6.0.3: the TypeScript 7 line (Go-based compiler) does not yet expose the JS compiler API that svelte-check depends on.
+
 ## 1.6.10
 
 - Fix the real cause of "week view is empty until you press Today", which reproduced on desktop too and was worst on Sundays: on app start, events were fetched in parallel with user settings, so the week range was computed with the default Sunday-start week before the saved Monday-start setting arrived. The grid then displayed the Monday-start week while the loaded data covered the Sunday-start one — on a Sunday those two ranges overlap on a single day, so the displayed week rendered (near-)empty, and nothing ever refetched. Events now load after settings, and changing the week-start setting triggers a refetch.

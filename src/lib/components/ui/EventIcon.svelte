@@ -47,7 +47,7 @@
 		const name = lucideName;
 		const pascalName = kebabToPascal(name);
 
-		import('lucide-svelte')
+		import('@lucide/svelte')
 			.then((mod: Record<string, any>) => {
 				// Only update if the name hasn't changed
 				if (lucideName === name) {
