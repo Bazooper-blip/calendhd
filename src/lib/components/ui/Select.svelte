@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { cn } from '$utils';
+	import { _ } from '$lib/i18n';
 
 	interface Option {
 		value: string;
@@ -23,7 +24,7 @@
 	let {
 		options,
 		value = $bindable(''),
-		placeholder = 'Select an option',
+		placeholder = undefined,
 		disabled = false,
 		required = false,
 		name,
@@ -32,6 +33,9 @@
 		class: className = '',
 		onchange
 	}: Props = $props();
+
+	// Pass placeholder="" to render no placeholder option at all
+	const placeholderText = $derived(placeholder === undefined ? $_('common.selectOption') : placeholder);
 
 	const baseStyles =
 		'w-full px-3 py-2 rounded-lg border bg-white dark:bg-neutral-700 text-neutral-800 dark:text-neutral-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed appearance-none cursor-pointer';
@@ -50,8 +54,8 @@
 		class={cn(baseStyles, error ? errorStyles : normalStyles, className)}
 		{onchange}
 	>
-		{#if placeholder}
-			<option value="" disabled>{placeholder}</option>
+		{#if placeholderText}
+			<option value="" disabled>{placeholderText}</option>
 		{/if}
 		{#each options as option}
 			<option value={option.value} disabled={option.disabled}>

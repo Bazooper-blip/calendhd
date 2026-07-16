@@ -15,8 +15,7 @@
 		"subscriptions": "Prenumerationer",
 		"settings": "Inställningar",
 		"routines": "Rutiner",
-		"now": "Just nu",
-		"brainDump": "Tankehög"
+		"now": "Just nu"
 	},
 	"now": {
 		"happeningNow": "Händer nu",
@@ -135,13 +134,26 @@
 		"starterPackAdded": "3 startrutiner tillagda",
 		"streakBadge": "{count, plural, one {# dag} other {# dagar}}",
 		"streakLabel": "🔥 {count}-dagars streak",
-		"completedToday": "Rutin klar!"
+		"completedToday": "Rutin klar!",
+		"details": "Detaljer",
+		"timing": "Tidsläge",
+		"timingFixed": "Fast",
+		"timingFlexible": "Flexibel",
+		"targetEnd": "Målsluttid",
+		"targetEndHelp": "Rutinen bör vara klar senast (valfritt)",
+		"moveStepUp": "Flytta steg uppåt",
+		"moveStepDown": "Flytta steg nedåt",
+		"timelineEmpty": "Lägg till steg för att se tidsöversikten."
 	},
 	"energy": {
 		"level": "Energinivå",
 		"low": "Låg energi",
 		"medium": "Medel energi",
-		"high": "Hög energi"
+		"high": "Hög energi",
+		"title": "Energi",
+		"lowShort": "Låg",
+		"mediumShort": "Medel",
+		"highShort": "Hög"
 	},
 	"category": {
 		"title": "Kategorier",
@@ -151,6 +163,7 @@
 		"edit": "Redigera kategori",
 		"delete": "Ta bort kategori",
 		"selectCategory": "Välj en kategori...",
+		"noCategory": "Ingen kategori",
 		"noCategories": "Inga kategorier ännu",
 		"noCategoriesDesc": "Skapa kategorier för att organisera dina händelser",
 		"created": "Kategori skapad",
@@ -276,6 +289,16 @@
 		"2days": "2 dagar före",
 		"1week": "1 vecka före"
 	},
+	"duration": {
+		"15min": "15 minuter",
+		"30min": "30 minuter",
+		"45min": "45 minuter",
+		"60min": "1 timme",
+		"90min": "1,5 timmar",
+		"120min": "2 timmar",
+		"180min": "3 timmar",
+		"240min": "4 timmar"
+	},
 	"recurrence": {
 		"none": "Upprepas inte",
 		"daily": "Dagligen",
@@ -314,18 +337,6 @@
 		"title": "Dagens framgångar",
 		"summary": "{count, plural, one {# sak klar} other {# saker klara}} · {minutes} fokus · {routines, plural, =0 {inga rutiner helt klara} one {# rutin helt klar} other {# rutiner helt klara}}"
 	},
-	"brainDump": {
-		"title": "Tankehög",
-		"placeholder": "Snabb tanke…",
-		"notesPlaceholder": "Anteckningar (valfritt)",
-		"add": "Fånga",
-		"empty": "Inget här än",
-		"emptyDesc": "Skriv en tanke och tryck Fånga. Inget datum, ingen kategori — få bara ur huvudet.",
-		"convertToEvent": "Schemalägg",
-		"delete": "Ta bort",
-		"captured": "Sparad",
-		"deleted": "Borttagen"
-	},
 	"calendar": {
 		"tightGap": "{minutes} min övergång",
 		"next": "Nästa:",
@@ -345,6 +356,8 @@
 		"moreSteps": "till"
 	},
 	"common": {
+		"selectOption": "Välj ett alternativ",
+		"openMenu": "Öppna menyn",
 		"cancel": "Avbryt",
 		"save": "Spara",
 		"delete": "Ta bort",

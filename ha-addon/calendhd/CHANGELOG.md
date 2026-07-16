@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.6.12
+
+- Remove the brain-dump (Tankehög) feature entirely: the page, sidebar link, and API helpers are gone, and migration 0009 drops the `brain_dump` collection (any captured thoughts are deleted with it).
+- Fix uneven field widths in the event form's start/end date+time rows on iOS: Safari sizes native date/time inputs to their content, so filled and empty fields rendered at different widths. They now always fill their column at a consistent height.
+- Complete the Swedish translation of the routine create/edit form: the Details/Icon/Color headers, weekday chips (Mån–Sön), the Energy and Timing step selects, the target-end-time section, and the empty-timeline hint were hardcoded English.
+- Complete the Swedish translation of the template modal: duration options ("1 hour" → "1 timme" etc.) and the category dropdown, which showed the untranslated "Select an option" instead of "Ingen kategori".
+- Translate the generic dropdown placeholder ("Select an option" → "Välj ett alternativ") everywhere, plus a few leftover English strings (root loading screen, icon-button labels for screen readers).
+
 ## 1.6.11
 
 - Dependency maintenance release: bump all npm dependencies to latest (Svelte 5.56.5, SvelteKit 2.69.3, Vite 8.1.5, svelte-check 4.7.3, Biome 2.5.4) and refresh transitive dependencies in the lockfiles.

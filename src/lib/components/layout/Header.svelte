@@ -68,7 +68,7 @@
 			type="button"
 			onclick={onMenuClick}
 			class="lg:hidden p-2 -ml-2 rounded-lg text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
-			aria-label="Open menu"
+			aria-label={$_('common.openMenu')}
 		>
 			<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />

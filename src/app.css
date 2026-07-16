@@ -100,6 +100,24 @@ html.dark body {
 	color: var(--color-neutral-100);
 }
 
+/* iOS Safari sizes date/time inputs to their content (empty fields shrink,
+   filled fields grow), so paired date+time rows render at uneven widths.
+   Strip the native appearance and pin the box so every field fills its column
+   at the same height as text inputs (py-2 + text-base + 1px borders). */
+input[type='date'],
+input[type='time'] {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 100%;
+	min-width: 0;
+	min-height: 2.625rem;
+}
+
+input[type='date']::-webkit-date-and-time-value,
+input[type='time']::-webkit-date-and-time-value {
+	text-align: left;
+}
+
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
 	*,

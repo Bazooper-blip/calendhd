@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
 	import { calendar } from '$stores';
 	import { EventForm } from '$components/event';
 	import { toast } from 'svelte-sonner';
@@ -9,14 +8,6 @@
 	import type { EventFormData } from '$types';
 
 	let loading = $state(false);
-
-	// Pre-fill from query string (used by brain-dump's "Schedule" action)
-	const initialData = $derived.by(() => {
-		const url = $page.url;
-		const title = url.searchParams.get('title') ?? '';
-		const notes = url.searchParams.get('notes') ?? '';
-		return title || notes ? { title, description: notes || undefined } : {};
-	});
 
 	async function handleSubmit(data: EventFormData) {
 		loading = true;
@@ -67,7 +58,6 @@
 
 		<div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-neutral-100 dark:border-neutral-700 p-6">
 			<EventForm
-				{initialData}
 				onsubmit={handleSubmit}
 				oncancel={handleCancel}
 				{loading}

@@ -15,8 +15,7 @@
 		"subscriptions": "Subscriptions",
 		"settings": "Settings",
 		"routines": "Routines",
-		"now": "Right now",
-		"brainDump": "Brain dump"
+		"now": "Right now"
 	},
 	"now": {
 		"happeningNow": "Happening now",
@@ -135,13 +134,26 @@
 		"starterPackAdded": "Added 3 starter routines",
 		"streakBadge": "{count, plural, one {# day} other {# days}}",
 		"streakLabel": "🔥 {count}-day streak",
-		"completedToday": "Routine complete!"
+		"completedToday": "Routine complete!",
+		"details": "Details",
+		"timing": "Timing",
+		"timingFixed": "Fixed",
+		"timingFlexible": "Flexible",
+		"targetEnd": "Target end time",
+		"targetEndHelp": "Routine should be done by (optional)",
+		"moveStepUp": "Move step up",
+		"moveStepDown": "Move step down",
+		"timelineEmpty": "Add steps to see the timeline."
 	},
 	"energy": {
 		"level": "Energy level",
 		"low": "Low energy",
 		"medium": "Medium energy",
-		"high": "High energy"
+		"high": "High energy",
+		"title": "Energy",
+		"lowShort": "Low",
+		"mediumShort": "Medium",
+		"highShort": "High"
 	},
 	"category": {
 		"title": "Categories",
@@ -151,6 +163,7 @@
 		"edit": "Edit Category",
 		"delete": "Delete Category",
 		"selectCategory": "Select a category...",
+		"noCategory": "No category",
 		"noCategories": "No categories yet",
 		"noCategoriesDesc": "Create categories to organize your events",
 		"created": "Category created",
@@ -276,6 +289,16 @@
 		"2days": "2 days before",
 		"1week": "1 week before"
 	},
+	"duration": {
+		"15min": "15 minutes",
+		"30min": "30 minutes",
+		"45min": "45 minutes",
+		"60min": "1 hour",
+		"90min": "1.5 hours",
+		"120min": "2 hours",
+		"180min": "3 hours",
+		"240min": "4 hours"
+	},
 	"recurrence": {
 		"none": "Does not repeat",
 		"daily": "Daily",
@@ -314,18 +337,6 @@
 		"title": "Today's wins",
 		"summary": "{count, plural, one {# thing done} other {# things done}} · {minutes} of focus · {routines, plural, =0 {no routines fully complete} one {# routine fully complete} other {# routines fully complete}}"
 	},
-	"brainDump": {
-		"title": "Brain dump",
-		"placeholder": "Quick thought…",
-		"notesPlaceholder": "Notes (optional)",
-		"add": "Capture",
-		"empty": "Nothing here yet",
-		"emptyDesc": "Type a thought and tap Capture. No date, no category — just get it out of your head.",
-		"convertToEvent": "Schedule",
-		"delete": "Delete",
-		"captured": "Captured",
-		"deleted": "Deleted"
-	},
 	"calendar": {
 		"tightGap": "{minutes} min transition",
 		"next": "Next:",
@@ -345,6 +356,8 @@
 		"moreSteps": "more"
 	},
 	"common": {
+		"selectOption": "Select an option",
+		"openMenu": "Open menu",
 		"cancel": "Cancel",
 		"save": "Save",
 		"delete": "Delete",

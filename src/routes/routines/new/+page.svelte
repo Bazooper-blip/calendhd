@@ -15,16 +15,6 @@
 
 	const ALL_DAYS: DayKey[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
-	const DAY_LABELS: Record<DayKey, string> = {
-		mon: 'Mon',
-		tue: 'Tue',
-		wed: 'Wed',
-		thu: 'Thu',
-		fri: 'Fri',
-		sat: 'Sat',
-		sun: 'Sun'
-	};
-
 	let scheduleDays = $state<DayKey[]>(['mon', 'tue', 'wed', 'thu', 'fri']);
 	let scheduleTime = $state('07:00');
 	let targetEndTime = $state('');
@@ -74,11 +64,11 @@
 		label: `${m} min`
 	}));
 
-	const energyOptions: { value: EnergyLevel; label: string }[] = [
-		{ value: 'low', label: 'Low' },
-		{ value: 'medium', label: 'Medium' },
-		{ value: 'high', label: 'High' }
-	];
+	const energyOptions = $derived([
+		{ value: 'low', label: $t('energy.lowShort') },
+		{ value: 'medium', label: $t('energy.mediumShort') },
+		{ value: 'high', label: $t('energy.highShort') }
+	]);
 
 	// --- Day toggle ---
 	function toggleDay(day: DayKey) {
@@ -191,7 +181,7 @@
 		<!-- 1. Header: name / icon / color -->
 		<div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-neutral-100 dark:border-neutral-700 p-4 space-y-4">
 			<h2 class="text-sm font-semibold text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">
-				Details
+				{$t('routine.details')}
 			</h2>
 
 			<div>
@@ -207,12 +197,12 @@
 			</div>
 
 			<div>
-				<p class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">Icon</p>
+				<p class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">{$t('event.icon')}</p>
 				<IconPicker value={icon} onSelect={(v) => (icon = v)} />
 			</div>
 
 			<div>
-				<p class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">Color</p>
+				<p class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">{$t('event.color')}</p>
 				<ColorPicker bind:value={color} />
 			</div>
 		</div>
@@ -236,7 +226,7 @@
 								? 'bg-primary-500 text-white'
 								: 'bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'}"
 						>
-							{DAY_LABELS[day]}
+							{$t(`days.${day}`)}
 						</button>
 					{/each}
 				</div>
@@ -278,7 +268,7 @@
 									onclick={() => moveStepUp(i)}
 									disabled={i === 0}
 									class="p-1 rounded text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-									aria-label="Move step up"
+									aria-label={$t('routine.moveStepUp')}
 								>
 									<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7" />
@@ -289,7 +279,7 @@
 									onclick={() => moveStepDown(i)}
 									disabled={i === steps.length - 1}
 									class="p-1 rounded text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-									aria-label="Move step down"
+									aria-label={$t('routine.moveStepDown')}
 								>
 									<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
@@ -326,7 +316,7 @@
 							</div>
 							<div class="flex-1">
 								<label for="step-energy-{i}" class="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">
-									Energy
+									{$t('energy.title')}
 								</label>
 								<Select
 									id="step-energy-{i}"
@@ -337,13 +327,13 @@
 							</div>
 							<div class="flex-1">
 								<label for="step-timing-{i}" class="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">
-									Timing
+									{$t('routine.timing')}
 								</label>
 								<Select
 									id="step-timing-{i}"
 									options={[
-										{ value: 'fixed', label: 'Fixed' },
-										{ value: 'flexible', label: 'Flexible' }
+										{ value: 'fixed', label: $t('routine.timingFixed') },
+										{ value: 'flexible', label: $t('routine.timingFlexible') }
 									]}
 									value={step.timing_mode ?? 'fixed'}
 									onchange={(e) => updateStepTimingMode(i, (e.target as HTMLSelectElement).value)}
@@ -367,11 +357,11 @@
 		<!-- 3b. Target end time -->
 		<div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-neutral-100 dark:border-neutral-700 p-4 space-y-4">
 			<h2 class="text-sm font-semibold text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">
-				Target end time
+				{$t('routine.targetEnd')}
 			</h2>
 			<div>
 				<label for="target-end-time" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-					Routine should be done by (optional)
+					{$t('routine.targetEndHelp')}
 				</label>
 				<Input id="target-end-time" type="time" bind:value={targetEndTime} class="max-w-[10rem]" />
 			</div>
@@ -384,7 +374,7 @@
 			</h2>
 
 			{#if timeline.length === 0}
-				<p class="text-sm text-neutral-400">Add steps to see the timeline.</p>
+				<p class="text-sm text-neutral-400">{$t('routine.timelineEmpty')}</p>
 			{:else}
 				<ol class="space-y-2">
 					{#each timeline as item, i (i)}
