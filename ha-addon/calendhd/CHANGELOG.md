@@ -8,6 +8,8 @@
 - Docker deployment images move from `node:20-alpine` (end-of-life April 2026) to `node:24-alpine` (current LTS).
 - TypeScript stays on 6.0.3: the TypeScript 7 line (Go-based compiler) does not yet expose the JS compiler API that svelte-check depends on.
 - Remove nine unused imports/locals across the frontend (found via a `noUnusedLocals` sweep); `noUnusedLocals` is now enabled in `tsconfig.json` so `npm run check` catches future ones.
+- Remove the vestigial `@playwright/test` dependency and `test:e2e` script (no Playwright config or e2e tests ever existed) and the empty leftover vitest setup file from the deleted Dexie era.
+- Delete orphaned one-off PocketBase scripts (`add_household_fields.cjs`, `import.cjs`) and the unused `pb_setup/import.cjs` that shipped inside the addon image.
 
 ## 1.6.10
 

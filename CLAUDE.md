@@ -17,7 +17,6 @@ npm run preview      # Preview production build
 npm run check        # Svelte type checking (svelte-kit sync + svelte-check)
 npm run check:watch  # Type checking in watch mode
 npm run test         # Run Vitest unit tests
-npm run test:e2e     # Run Playwright end-to-end tests
 npm run lint         # Same as check (svelte-check)
 ```
 
@@ -242,9 +241,9 @@ ha-addon/calendhd/
 
 ## Testing
 
-- **Unit tests**: Vitest in `node` environment (not jsdom) with `fake-indexeddb` polyfill (setup in `src/tests/setup.ts`)
-- **Test files**: `src/lib/db/index.test.ts`, `src/lib/db/routines.test.ts`, `src/lib/utils/date.test.ts`, `src/lib/utils/recurrence.test.ts`, `src/lib/utils/index.test.ts`
-- **E2E tests**: Playwright (via `npm run test:e2e`)
+- **Unit tests**: Vitest in `node` environment (not jsdom)
+- **Test files**: `src/lib/utils/date.test.ts`, `src/lib/utils/recurrence.test.ts`, `src/lib/utils/index.test.ts`
+- **No E2E suite**: there is no Playwright config or e2e tests (the former `test:e2e` script was vestigial and has been removed)
 - **Code style**: Biome (`biome.json` at repo root) for `src/**/*.{ts,js}` — `npm run format` writes, `npm run format:check` verifies. `npm run lint` runs Biome + svelte-check. `.svelte` files aren't formatted by Biome yet (Svelte 5 support is partial); rely on svelte-check for those.
 
 ## Conventions
