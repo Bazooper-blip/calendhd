@@ -73,7 +73,6 @@ Defined in `svelte.config.js`:
 | Date Utils | `src/lib/utils/date.ts` | Timezone-aware date formatting/manipulation via date-fns + date-fns-tz |
 | Recurrence | `src/lib/utils/recurrence.ts` | Recurrence rule formatting and presets |
 | Notifications | `src/lib/utils/notifications.ts` | Web Push API, VAPID key handling |
-| Streak | `src/lib/utils/streak.ts` | `computeRoutineStreak()` — counts consecutive past days a routine was fully completed |
 | Sample routines | `src/lib/utils/sampleRoutines.ts` | Hardcoded starter-pack routines used by the empty-state button on `/routines` |
 | Types | `src/lib/types/index.ts` | Core types: CalendarEvent/LocalEvent, Category/LocalCategory, Template, RoutineTemplate, DisplayEvent, RecurrenceRule, UserSettings |
 
@@ -85,7 +84,7 @@ All stores are singletons using Svelte 5 runes in `.svelte.ts` files:
 |-------|-----------|---------|
 | `auth.svelte.ts` | user, isAuthenticated | Auto-login singleton account; fetches credentials from `/api/calendhd/bootstrap` (no hardcoded password) |
 | `calendar.svelte.ts` | currentDate, viewType, events, displayEvents | Calendar state, event CRUD, flexible timing cascade for routine steps; fires routine-completion celebration toast |
-| `settings.svelte.ts` | settings (15+ keys) | User preferences. ADHD behaviors (`buffer_minutes`, `daily_wins_enabled`, `streak_celebration_enabled`) are always-on defaults — the old "Focus" settings section was removed |
+| `settings.svelte.ts` | settings | User preferences: default view, week start, time format, theme, accent, locale, timezone, reminders, notification sound. (The old "Focus" section — density, buffer, daily wins, streaks — was removed along with those features) |
 | `categories.svelte.ts` | categories | Category CRUD with 8 default colors, reorderable |
 | `templates.svelte.ts` | templates | Event template CRUD with local sync |
 | `routines.svelte.ts` | routines | Routine template CRUD with active/inactive toggling |
@@ -96,7 +95,7 @@ All stores are singletons using Svelte 5 runes in `.svelte.ts` files:
 src/lib/components/
 ├── layout/     Header, Sidebar
 ├── calendar/   DayView, AgendaView, WeekView, MonthView, EventBlock,
-│               RoutineBlock, DailyWinsBanner
+│               RoutineBlock, ExternalEventModal
 ├── event/      EventForm, QuickAdd
 ├── ui/         Button, Input, Modal, Select, Toggle, ColorPicker, IconPicker,
 │               EventIcon, OfflineIndicator
@@ -104,10 +103,9 @@ src/lib/components/
 ```
 
 **Time-blindness UX** (intentional design — keep these affordances coherent when editing):
-- Day view is agenda-only (`DayView` = header + `AgendaView`; the old 24h-grid "timeline" style was removed): past/now/upcoming sections, pulsing "Now" cards with minutes-left, a highlighted next-up card with time-until, "Free for ~X" gap rows, collapsed "earlier today", and a tomorrow-preview footer
+- Day view is agenda-only (`DayView` = header + `AgendaView`; the old 24h-grid "timeline" style was removed): past/now/upcoming sections, pulsing "Now" cards with minutes-left, a highlighted next-up card with time-until, collapsed "earlier today", and a tomorrow-preview footer
 - Week view: horizontal red "now" line at the current minute with auto-scroll-to-now; overlapping events split into side-by-side lanes (`computeEventLanes` in `date.ts`) so each stays tappable on narrow columns
 - "Happening now" sage ring + pulsing badge on the active event/routine
-- DailyWinsBanner at top of today's view after 21:00 when there are completions
 
 ### Routes
 

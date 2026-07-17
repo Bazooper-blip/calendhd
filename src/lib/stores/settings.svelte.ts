@@ -52,16 +52,6 @@ function createSettingsStore() {
 		get timezone() {
 			return settings?.timezone ?? defaults.timezone;
 		},
-		get bufferMinutes() {
-			return settings?.buffer_minutes ?? defaults.buffer_minutes ?? 10;
-		},
-		get dailyWinsEnabled() {
-			return settings?.daily_wins_enabled ?? defaults.daily_wins_enabled ?? true;
-		},
-		get streakCelebrationEnabled() {
-			return settings?.streak_celebration_enabled ?? defaults.streak_celebration_enabled ?? true;
-		},
-
 		async load() {
 			if (!browser) return;
 

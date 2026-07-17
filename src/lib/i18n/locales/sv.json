@@ -128,13 +128,9 @@
 		"noRoutines": "Inga rutiner ännu",
 		"noRoutinesDesc": "Skapa rutiner för att bygga daglig struktur",
 		"timelinePreview": "Tidsöversikt",
-		"completedAll": "Alla steg slutförda",
 		"addStarterPack": "Lägg till startrutiner",
 		"addStarterPackDesc": "Tre lugna utgångspunkter: morgon, kvällsvila och veckans admin. Redigera dem så de passar dig.",
 		"starterPackAdded": "3 startrutiner tillagda",
-		"streakBadge": "{count, plural, one {# dag} other {# dagar}}",
-		"streakLabel": "🔥 {count}-dagars streak",
-		"completedToday": "Rutin klar!",
 		"details": "Detaljer",
 		"timing": "Tidsläge",
 		"timingFixed": "Fast",
@@ -317,10 +313,6 @@
 		"fri": "Fre",
 		"sat": "Lör"
 	},
-	"wins": {
-		"title": "Dagens framgångar",
-		"summary": "{count, plural, one {# sak klar} other {# saker klara}} · {minutes} fokus · {routines, plural, =0 {inga rutiner helt klara} one {# rutin helt klar} other {# rutiner helt klara}}"
-	},
 	"calendar": {
 		"next": "Nästa:",
 		"in": "om",
@@ -334,7 +326,6 @@
 		"now": "Nu",
 		"upcoming": "Kommande",
 		"allEvents": "Händelser",
-		"freeFor": "Ledig i ~{duration}",
 		"minLeft": "{duration} kvar",
 		"moreSteps": "till"
 	},
