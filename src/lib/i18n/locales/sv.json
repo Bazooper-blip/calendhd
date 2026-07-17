@@ -128,13 +128,9 @@
 		"noRoutines": "Inga rutiner ännu",
 		"noRoutinesDesc": "Skapa rutiner för att bygga daglig struktur",
 		"timelinePreview": "Tidsöversikt",
-		"completedAll": "Alla steg slutförda",
 		"addStarterPack": "Lägg till startrutiner",
 		"addStarterPackDesc": "Tre lugna utgångspunkter: morgon, kvällsvila och veckans admin. Redigera dem så de passar dig.",
 		"starterPackAdded": "3 startrutiner tillagda",
-		"streakBadge": "{count, plural, one {# dag} other {# dagar}}",
-		"streakLabel": "🔥 {count}-dagars streak",
-		"completedToday": "Rutin klar!",
 		"details": "Detaljer",
 		"timing": "Tidsläge",
 		"timingFixed": "Fast",
@@ -225,23 +221,7 @@
 		"pushNotConfigured": "Push-notifikationer är inte konfigurerade på servern",
 		"notificationsEnableFailed": "Kunde inte aktivera notifikationer",
 		"notificationsDisableFailed": "Kunde inte inaktivera notifikationer",
-		"testNotificationFailed": "Kunde inte skicka testnotifikation",
-		"focus": "Fokus",
-		"density": "Layouttäthet",
-		"densityDescription": "Hur tätt händelser packas på kalendern",
-		"densityCompact": "Kompakt",
-		"densityComfortable": "Bekväm",
-		"densitySpacious": "Rymlig",
-		"bufferMinutes": "Övergångstid mellan händelser",
-		"bufferMinutesDescription": "Visa en mild påminnelse när händelser schemalagts med mindre andrum än så här (minuter)",
-		"dailyWins": "Dagens framgångar",
-		"dailyWinsDescription": "Visa vad du slutfört i slutet av dagen",
-		"streakCelebration": "Rutinstreak + firande",
-		"streakCelebrationDescription": "Räkna streak per rutin och fira när en slutförs",
-		"dayViewStyle": "Stil för dagsvy",
-		"dayViewStyleDescription": "Hur dagens händelser visas. Agenda grupperar dem efter tidigare / nu / kommande med fri tid markerad.",
-		"dayViewStyleTimeline": "Tidslinje (24-timmars rutnät)",
-		"dayViewStyleAgenda": "Agenda (kronologisk lista)"
+		"testNotificationFailed": "Kunde inte skicka testnotifikation"
 	},
 	"subscription": {
 		"title": "Prenumerationer",
@@ -333,12 +313,7 @@
 		"fri": "Fre",
 		"sat": "Lör"
 	},
-	"wins": {
-		"title": "Dagens framgångar",
-		"summary": "{count, plural, one {# sak klar} other {# saker klara}} · {minutes} fokus · {routines, plural, =0 {inga rutiner helt klara} one {# rutin helt klar} other {# rutiner helt klara}}"
-	},
 	"calendar": {
-		"tightGap": "{minutes} min övergång",
 		"next": "Nästa:",
 		"in": "om",
 		"tomorrow": "imorgon",

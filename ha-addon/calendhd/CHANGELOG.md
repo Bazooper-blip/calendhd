@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.7.1
+
+- Week view: events that overlap on screen now split into side-by-side lanes instead of stacking on top of each other, so every event stays visible and individually tappable on narrow mobile columns. Short events get a minimum visual footprint in the lane math, matching how tall they're actually drawn.
+- Day view is now always the agenda layout (past / now / upcoming with free-time gaps); the 24-hour-grid "timeline" style and its "Day view style" setting were removed.
+- Removed the "Focus" settings section and its features: layout density (it only styled the removed timeline layout, which is why changing it appeared to do nothing), the transition-time buffer setting, the end-of-day wins banner, and routine streaks + completion celebration (the 🔥 badge and toast). The agenda's "Free for ~X" rows stay, now with a fixed 20-minute threshold instead of a setting.
+
 ## 1.7.0
 
 - New: TRMNL e-ink dashboard support. A new read-only endpoint `GET /api/calendhd/trmnl?days=5` (hook `070_trmnl_feed.pb.js`) serves today + upcoming days as JSON shaped for TRMNL's Liquid merge variables: per-day event buckets (timed + all-day), a `/now`-style current/next event, today's task tally, and the waking-hours day-progress percentage. Times honor the household's 12h/24h and English/Swedish settings; colors resolve like the app (override → category → default). Covered by a Node test harness (`pocketbase/tests/trmnlFeed.test.cjs`, 45 checks).

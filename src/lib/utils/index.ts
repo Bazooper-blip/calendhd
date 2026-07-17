@@ -1,7 +1,6 @@
 export * from './date';
 export * from './recurrence';
 export * from './notifications';
-export * from './streak';
 
 // Re-export commonly used date-fns functions
 // Note: isToday, isSameDay, isSameMonth are exported from ./date with timezone awareness

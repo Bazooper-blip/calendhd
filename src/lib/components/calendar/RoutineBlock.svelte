@@ -6,11 +6,11 @@
 
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { cn, getContrastColor, formatTime, computeRoutineStreak } from '$utils';
+	import { cn, getContrastColor, formatTime } from '$utils';
 	import { calendar, settingsStore } from '$stores';
 	import { _ } from '$lib/i18n';
 	import { EventIcon } from '$components/ui';
-	import type { EnergyLevel, CalendarEvent } from '$types';
+	import type { EnergyLevel } from '$types';
 
 	interface RoutineStep {
 		id: string;
@@ -61,11 +61,6 @@
 	// Dim past routine groups (every step's end-time has passed). Skip dimming
 	// while expanded so the user can still scan the completed steps clearly.
 	const isPast = $derived(!!(now && end && now >= end && !isHappeningNow));
-	const streak = $derived(
-		settingsStore.streakCelebrationEnabled
-			? computeRoutineStreak(routine_template, calendar.events as CalendarEvent[])
-			: 0
-	);
 
 	const deadlineStatus = $derived.by(() => {
 		if (!target_end_time || steps.length === 0) return 'on-track';
@@ -125,11 +120,6 @@
 					<span class="flex-shrink-0 inline-flex items-center gap-1 rounded-full bg-white/30 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide">
 						<span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
 						{$_('event.now')}
-					</span>
-				{/if}
-				{#if streak > 0}
-					<span class="flex-shrink-0 inline-flex items-center gap-0.5 rounded-full bg-white/30 px-1.5 py-0.5 text-[9px] font-semibold" title={$_('routine.streakLabel', { values: { count: streak } })}>
-						🔥 {streak}
 					</span>
 				{/if}
 			</span>

@@ -335,12 +335,7 @@ export function getDefaultSettings(): Omit<UserSettings, 'id' | 'created' | 'upd
 		color_palette: 'sage',
 		default_reminders: [{ minutes_before: 10, type: 'notification' }],
 		notification_sound: true,
-		timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-		buffer_minutes: 10,
-		density: 'comfortable',
-		daily_wins_enabled: true,
-		streak_celebration_enabled: true,
-		day_view_style: 'timeline'
+		timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
 	};
 }
 

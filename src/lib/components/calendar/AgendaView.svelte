@@ -52,6 +52,10 @@
 	type GapRow = { kind: 'gap'; from: Date; to: Date; minutes: number };
 	type AgendaRow = { kind: 'event'; item: ProcessedEvent } | GapRow;
 
+	// Only show "Free for ~X" rows for gaps at least this long, so
+	// back-to-back days don't get cluttered. Fixed value — not a setting.
+	const MIN_GAP_MINUTES = 20;
+
 	let { date }: { date: Date } = $props();
 
 	let now = $state(new Date());
@@ -184,11 +188,9 @@
 		return { past, current, upcoming };
 	});
 
-	// Compute "Free for ~X" gap rows between upcoming items. Only show gaps
-	// longer than `buffer_minutes × 2` so we don't clutter back-to-back days.
+	// Interleave "Free for ~X" gap rows between upcoming items.
 	const upcomingWithGaps = $derived.by((): AgendaRow[] => {
 		const out: AgendaRow[] = [];
-		const minGapMin = Math.max(settingsStore.bufferMinutes * 2, 15);
 		// Anchor previous-end: end of "happening now" if there is one, else
 		// "now" itself on today, else undefined (no prior anchor for non-today).
 		let prevEnd: Date | undefined;
@@ -202,7 +204,7 @@
 			if (prevEnd) {
 				const gapMs = start.getTime() - prevEnd.getTime();
 				const gapMin = Math.round(gapMs / 60_000);
-				if (gapMin >= minGapMin) {
+				if (gapMin >= MIN_GAP_MINUTES) {
 					out.push({ kind: 'gap', from: prevEnd, to: start, minutes: gapMin });
 				}
 			}
@@ -343,7 +345,7 @@
 		</section>
 	{/if}
 
-	<!-- Upcoming (with gap rows interleaved) -->
+	<!-- Upcoming (with free-time gap rows interleaved) -->
 	{#if sections.upcoming.length > 0}
 		<section class="space-y-2">
 			<h3 class="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 px-1">
