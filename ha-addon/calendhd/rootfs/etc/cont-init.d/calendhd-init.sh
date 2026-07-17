@@ -49,26 +49,22 @@ bashio::log.info "Syncing calenDHD frontend to /config/calendhd/pb_public/..."
 rm -rf /config/calendhd/pb_public/*
 cp -r /opt/calendhd/public/. /config/calendhd/pb_public/ 2>/dev/null || true
 
-# Copy schema file for manual import if not present
-if [ ! -f /config/calendhd/pb_schema_import.json ]; then
-    cp /opt/pocketbase/pb_schema_import.json /config/calendhd/ 2>/dev/null || true
-fi
-
 # Copy hooks and migrations to config directory (always update from image)
 mkdir -p /config/calendhd/pb_hooks
 mkdir -p /config/calendhd/pb_migrations
 cp -r /opt/pocketbase/pb_hooks/* /config/calendhd/pb_hooks/ 2>/dev/null || true
 cp -r /opt/pocketbase/pb_migrations/* /config/calendhd/pb_migrations/ 2>/dev/null || true
 
-# Check if this is first run (no data.db yet)
+# Check if this is first run (no data.db yet). The schema is applied
+# automatically by the migrations in /config/calendhd/pb_migrations — the
+# only manual step is creating the PocketBase superuser.
 if [ ! -f /config/calendhd/pb_data/data.db ]; then
     bashio::log.warning "=================================================="
     bashio::log.warning "FIRST RUN SETUP REQUIRED"
     bashio::log.warning "=================================================="
-    bashio::log.warning "1. Go to: http://homeassistant.local:8090/_/ (or via HA sidebar)"
-    bashio::log.warning "2. Create your admin account"
-    bashio::log.warning "3. Go to Settings > Import collections"
-    bashio::log.warning "4. Import /config/calendhd/pb_schema_import.json"
+    bashio::log.warning "1. Go to: http://homeassistant.local:8090/_/"
+    bashio::log.warning "2. Create your PocketBase superuser account"
+    bashio::log.warning "   (collections are created automatically by migrations)"
     bashio::log.warning "=================================================="
 fi
 

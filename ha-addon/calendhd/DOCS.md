@@ -38,8 +38,7 @@ A calm, ADHD-friendly calendar Progressive Web App (PWA) for Home Assistant.
 
 ### Accessibility
 - Calm, soft color palette (no harsh contrasts)
-- Reduce animations option
-- High contrast mode
+- Honors the OS-level reduced-motion preference
 - No guilt messaging for overdue items
 - Multi-language support (English, Swedish)
 
@@ -47,16 +46,13 @@ A calm, ADHD-friendly calendar Progressive Web App (PWA) for Home Assistant.
 
 ### First Run Setup (Required)
 
-On first run, you need to set up the database:
+On first run, you need to create the database admin account:
 
 1. Start the add-on
 2. Go to Admin UI: `http://homeassistant.local:8090/_/`
-3. Create your admin email and password
-4. Go to **Settings** → **Import collections**
-5. Click **Load from JSON file** and select `/config/calendhd/pb_schema_import.json`
-   - Or access via Samba: `\\homeassistant\config\calendhd\pb_schema_import.json`
-6. Click **Review** → **Confirm and import**
-7. Access the calendar at `http://homeassistant.local:8090/`
+3. Create your admin email and password — the collections themselves are
+   created automatically by the bundled migrations, no manual import needed
+4. Access the calendar at `http://homeassistant.local:8090/`
 
 ### Hot-swap a newer frontend (optional)
 
@@ -116,7 +112,8 @@ All data is stored in `/config/calendhd/`:
 │   ├── data.db           # SQLite database
 │   └── storage/          # Uploaded files
 ├── pb_public/            # Frontend files (copy your build here)
-└── pb_schema_import.json # Schema file for initial import
+├── pb_hooks/             # Server hooks (synced from the image on start)
+└── pb_migrations/        # Schema migrations (applied automatically on start)
 ```
 
 ## Backup

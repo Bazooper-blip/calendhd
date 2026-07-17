@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-calenDHD is a calm, ADHD-friendly calendar PWA for neurodivergent minds. It's a client-only SvelteKit app backed by PocketBase, with IndexedDB (Dexie) as the local data store. Each instance serves as a singleton calendar for a single household — there is no multi-user authentication or household sharing; the app auto-logs in a home account (`home@calendhd.local`).
+calenDHD is a calm, ADHD-friendly calendar PWA for neurodivergent minds. It's a client-only SvelteKit app that reads and writes directly to PocketBase (server-first — the offline/Dexie layer was removed in 1.6.6). Each instance serves as a singleton calendar for a single household — there is no multi-user authentication or household sharing; the app auto-logs in a home account (`home@calendhd.local`).
 
 **Security model:** the network perimeter is the trust boundary. Anyone who can reach the URL has full access to the calendar. The singleton-account password is generated per-deployment by the addon init script (`/config/calendhd/.singleton-password`) and exposed to the frontend via `GET /api/calendhd/bootstrap` — there is **no** hardcoded password in the static bundle. Front the addon with Cloudflare Access, an SSL reverse proxy with auth, or LAN-only access for non-public deployments. See `pocketbase/pb_hooks/005_singleton_init.pb.js`.
 
@@ -42,10 +42,10 @@ SSR is disabled (`export const ssr = false` in `+layout.ts`). The app is built a
 
 ### Data Flow
 
-1. All mutations write to **IndexedDB (Dexie)** immediately
-2. UI updates optimistically from local data
-3. PocketBase realtime subscriptions pull remote changes back to local
-4. Server sync is attempted after each local write
+1. All reads and mutations go directly to **PocketBase** (single source of truth; a server connection is required)
+2. Rune-based stores hold the in-memory state the UI renders from
+3. PocketBase realtime subscriptions push remote changes into the stores
+4. On resume/wake the app refetches stale data (see `+layout.svelte`)
 
 ### Svelte 5 Runes
 
@@ -56,7 +56,6 @@ All stores use the Svelte 5 rune system (`$state`, `$derived`, `$effect`), not l
 Defined in `svelte.config.js`:
 - `$components` → `src/lib/components`
 - `$stores` → `src/lib/stores`
-- `$db` → `src/lib/db`
 - `$api` → `src/lib/api`
 - `$utils` → `src/lib/utils`
 - `$types` → `src/lib/types`
@@ -65,8 +64,6 @@ Defined in `svelte.config.js`:
 
 | Module | Path | Purpose |
 |--------|------|---------|
-| Database | `src/lib/db/index.ts` | Dexie schema (events, categories, templates, subscriptions, external_events, settings, routine_templates) |
-| Routines DB | `src/lib/db/routines.ts` | Routine template local DB helpers |
 | API | `src/lib/api/pocketbase.ts` | PocketBase client, collection helpers, realtime subscriptions |
 | Stores | `src/lib/stores/*.svelte.ts` | Rune-based stores: auth, calendar, categories, templates, settings, routines |
 | i18n | `src/lib/i18n/` | English (default, sync-loaded) and Swedish (lazy-loaded) via svelte-i18n; locale files must stay key-balanced (Python structural diff in CI-style sweeps) |
@@ -74,7 +71,7 @@ Defined in `svelte.config.js`:
 | Recurrence | `src/lib/utils/recurrence.ts` | Recurrence rule formatting and presets |
 | Notifications | `src/lib/utils/notifications.ts` | Web Push API, VAPID key handling |
 | Sample routines | `src/lib/utils/sampleRoutines.ts` | Hardcoded starter-pack routines used by the empty-state button on `/routines` |
-| Types | `src/lib/types/index.ts` | Core types: CalendarEvent/LocalEvent, Category/LocalCategory, Template, RoutineTemplate, DisplayEvent, RecurrenceRule, UserSettings |
+| Types | `src/lib/types/index.ts` | Core types: CalendarEvent, Category, Template, RoutineTemplate, DisplayEvent, RecurrenceRule, UserSettings |
 
 ### Stores
 
@@ -86,7 +83,7 @@ All stores are singletons using Svelte 5 runes in `.svelte.ts` files:
 | `calendar.svelte.ts` | currentDate, viewType, events, displayEvents | Calendar state, event CRUD, flexible timing cascade for routine steps; fires routine-completion celebration toast |
 | `settings.svelte.ts` | settings | User preferences: default view, week start, time format, theme, accent, locale, timezone, reminders, notification sound. (The old "Focus" section — density, buffer, daily wins, streaks — was removed along with those features) |
 | `categories.svelte.ts` | categories | Category CRUD with 8 default colors, reorderable |
-| `templates.svelte.ts` | templates | Event template CRUD with local sync |
+| `templates.svelte.ts` | templates | Event template CRUD |
 | `routines.svelte.ts` | routines | Routine template CRUD with active/inactive toggling |
 
 ### Components
@@ -98,7 +95,7 @@ src/lib/components/
 │               RoutineBlock, ExternalEventModal
 ├── event/      EventForm, QuickAdd
 ├── ui/         Button, Input, Modal, Select, Toggle, ColorPicker, IconPicker,
-│               EventIcon, OfflineIndicator
+│               EventIcon
 └── index.ts    Barrel re-export of all subcomponents
 ```
 
@@ -116,21 +113,6 @@ src/lib/components/
 - `/routines`, `/routines/new`, `/routines/[id]` — Routine template management; empty-state offers "Add starter routines"
 - `/categories`, `/templates`, `/subscriptions`, `/settings` — Management pages
 
-### Dexie Database Schema
-
-8 tables with offline-first sync support (`sync_status: 'synced' | 'pending' | 'conflict' | 'deleted'`):
-
-| Table | Key | Purpose |
-|-------|-----|---------|
-| events | local_id | Calendar events with recurrence, reminders, routine refs |
-| categories | local_id | Color-coded categories with sort_order |
-| templates | local_id | Reusable event templates |
-| routine_templates | local_id | Routine definitions with steps, schedule, energy levels |
-| subscriptions | id | External iCal feed subscriptions |
-| external_events | id | Read-only events from subscriptions |
-| external_event_reminders | id | Per-external-event reminder override (keyed by subscription+ical_uid). Mirrored from PB; pure local cache for the modal. |
-| settings | id | User preferences |
-
 ### PocketBase
 
 **Migrations** (`pocketbase/pb_migrations/`):
@@ -143,6 +125,7 @@ src/lib/components/
 7. `0007_push_subscriptions.js` — new `push_subscriptions` collection (one row per device, keyed by unique Web Push endpoint); backfills the legacy `user_settings.push_subscription` blob and drops it (no compat shim — see Multi-device push below)
 8. `0008_day_view_style.js` — `user_settings.day_view_style` (timeline/agenda; column still exists but the app no longer reads it — day view is always agenda)
 9. `0009_remove_brain_dump.js` — drops the `brain_dump` collection (feature removed from the app)
+10. `0010_prune_unused_fields.js` — drops columns nothing reads or writes: `user_settings.{reduce_animations, high_contrast, ha_device_id, notification_method, buffer_minutes, density, daily_wins_enabled, streak_celebration_enabled, day_view_style}`, `events.{image, local_id, last_synced, recurrence_parent, template}`, `templates.image`, `external_events.raw_ics`. Also removed the stale `pb_schema_import.json` manual-import path — migrations are the only schema mechanism.
 
 **Hooks** (`pocketbase/pb_hooks/`):
 - `005_singleton_init.pb.js` — Creates/rotates the singleton `home@calendhd.local` user on bootstrap; serves credentials at `GET /api/calendhd/bootstrap` (same-origin)
@@ -204,7 +187,6 @@ ha-addon/calendhd/
 ├── Dockerfile               # Multi-arch build: base image + PocketBase + frontend + push-service
 ├── pb_hooks/                # Copied from pocketbase/pb_hooks/ (must stay in sync)
 ├── pb_migrations/           # Copied from pocketbase/pb_migrations/ (must stay in sync)
-├── pb_schema_import.json    # Full schema export for manual import
 ├── translations/en.yaml     # HA config UI translations
 ├── rootfs/
 │   ├── run.sh               # Startup: launches PocketBase on 0.0.0.0:8090
@@ -252,7 +234,7 @@ ha-addon/calendhd/
 - **Tailwind CSS 4** via `@tailwindcss/vite` plugin (no PostCSS config, no `tailwind.config` file)
 - **Calm color palette**: Primary sage green (`#7C9885`), secondary lavender (`#9A88B5`), accent peach (`#E8A383`); 8 soft category colors; UI avoids harsh contrasts
 - **Dark mode**: CSS class strategy with theme toggle in settings. Convention: `bg-white → dark:bg-neutral-800`, `bg-neutral-50 → dark:bg-neutral-900`, `text-neutral-{700,800,900} → dark:text-neutral-{200,100,50}`, `border-neutral-{100,200} → dark:border-neutral-{800,700}`, color-tinted bgs use `dark:bg-{color}-900/{20-30}`. Bright accent buttons (`bg-primary-500`) need NO dark variant.
-- **Dual type system**: Server types (e.g. `CalendarEvent`) extend `BaseRecord`; local types (e.g. `LocalEvent`) add `local_id` and `sync_status`
+- **Types**: Server record types (e.g. `CalendarEvent`) extend `BaseRecord`; `DisplayEvent` is the expanded client-side shape calendar views render
 - **Barrel exports**: Each `src/lib/` subdirectory has an `index.ts` re-exporting its contents
 - **i18n**: All user-facing text uses `$t('key')` / `$_('key')` from svelte-i18n; keys organized hierarchically in `src/lib/i18n/locales/{en,sv}.json`. Both files MUST stay key-balanced — verify with the Python structural diff snippet:
   ```bash

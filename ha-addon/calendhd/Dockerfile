@@ -42,9 +42,6 @@ RUN chmod +x \
     /etc/services.d/push-service/finish \
     /run.sh
 
-# Copy PocketBase schema for import
-COPY pb_schema_import.json /opt/pocketbase/pb_schema_import.json
-
 # Copy PocketBase hooks and migrations
 COPY pb_hooks/ /opt/pocketbase/pb_hooks/
 COPY pb_migrations/ /opt/pocketbase/pb_migrations/
