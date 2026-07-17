@@ -1,6 +1,6 @@
 {
   "name": "calendhd",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "A calm, ADHD-friendly calendar PWA for neurodivergent minds",
   "private": true,
   "type": "module",

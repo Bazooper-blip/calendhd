@@ -225,23 +225,7 @@
 		"pushNotConfigured": "Push notifications not configured on server",
 		"notificationsEnableFailed": "Failed to enable notifications",
 		"notificationsDisableFailed": "Failed to disable notifications",
-		"testNotificationFailed": "Failed to send test notification",
-		"focus": "Focus",
-		"density": "Layout density",
-		"densityDescription": "How tightly to pack events on the calendar",
-		"densityCompact": "Compact",
-		"densityComfortable": "Comfortable",
-		"densitySpacious": "Spacious",
-		"bufferMinutes": "Transition time between events",
-		"bufferMinutesDescription": "Show a gentle reminder when events are scheduled with less than this much breathing room (minutes)",
-		"dailyWins": "End-of-day wins",
-		"dailyWinsDescription": "Show what you completed at the end of the day",
-		"streakCelebration": "Routine streak + celebration",
-		"streakCelebrationDescription": "Track day-streaks for routines and celebrate when one finishes",
-		"dayViewStyle": "Day view style",
-		"dayViewStyleDescription": "How to lay out today's events. Agenda groups them by past / now / upcoming with free-time hints.",
-		"dayViewStyleTimeline": "Timeline (24-hour grid)",
-		"dayViewStyleAgenda": "Agenda (chronological list)"
+		"testNotificationFailed": "Failed to send test notification"
 	},
 	"subscription": {
 		"title": "Subscriptions",
@@ -338,7 +322,6 @@
 		"summary": "{count, plural, one {# thing done} other {# things done}} · {minutes} of focus · {routines, plural, =0 {no routines fully complete} one {# routine fully complete} other {# routines fully complete}}"
 	},
 	"calendar": {
-		"tightGap": "{minutes} min transition",
 		"next": "Next:",
 		"in": "in",
 		"tomorrow": "tomorrow",

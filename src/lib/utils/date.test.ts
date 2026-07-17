@@ -11,6 +11,7 @@ import {
 	parseTimeToDate,
 	getDaysInRange,
 	getEventPosition,
+	computeEventLanes,
 	isToday,
 	isSameDay,
 	isSameMonth,
@@ -206,6 +207,95 @@ describe('getEventPosition', () => {
 
 		// 4h should be exactly 2x the height of 2h (both above min height)
 		expect(pos4h.height).toBeCloseTo(pos2h.height * 2, 1);
+	});
+});
+
+describe('computeEventLanes', () => {
+	const at = (h: number, m = 0) => new Date(2026, 3, 5, h, m);
+
+	it('gives non-overlapping events full width', () => {
+		const lanes = computeEventLanes([
+			{ start: at(9), end: at(10) },
+			{ start: at(11), end: at(12) }
+		]);
+		expect(lanes).toEqual([
+			{ lane: 0, laneCount: 1 },
+			{ lane: 0, laneCount: 1 }
+		]);
+	});
+
+	it('splits two simultaneous events into two lanes', () => {
+		const lanes = computeEventLanes([
+			{ start: at(10), end: at(11) },
+			{ start: at(10, 15), end: at(11, 15) }
+		]);
+		expect(lanes[0]).toEqual({ lane: 0, laneCount: 2 });
+		expect(lanes[1]).toEqual({ lane: 1, laneCount: 2 });
+	});
+
+	it('keeps input order independent of chronological order', () => {
+		const lanes = computeEventLanes([
+			{ start: at(10, 30), end: at(11) },
+			{ start: at(10), end: at(12) }
+		]);
+		// Second input item starts earlier and is longer → lane 0
+		expect(lanes[1]).toEqual({ lane: 0, laneCount: 2 });
+		expect(lanes[0]).toEqual({ lane: 1, laneCount: 2 });
+	});
+
+	it('three-way overlap gets three lanes', () => {
+		const lanes = computeEventLanes([
+			{ start: at(10), end: at(12) },
+			{ start: at(10, 30), end: at(11, 30) },
+			{ start: at(11), end: at(13) }
+		]);
+		expect(lanes.map((l) => l.laneCount)).toEqual([3, 3, 3]);
+		expect(new Set(lanes.map((l) => l.lane)).size).toBe(3);
+	});
+
+	it('reuses a freed lane after an event ends', () => {
+		const lanes = computeEventLanes([
+			{ start: at(9), end: at(12) },
+			{ start: at(9), end: at(10) },
+			{ start: at(10, 30), end: at(11, 30) }
+		]);
+		// Third event starts after the second ended → shares its lane
+		expect(lanes[2].lane).toBe(lanes[1].lane);
+		expect(lanes.map((l) => l.laneCount)).toEqual([2, 2, 2]);
+	});
+
+	it('separate clusters do not affect each other lane counts', () => {
+		const lanes = computeEventLanes([
+			{ start: at(9), end: at(10) },
+			{ start: at(9), end: at(10) },
+			{ start: at(14), end: at(15) }
+		]);
+		expect(lanes[0].laneCount).toBe(2);
+		expect(lanes[1].laneCount).toBe(2);
+		expect(lanes[2]).toEqual({ lane: 0, laneCount: 1 });
+	});
+
+	it('treats visually-overlapping short events as overlapping (45 min footprint)', () => {
+		// 15-min events 15 minutes apart: disjoint in time, but each is drawn
+		// at ≥45 min tall so they collide on screen
+		const lanes = computeEventLanes([
+			{ start: at(10, 0), end: at(10, 15) },
+			{ start: at(10, 30), end: at(10, 45) }
+		]);
+		expect(lanes[0].laneCount).toBe(2);
+		expect(lanes[0].lane).not.toBe(lanes[1].lane);
+	});
+
+	it('applies the 60-min default footprint to events without an end', () => {
+		const lanes = computeEventLanes([
+			{ start: at(10) },
+			{ start: at(10, 45), end: at(11, 45) }
+		]);
+		expect(lanes[0].laneCount).toBe(2);
+	});
+
+	it('handles empty input', () => {
+		expect(computeEventLanes([])).toEqual([]);
 	});
 });
 

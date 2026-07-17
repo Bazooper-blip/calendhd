@@ -169,11 +169,9 @@ export interface UserSettings extends BaseRecord {
 	default_reminders: ReminderConfig[];
 	notification_sound: boolean;
 	timezone: string;
-	buffer_minutes?: number; // ADHD: visual transition-time gap between events (default 10)
-	density?: 'compact' | 'comfortable' | 'spacious'; // ADHD: layout density preference
+	buffer_minutes?: number; // ADHD: agenda free-time gap threshold (default 10)
 	daily_wins_enabled?: boolean; // ADHD: show end-of-day completion summary
 	streak_celebration_enabled?: boolean; // ADHD: celebrate routine completion + show streak
-	day_view_style?: 'timeline' | 'agenda'; // ADHD: 24h grid vs chronological list with past/now/upcoming sections
 }
 
 // Calendar view event (expanded for display)

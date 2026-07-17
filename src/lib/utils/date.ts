@@ -129,6 +129,58 @@ export function getEventPosition(
 	};
 }
 
+// Assign side-by-side lanes to overlapping timed items so each stays
+// individually visible/tappable. Items that overlap (transitively) form a
+// cluster; every item in a cluster shares the same laneCount so widths line
+// up. The visual footprint mirrors getEventPosition: no-end items occupy 60
+// minutes, and everything occupies at least 45 minutes — two short
+// back-to-back events overlap on screen even when they don't in time.
+export function computeEventLanes(
+	items: Array<{ start: Date; end?: Date }>
+): Array<{ lane: number; laneCount: number }> {
+	const MIN_FOOTPRINT_MS = 45 * 60_000;
+	const starts = items.map((it) => it.start.getTime());
+	const ends = items.map((it, i) => {
+		const end = it.end ? it.end.getTime() : starts[i] + 60 * 60_000;
+		return Math.max(end, starts[i] + MIN_FOOTPRINT_MS);
+	});
+
+	// Earlier start first; on ties the longer item first so it claims lane 0
+	const order = items
+		.map((_, i) => i)
+		.sort((a, b) => starts[a] - starts[b] || ends[b] - ends[a]);
+
+	const result = items.map(() => ({ lane: 0, laneCount: 1 }));
+
+	let cluster: number[] = [];
+	let laneEnds: number[] = []; // per-lane end time of its latest item
+	let clusterEnd = -Infinity;
+
+	const closeCluster = () => {
+		for (const idx of cluster) result[idx].laneCount = laneEnds.length;
+		cluster = [];
+		laneEnds = [];
+		clusterEnd = -Infinity;
+	};
+
+	for (const idx of order) {
+		if (cluster.length > 0 && starts[idx] >= clusterEnd) closeCluster();
+		let lane = laneEnds.findIndex((end) => end <= starts[idx]);
+		if (lane === -1) {
+			lane = laneEnds.length;
+			laneEnds.push(ends[idx]);
+		} else {
+			laneEnds[lane] = ends[idx];
+		}
+		result[idx].lane = lane;
+		cluster.push(idx);
+		clusterEnd = Math.max(clusterEnd, ends[idx]);
+	}
+	closeCluster();
+
+	return result;
+}
+
 // Timezone-aware isToday check
 export function isToday(date: Date): boolean {
 	const zonedDate = toZonedTime(date, dateConfig.timezone);

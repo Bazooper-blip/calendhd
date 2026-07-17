@@ -55,18 +55,11 @@ function createSettingsStore() {
 		get bufferMinutes() {
 			return settings?.buffer_minutes ?? defaults.buffer_minutes ?? 10;
 		},
-		get density(): 'compact' | 'comfortable' | 'spacious' {
-			return (settings?.density ?? defaults.density ?? 'comfortable') as 'compact' | 'comfortable' | 'spacious';
-		},
 		get dailyWinsEnabled() {
 			return settings?.daily_wins_enabled ?? defaults.daily_wins_enabled ?? true;
 		},
 		get streakCelebrationEnabled() {
 			return settings?.streak_celebration_enabled ?? defaults.streak_celebration_enabled ?? true;
-		},
-		get dayViewStyle(): 'timeline' | 'agenda' {
-			const val = settings?.day_view_style ?? defaults.day_view_style;
-			return val === 'agenda' ? 'agenda' : 'timeline';
 		},
 
 		async load() {

@@ -3,6 +3,7 @@
 	import { browser } from '$app/environment';
 	import { calendar, settingsStore, routinesStore } from '$stores';
 	import {
+		computeEventLanes,
 		formatDayOfWeek,
 		getContrastColor,
 		getDaysInRange,
@@ -130,6 +131,29 @@
 		}
 
 		return processed;
+	}
+
+	// Side-by-side lanes for items that overlap on screen, so narrow mobile
+	// columns never stack blocks on top of each other untappably.
+	function getLaidOutEventsForDay(
+		day: Date
+	): Array<{ item: ProcessedEvent; lane: number; laneCount: number }> {
+		const processed = getProcessedEventsForDay(day, false);
+		const lanes = computeEventLanes(
+			processed.map((item) =>
+				item.kind === 'single'
+					? { start: item.event.start, end: item.event.end }
+					: { start: item.start, end: item.end }
+			)
+		);
+		return processed.map((item, i) => ({ item, ...lanes[i] }));
+	}
+
+	function laneStyle(lane: number, laneCount: number): string {
+		if (laneCount <= 1) return '';
+		const left = (lane / laneCount) * 100;
+		const width = 100 / laneCount;
+		return `left: calc(${left}% + 2px); width: calc(${width}% - 4px);`;
 	}
 
 	// Current time indicator
@@ -262,12 +286,12 @@
 						{/if}
 
 						<!-- Events -->
-						{#each getProcessedEventsForDay(day, false) as item (item.kind === 'single' ? item.event.id : item.routine_template)}
+						{#each getLaidOutEventsForDay(day) as { item, lane, laneCount } (item.kind === 'single' ? item.event.id : item.routine_template)}
 							{#if item.kind === 'single'}
 								{@const pos = getEventPosition(item.event.start, item.event.end, day)}
 								<EventBlock
 									event={item.event}
-									style="top: {pos.top}%; height: {pos.height}%;"
+									style="top: {pos.top}%; height: {pos.height}%; {laneStyle(lane, laneCount)}"
 									compact={true}
 									onclick={() => handleEventClick(item.event)}
 								/>
@@ -279,7 +303,7 @@
 									color={item.color}
 									icon={item.icon}
 									steps={item.steps}
-									style="top: {pos.top}%; height: {pos.height}%;"
+									style="top: {pos.top}%; height: {pos.height}%; {laneStyle(lane, laneCount)}"
 									compact={true}
 									target_end_time={item.target_end_time}
 								/>

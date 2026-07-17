@@ -85,7 +85,7 @@ All stores are singletons using Svelte 5 runes in `.svelte.ts` files:
 |-------|-----------|---------|
 | `auth.svelte.ts` | user, isAuthenticated | Auto-login singleton account; fetches credentials from `/api/calendhd/bootstrap` (no hardcoded password) |
 | `calendar.svelte.ts` | currentDate, viewType, events, displayEvents | Calendar state, event CRUD, flexible timing cascade for routine steps; fires routine-completion celebration toast |
-| `settings.svelte.ts` | settings (15+ keys) | User preferences. Includes ADHD knobs: `buffer_minutes`, `density`, `daily_wins_enabled`, `streak_celebration_enabled` |
+| `settings.svelte.ts` | settings (15+ keys) | User preferences. ADHD behaviors (`buffer_minutes`, `daily_wins_enabled`, `streak_celebration_enabled`) are always-on defaults — the old "Focus" settings section was removed |
 | `categories.svelte.ts` | categories | Category CRUD with 8 default colors, reorderable |
 | `templates.svelte.ts` | templates | Event template CRUD with local sync |
 | `routines.svelte.ts` | routines | Routine template CRUD with active/inactive toggling |
@@ -95,19 +95,18 @@ All stores are singletons using Svelte 5 runes in `.svelte.ts` files:
 ```
 src/lib/components/
 ├── layout/     Header, Sidebar
-├── calendar/   DayView, WeekView, MonthView, EventBlock, RoutineBlock,
-│               DayProgress, DailyWinsBanner
+├── calendar/   DayView, AgendaView, WeekView, MonthView, EventBlock,
+│               RoutineBlock, DailyWinsBanner
 ├── event/      EventForm, QuickAdd
 ├── ui/         Button, Input, Modal, Select, Toggle, ColorPicker, IconPicker,
 │               EventIcon, OfflineIndicator
 └── index.ts    Barrel re-export of all subcomponents
 ```
 
-**Time-blindness UX in DayView** (intentional design — keep these affordances coherent when editing):
-- DayProgress bar (waking-hours percent)
-- Horizontal red "now" line at the current minute, with auto-scroll-to-now on mount
+**Time-blindness UX** (intentional design — keep these affordances coherent when editing):
+- Day view is agenda-only (`DayView` = header + `AgendaView`; the old 24h-grid "timeline" style was removed): past/now/upcoming sections, pulsing "Now" cards with minutes-left, a highlighted next-up card with time-until, "Free for ~X" gap rows, collapsed "earlier today", and a tomorrow-preview footer
+- Week view: horizontal red "now" line at the current minute with auto-scroll-to-now; overlapping events split into side-by-side lanes (`computeEventLanes` in `date.ts`) so each stays tappable on narrow columns
 - "Happening now" sage ring + pulsing badge on the active event/routine
-- "Next: …" pill in the day header showing the next event's icon, title, and time-until
 - DailyWinsBanner at top of today's view after 21:00 when there are completions
 
 ### Routes
@@ -144,7 +143,7 @@ src/lib/components/
 5. `0005_external_event_reminders.js` — `calendar_subscriptions.{reminders_enabled, default_reminder_minutes}`; new `external_event_reminders` collection (per-event overrides keyed by subscription+ical_uid); new `external_scheduled_reminders` collection (parallel to `scheduled_reminders` for the external-event reminder pipeline)
 6. `0006_scheduled_reminders_web_push.js` — adds `"web_push"` to `scheduled_reminders.delivery_method` allowed values (was masked before 1.5.4 because the cron never ran)
 7. `0007_push_subscriptions.js` — new `push_subscriptions` collection (one row per device, keyed by unique Web Push endpoint); backfills the legacy `user_settings.push_subscription` blob and drops it (no compat shim — see Multi-device push below)
-8. `0008_day_view_style.js` — `user_settings.day_view_style` (timeline/agenda)
+8. `0008_day_view_style.js` — `user_settings.day_view_style` (timeline/agenda; column still exists but the app no longer reads it — day view is always agenda)
 9. `0009_remove_brain_dump.js` — drops the `brain_dump` collection (feature removed from the app)
 
 **Hooks** (`pocketbase/pb_hooks/`):
