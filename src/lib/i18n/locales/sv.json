@@ -326,6 +326,7 @@
 		"now": "Nu",
 		"upcoming": "Kommande",
 		"allEvents": "Händelser",
+		"freeFor": "Ledig i ~{duration}",
 		"minLeft": "{duration} kvar",
 		"moreSteps": "till"
 	},

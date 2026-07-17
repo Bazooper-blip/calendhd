@@ -326,6 +326,7 @@
 		"now": "Now",
 		"upcoming": "Upcoming",
 		"allEvents": "Events",
+		"freeFor": "Free for ~{duration}",
 		"minLeft": "{duration} left",
 		"moreSteps": "more"
 	},

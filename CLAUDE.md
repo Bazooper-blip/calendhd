@@ -103,7 +103,7 @@ src/lib/components/
 ```
 
 **Time-blindness UX** (intentional design — keep these affordances coherent when editing):
-- Day view is agenda-only (`DayView` = header + `AgendaView`; the old 24h-grid "timeline" style was removed): past/now/upcoming sections, pulsing "Now" cards with minutes-left, a highlighted next-up card with time-until, collapsed "earlier today", and a tomorrow-preview footer
+- Day view is agenda-only (`DayView` = header + `AgendaView`; the old 24h-grid "timeline" style was removed): past/now/upcoming sections, pulsing "Now" cards with minutes-left, a highlighted next-up card with time-until, "Free for ~X" gap rows (fixed ≥20 min threshold, not a setting), collapsed "earlier today", and a tomorrow-preview footer
 - Week view: horizontal red "now" line at the current minute with auto-scroll-to-now; overlapping events split into side-by-side lanes (`computeEventLanes` in `date.ts`) so each stays tappable on narrow columns
 - "Happening now" sage ring + pulsing badge on the active event/routine
 

@@ -49,6 +49,13 @@
 		| { kind: 'single'; event: DisplayEvent }
 		| RoutineGroup;
 
+	type GapRow = { kind: 'gap'; from: Date; to: Date; minutes: number };
+	type AgendaRow = { kind: 'event'; item: ProcessedEvent } | GapRow;
+
+	// Only show "Free for ~X" rows for gaps at least this long, so
+	// back-to-back days don't get cluttered. Fixed value — not a setting.
+	const MIN_GAP_MINUTES = 20;
+
 	let { date }: { date: Date } = $props();
 
 	let now = $state(new Date());
@@ -179,6 +186,32 @@
 			}
 		}
 		return { past, current, upcoming };
+	});
+
+	// Interleave "Free for ~X" gap rows between upcoming items.
+	const upcomingWithGaps = $derived.by((): AgendaRow[] => {
+		const out: AgendaRow[] = [];
+		// Anchor previous-end: end of "happening now" if there is one, else
+		// "now" itself on today, else undefined (no prior anchor for non-today).
+		let prevEnd: Date | undefined;
+		if (sections.current.length > 0) {
+			prevEnd = itemEndOrStartPlus(sections.current[sections.current.length - 1]);
+		} else if (isToday(date)) {
+			prevEnd = now;
+		}
+		for (const item of sections.upcoming) {
+			const start = itemStart(item);
+			if (prevEnd) {
+				const gapMs = start.getTime() - prevEnd.getTime();
+				const gapMin = Math.round(gapMs / 60_000);
+				if (gapMin >= MIN_GAP_MINUTES) {
+					out.push({ kind: 'gap', from: prevEnd, to: start, minutes: gapMin });
+				}
+			}
+			out.push({ kind: 'event', item });
+			prevEnd = itemEndOrStartPlus(item);
+		}
+		return out;
 	});
 
 	function formatRelative(min: number): string {
@@ -312,18 +345,30 @@
 		</section>
 	{/if}
 
-	<!-- Upcoming -->
+	<!-- Upcoming (with free-time gap rows interleaved) -->
 	{#if sections.upcoming.length > 0}
 		<section class="space-y-2">
 			<h3 class="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 px-1">
 				{isToday(date) ? $_('agenda.upcoming') : $_('agenda.allEvents')}
 			</h3>
 			<div class="space-y-1.5">
-				{#each sections.upcoming as item, idx (item.kind === 'single' ? item.event.id : item.routine_template)}
-					{#if isToday(date) && idx === 0}
-						{@render bigCard(item, 'next')}
+				{#each upcomingWithGaps as row, idx (idx)}
+					{#if row.kind === 'gap'}
+						<div class="flex items-center gap-2 px-1 py-1 text-xs text-neutral-400 dark:text-neutral-500">
+							<div class="flex-1 h-px bg-neutral-200 dark:bg-neutral-700"></div>
+							<span class="px-2 italic">
+								{$_('agenda.freeFor', { values: { duration: formatRelative(row.minutes) } })}
+							</span>
+							<div class="flex-1 h-px bg-neutral-200 dark:bg-neutral-700"></div>
+						</div>
 					{:else}
-						{@render compactRow(item, false)}
+						{@const isNextUp = isToday(date)
+							&& idx === upcomingWithGaps.findIndex((r) => r.kind === 'event')}
+						{#if isNextUp}
+							{@render bigCard(row.item, 'next')}
+						{:else}
+							{@render compactRow(row.item, false)}
+						{/if}
 					{/if}
 				{/each}
 			</div>

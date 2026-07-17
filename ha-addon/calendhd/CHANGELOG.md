@@ -4,7 +4,7 @@
 
 - Week view: events that overlap on screen now split into side-by-side lanes instead of stacking on top of each other, so every event stays visible and individually tappable on narrow mobile columns. Short events get a minimum visual footprint in the lane math, matching how tall they're actually drawn.
 - Day view is now always the agenda layout (past / now / upcoming with free-time gaps); the 24-hour-grid "timeline" style and its "Day view style" setting were removed.
-- Removed the "Focus" settings section and its features entirely: layout density (it only styled the removed timeline layout, which is why changing it appeared to do nothing), the transition-time buffer and the agenda's "Free for ~X" gap rows it powered, the end-of-day wins banner, and routine streaks + completion celebration (the 🔥 badge and toast).
+- Removed the "Focus" settings section and its features: layout density (it only styled the removed timeline layout, which is why changing it appeared to do nothing), the transition-time buffer setting, the end-of-day wins banner, and routine streaks + completion celebration (the 🔥 badge and toast). The agenda's "Free for ~X" rows stay, now with a fixed 20-minute threshold instead of a setting.
 
 ## 1.7.0
 
