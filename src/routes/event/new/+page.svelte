@@ -31,7 +31,6 @@
 				is_all_day: data.is_all_day,
 				is_task: data.is_task,
 				category: data.category,
-				template: data.template,
 				color_override: data.color_override,
 				icon: data.icon,
 				reminders: data.reminders,

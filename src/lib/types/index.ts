@@ -30,7 +30,6 @@ export interface Template extends BaseRecord {
 	default_is_all_day: boolean;
 	default_reminders: ReminderConfig[];
 	description?: string;
-	image?: string;
 	icon?: string;
 	color_override?: string;
 }
@@ -84,7 +83,6 @@ export interface ReminderConfig {
 // Calendar event
 export interface CalendarEvent extends BaseRecord {
 	user: string;
-	template?: string;
 	category?: string;
 	title: string;
 	description?: string;
@@ -93,11 +91,9 @@ export interface CalendarEvent extends BaseRecord {
 	end_time?: string; // ISO datetime (optional)
 	is_all_day: boolean;
 	is_task?: boolean; // if true, shows checkbox and can be marked complete
-	image?: string;
 	icon?: string;
 	color_override?: string;
 	recurrence_rule?: RecurrenceRule;
-	recurrence_parent?: string; // self-relation for recurrence instances
 	routine_template?: string; // relation to routine_templates
 	routine_step_index?: number; // 0-based index of the step within the routine
 	energy_level?: EnergyLevel;
@@ -131,7 +127,6 @@ export interface ExternalEvent extends BaseRecord {
 	is_all_day: boolean;
 	location?: string;
 	recurrence_rule?: RecurrenceRule;
-	raw_ics?: string;
 }
 
 // Per-external-event reminder override, keyed by stable iCal UID so it
@@ -204,7 +199,6 @@ export interface EventFormData {
 	is_all_day: boolean;
 	is_task: boolean;
 	category?: string;
-	template?: string;
 	color_override?: string;
 	icon?: string;
 	reminders: ReminderConfig[];

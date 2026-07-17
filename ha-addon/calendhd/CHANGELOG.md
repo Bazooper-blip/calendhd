@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.7.2
+
+- Database cleanup: migration 0010 drops schema columns that no code has ever read or written — `user_settings.{reduce_animations, high_contrast, ha_device_id, notification_method}` (features that never shipped / pre-web-push notification design), the Focus-era columns removed from the app in 1.7.1 (`buffer_minutes`, `density`, `daily_wins_enabled`, `streak_celebration_enabled`, `day_view_style`), the offline-era `events.{local_id, last_synced}`, the never-populated `events.{image, recurrence_parent, template}` and `templates.image`, and `external_events.raw_ics`.
+- Removed the outdated `pb_schema_import.json` and every instruction telling you to import it manually. It was missing four collections added since (routines, push subscriptions, external-event reminders) and importing it would have wrecked a migration-managed schema. Collections are — and always were, since migrations shipped — created automatically on addon start; first-run setup is now just "create the PocketBase superuser".
+- Docs: CLAUDE.md/DOCS.md no longer describe the removed offline/Dexie layer or unshipped accessibility toggles.
+
 ## 1.7.1
 
 - Week view: events that overlap on screen now split into side-by-side lanes instead of stacking on top of each other, so every event stays visible and individually tappable on narrow mobile columns. Short events get a minimum visual footprint in the lane math, matching how tall they're actually drawn.

@@ -38,7 +38,7 @@ This guide walks you through installing calenDHD on your Home Assistant installa
 1. Open `http://<ha-host>:8090/_/` (e.g. `http://homeassistant.local:8090/_/`)
 2. Create the superuser email and password
 3. This is the admin password for the **database**, not an account for the calendar app.
-4. Settings → Import collections → load `/config/calendhd/pb_schema_import.json` → Review → Confirm.
+4. That's it — the collections are created automatically by the bundled migrations; no manual schema import is needed.
 
 ### Step 5: Use the Calendar
 

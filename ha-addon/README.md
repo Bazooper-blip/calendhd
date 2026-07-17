@@ -32,9 +32,8 @@ Features:
 
 ## First-Time Setup
 
-1. Open `http://<ha-host>:8090/_/` (PocketBase admin) and create the **PocketBase superuser** — this is just the admin password for the database, not a user account for the app.
-2. Settings → Import collections → load `/config/calendhd/pb_schema_import.json`.
-3. Open `http://<ha-host>:8090/` — the calendar loads, auto-logged-in as `home@calendhd.local`. No sign-up step.
+1. Open `http://<ha-host>:8090/_/` (PocketBase admin) and create the **PocketBase superuser** — this is just the admin password for the database, not a user account for the app. Collections are created automatically by the bundled migrations.
+2. Open `http://<ha-host>:8090/` — the calendar loads, auto-logged-in as `home@calendhd.local`. No sign-up step.
 
 ## Remote / HTTPS access
 
