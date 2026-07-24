@@ -140,6 +140,11 @@ function call(opts) {
 	check('empty: 24h default', b.time_format === '24h');
 	check('empty: task counters zero', b.tasks_total_today === 0 && b.tasks_done_today === 0);
 	check(
+		'empty: english strings',
+		b.strings && b.strings.now === 'NOW' && b.strings.all_day === 'All day' && b.strings.in_prefix === 'in',
+		JSON.stringify(b.strings)
+	);
+	check(
 		'empty: day_progress in range',
 		typeof b.day_progress === 'number' && b.day_progress >= 0 && b.day_progress <= 100
 	);
@@ -300,8 +305,59 @@ function call(opts) {
 	check('sv: locale detected', b.locale === 'sv');
 	check('sv: today label', b.days[0].label === 'Idag');
 	check('sv: tomorrow label', b.days[1].label === 'Imorgon');
+	check(
+		'sv: swedish strings',
+		b.strings && b.strings.now === 'NU' && b.strings.all_day === 'Heldag' && b.strings.left === 'kvar' && b.strings.in_prefix === 'om',
+		JSON.stringify(b.strings)
+	);
 	const fika = b.days[0].events[0];
 	check('12h: PM time', fika && fika.time === '2:05 PM', fika && fika.time);
+}
+
+// =====================================================================
+// 5. Per-day event cap (?limit=)
+// =====================================================================
+{
+	envVars = {};
+	const now = new Date();
+	const today0 = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+
+	// 60 timed events, all safely inside today (00:00–00:59)
+	const manyEvents = [];
+	for (let i = 0; i < 60; i++) {
+		manyEvents.push(
+			fakeRecord('bulk' + i, {
+				title: 'Event ' + i,
+				start_time: pbDateString(new Date(today0.getTime() + i * 60000)),
+				is_all_day: false,
+				is_task: i < 3,
+				completed_at: i === 0 ? pbDateString(today0) : ''
+			})
+		);
+	}
+	collections = { events: manyEvents, external_events: [] };
+
+	const def = call().body.days[0];
+	check('limit: default 10', def.events.length === 10, 'got ' + def.events.length);
+	check('limit: default more_count', def.more_count === 50, 'got ' + def.more_count);
+
+	const t = call({ query: { limit: '2' } }).body;
+	const day2 = t.days[0];
+	check('limit: limit=2 respected', day2.events.length === 2, 'got ' + day2.events.length);
+	check('limit: limit=2 more_count', day2.more_count === 58, 'got ' + day2.more_count);
+	check('limit: event_count unaffected', day2.event_count === 60);
+	check(
+		'limit: task counters unaffected by cap',
+		t.tasks_total_today === 3 && t.tasks_done_today === 1,
+		t.tasks_total_today + '/' + t.tasks_done_today
+	);
+
+	const clamped = call({ query: { limit: '999' } }).body.days[0];
+	check('limit: clamped to 50', clamped.events.length === 50, 'got ' + clamped.events.length);
+	check('limit: clamped more_count', clamped.more_count === 10, 'got ' + clamped.more_count);
+
+	const bad = call({ query: { limit: 'abc' } }).body.days[0];
+	check('limit: invalid falls back to default', bad.events.length === 10, 'got ' + bad.events.length);
 }
 
 // --- summary ---

@@ -25,6 +25,15 @@ A view-only e-ink dashboard for [calenDHD](../README.md) on [TRMNL](https://uset
 
 All four TRMNL layouts are provided: full, half-horizontal, half-vertical, quadrant. The TRMNL design framework scales them for both the original 800×480 device and the TRMNL X (1872×1404).
 
+### TRMNL X
+
+The templates are TRMNL X-aware rather than merely X-compatible:
+
+- **More content, not just bigger content.** List heights are computed from the `trmnl.screen.height` merge variable, so on the X's larger logical viewport the agenda lists grow (~+200px full-height, ~+100px half-height) instead of showing the same handful of rows scaled up. On the OG (and on any renderer that doesn't provide `trmnl.screen.*`) the layouts are pixel-identical to before.
+- **Portrait mounting.** When the screen reports taller-than-wide (portrait X), the full layout stacks the focus card + today agenda above the upcoming days instead of squeezing two columns.
+- **Grayscale hierarchy.** Secondary text (times, categories, sources, "All day", task tallies) uses the framework's `label--gray-out`, which renders as true gray on the X's 4-bit panel (and dithers gracefully on the 1-bit OG), so titles stand out the way the app intends.
+- **Higher event cap.** The feed's per-day cap is configurable (`limit` — see below, plus the *Events per day* plugin field). The default 10 suits the OG; an X full-screen agenda has room for more.
+
 ## Requirements
 
 - calenDHD ≥ the version that ships hook `070_trmnl_feed.pb.js` (HA addon 1.7.0+).
@@ -41,7 +50,7 @@ Being on the same LAN as the device does **not** by itself keep traffic local. W
 
 1. In TRMNL: **Plugins → Private Plugin → Add New**.
 2. Name it `calenDHD`, choose strategy **Polling**.
-3. Polling URL: `https://YOUR-CALENDHD-HOST/api/calendhd/trmnl?days=5`
+3. Polling URL: `https://YOUR-CALENDHD-HOST/api/calendhd/trmnl?days=5` (on a TRMNL X consider `&limit=20` — more agenda rows fit)
 4. If you set a feed token on the server (recommended for public deployments), add a polling header:
    `authorization=Bearer YOUR_TOKEN`
 5. Save, then click **Edit Markup** and paste the contents of:
@@ -70,11 +79,12 @@ trmnlp push
 
 ## The feed endpoint
 
-`GET /api/calendhd/trmnl?days=5[&token=...]`
+`GET /api/calendhd/trmnl?days=5[&limit=10][&token=...]`
 
 | Param | Default | Notes |
 |-------|---------|-------|
 | `days` | 5 | Window size including today, clamped to 1–14 |
+| `limit` | 10 | Max events per day (all-day + timed), clamped to 1–50; overflow lands in `more_count`. Raise on a TRMNL X. |
 | `token` | — | Alternative to the `Authorization: Bearer` header |
 
 Response (abridged):
@@ -89,6 +99,7 @@ Response (abridged):
   "day_progress": 23,
   "tasks_total_today": 6,
   "tasks_done_today": 2,
+  "strings": { "now": "NOW", "next": "NEXT", "left": "left", "in_prefix": "in", "all_day": "All day", "...": "..." },
   "current_event": { "title": "Dentist", "icon": "🦷", "time_range": "09:00 – 09:45", "minutes_left": 4, "left_label": "4 min", "...": "..." },
   "next_event":    { "title": "Groceries", "in_label": "49 min", "day_label": "Today", "...": "..." },
   "days": [
@@ -112,9 +123,9 @@ Response (abridged):
 }
 ```
 
-Semantics deliberately mirror the app: events are bucketed by the local day of their stored start time, `current_event`/`next_event` follow the `/now` screen's rules (timed events only), `day_progress` is the waking-hours (06–22) percentage, and time strings honor the household's 12 h/24 h and English/Swedish settings. Wall-clock times are computed in the **server's timezone** — the same assumption the routine generator and iCal sync already make. On the HA addon this is automatic (the Supervisor passes Home Assistant's configured timezone into the container as `TZ`); on Docker, set `TZ` on the `pocketbase` service if your host isn't already on the household timezone.
+Semantics deliberately mirror the app: events are bucketed by the local day of their stored start time, `current_event`/`next_event` follow the `/now` screen's rules (timed events only), `day_progress` is the waking-hours (06–22) percentage, and time strings honor the household's 12 h/24 h and English/Swedish settings. The `strings` object carries all static template chrome ("NOW", "All day", "No events today", …) localized to the household's locale, so a Swedish calendar renders fully in Swedish — the templates fall back to English when polling an older server that doesn't send it. Wall-clock times are computed in the **server's timezone** — the same assumption the routine generator and iCal sync already make. On the HA addon this is automatic (the Supervisor passes Home Assistant's configured timezone into the container as `TZ`); on Docker, set `TZ` on the `pocketbase` service if your host isn't already on the household timezone.
 
-Events are capped at 10 per day (`more_count` reports the overflow) to keep the polled payload small.
+Events are capped at 10 per day by default (`more_count` reports the overflow) to keep the polled payload small; pass `&limit=` (or set the plugin's *Events per day* field) to raise it up to 50 — worthwhile on a TRMNL X.
 
 ## Security
 

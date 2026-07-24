@@ -143,7 +143,7 @@ src/lib/components/
 - `GET /api/calendhd/bootstrap` — singleton credentials (auth bootstrap)
 - `GET /api/calendhd/vapid-public-key` — VAPID public key for push subscriptions
 - `POST /api/calendhd/test-notification` — server-side push test (requires auth)
-- `GET /api/calendhd/trmnl` — TRMNL dashboard feed: today + upcoming days as merge-variable-friendly JSON (`?days=1..14`, default 5; requires `Authorization: Bearer`/`?token=` only when `TRMNL_FEED_TOKEN` is set)
+- `GET /api/calendhd/trmnl` — TRMNL dashboard feed: today + upcoming days as merge-variable-friendly JSON, plus a locale-resolved `strings` object for template chrome (`?days=1..14`, default 5; `?limit=1..50` events/day, default 10; requires `Authorization: Bearer`/`?token=` only when `TRMNL_FEED_TOKEN` is set)
 
 ### PocketBase JSVM gotchas (read before touching any `pb_hooks/*.pb.js`)
 

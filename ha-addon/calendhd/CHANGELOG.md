@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.7.3
+
+- TRMNL feed: new `strings` payload object with all static template chrome ("NOW", "All day", "No events today", …) resolved to the household's locale, so Swedish calendars render fully in Swedish on the e-ink display instead of half-English. The updated plugin templates fall back to English against older servers.
+- TRMNL feed: new `?limit=` parameter (1–50, default 10) for the per-day event cap — raise it on a TRMNL X, which fits more agenda rows than the original device.
+- TRMNL plugin templates reworked for the TRMNL X: agenda list heights now scale with the device's reported screen size (unchanged on the original TRMNL), the full layout stacks vertically when the X is mounted in portrait, and secondary text (times, categories, "All day", task tallies) uses the framework's gray-out style — true gray on the X's 4-bit panel, dithered on the 1-bit original. Re-paste the templates from `trmnl-plugin/src/` (or `trmnlp push`) to pick this up; a new optional *Events per day* plugin field feeds `?limit=`.
+
 ## 1.7.2
 
 - Database cleanup: migration 0010 drops schema columns that no code has ever read or written — `user_settings.{reduce_animations, high_contrast, ha_device_id, notification_method}` (features that never shipped / pre-web-push notification design), the Focus-era columns removed from the app in 1.7.1 (`buffer_minutes`, `density`, `daily_wins_enabled`, `streak_celebration_enabled`, `day_view_style`), the offline-era `events.{local_id, last_synced}`, the never-populated `events.{image, recurrence_parent, template}` and `templates.image`, and `external_events.raw_ics`.

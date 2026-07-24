@@ -1,29 +1,46 @@
 {% comment %}
-  calenDHD — full screen (works on TRMNL OG and TRMNL X; the design framework
-  scales the layout per device). Left column: right-now focus + today's agenda.
-  Right column: the next few days.
+  calenDHD — full screen (TRMNL OG and TRMNL X). Left column: right-now focus
+  + today's agenda. Right column: the next few days.
+
+  Sizing: list heights are derived from trmnl.screen.height so the TRMNL X
+  (larger logical viewport) shows more items instead of just scaling up.
+  On the OG (480) `extra` is 0 and the layout is identical to before; when the
+  merge variable is missing (older renderers) we fall back to OG values.
+  Portrait mounting (TRMNL X) stacks the two columns vertically.
+
+  All static chrome comes from the feed's `strings` object (localized en/sv
+  server-side); `default:` fallbacks keep the plugin working against a
+  calenDHD server that predates it.
 {% endcomment %}
 {% assign today = days | first %}
+{% assign screen_w = trmnl.screen.width | default: 800 | plus: 0 %}
+{% assign screen_h = trmnl.screen.height | default: 480 | plus: 0 %}
+{% assign extra = screen_h | minus: 480 | at_most: 200 | at_least: 0 %}
+{% assign today_list_h = 300 | plus: extra %}
+{% assign upcoming_list_h = 440 | plus: extra %}
+{% assign portrait = false %}
+{% if screen_h > screen_w %}
+  {% assign portrait = true %}
+  {% assign today_list_h = 360 %}
+  {% assign upcoming_list_h = 340 %}
+{% endif %}
 
-<div class="layout">
-  <div class="columns">
-
-    <div class="column">
+{% capture focus_block %}
       {% if current_event %}
         <div class="item">
           <div class="content">
-            <span class="label label--small">NOW · {{ current_event.left_label }} left</span>
+            <span class="label label--small">{{ strings.now | default: "NOW" }} · {{ current_event.left_label }} {{ strings.left | default: "left" }}</span>
             <span class="title">{% if current_event.icon != blank %}{{ current_event.icon }} {% endif %}{{ current_event.title }}</span>
             <span class="label label--small label--underline">{{ current_event.time_range }}</span>
             {% if current_event.first_step != blank %}
-              <span class="description">Start with: {{ current_event.first_step }}</span>
+              <span class="description">{{ strings.start_with | default: "Start with:" }} {{ current_event.first_step }}</span>
             {% endif %}
           </div>
         </div>
       {% elsif next_event %}
         <div class="item">
           <div class="content">
-            <span class="label label--small">NEXT · in {{ next_event.in_label }}{% unless next_event.day_label == today.label %} ({{ next_event.day_label }}){% endunless %}</span>
+            <span class="label label--small">{{ strings.next | default: "NEXT" }} · {{ strings.in_prefix | default: "in" }} {{ next_event.in_label }}{% unless next_event.day_label == today.label %} ({{ next_event.day_label }}){% endunless %}</span>
             <span class="title">{% if next_event.icon != blank %}{{ next_event.icon }} {% endif %}{{ next_event.title }}</span>
             <span class="label label--small label--underline">{{ next_event.time_range }}</span>
           </div>
@@ -31,23 +48,23 @@
       {% else %}
         <div class="item">
           <div class="content">
-            <span class="label label--small">NOW</span>
-            <span class="title">Nothing scheduled</span>
-            <span class="description">Enjoy the calm.</span>
+            <span class="label label--small">{{ strings.now | default: "NOW" }}</span>
+            <span class="title">{{ strings.nothing_scheduled | default: "Nothing scheduled" }}</span>
+            <span class="description">{{ strings.enjoy_calm | default: "Enjoy the calm." }}</span>
           </div>
         </div>
       {% endif %}
 
       {% if tasks_total_today > 0 %}
-        <span class="label label--small">✓ {{ tasks_done_today }} of {{ tasks_total_today }} done today</span>
+        <span class="label label--small label--gray-out">✓ {{ tasks_done_today }} {{ strings.of | default: "of" }} {{ tasks_total_today }} {{ strings.done_today | default: "done today" }}</span>
       {% endif %}
 
-      <div class="list" data-list-limit="true" data-list-max-height="300" data-list-hidden-count="true">
+      <div class="list" data-list-limit="true" data-list-max-height="{{ today_list_h }}" data-list-hidden-count="true">
         {% for ev in today.all_day %}
           <div class="item">
             <div class="content">
               <span class="title title--small">{% if ev.icon != blank %}{{ ev.icon }} {% endif %}{{ ev.title }}</span>
-              <span class="label label--small">All day{% if ev.source != blank %} · {{ ev.source }}{% endif %}</span>
+              <span class="label label--small label--gray-out">{{ strings.all_day | default: "All day" }}{% if ev.source != blank %} · {{ ev.source }}{% endif %}</span>
             </div>
           </div>
         {% endfor %}
@@ -55,25 +72,25 @@
           <div class="item">
             <div class="content">
               <span class="title title--small">{% if ev.is_task %}{% if ev.done %}✓ {% else %}○ {% endif %}{% endif %}{% if ev.icon != blank %}{{ ev.icon }} {% endif %}{{ ev.title }}</span>
-              <span class="label label--small label--underline">{{ ev.time_range }}{% if ev.routine != blank %} · {{ ev.routine }}{% elsif ev.category != blank %} · {{ ev.category }}{% elsif ev.source != blank %} · {{ ev.source }}{% endif %}</span>
+              <span class="label label--small label--gray-out">{{ ev.time_range }}{% if ev.routine != blank %} · {{ ev.routine }}{% elsif ev.category != blank %} · {{ ev.category }}{% elsif ev.source != blank %} · {{ ev.source }}{% endif %}</span>
             </div>
           </div>
         {% endfor %}
         {% if today.event_count == 0 %}
           <div class="item">
             <div class="content">
-              <span class="description">No events today</span>
+              <span class="description">{{ strings.no_events | default: "No events today" }}</span>
             </div>
           </div>
         {% endif %}
       </div>
       {% if today.more_count > 0 %}
-        <span class="label label--small">+{{ today.more_count }} more</span>
+        <span class="label label--small label--gray-out">+{{ today.more_count }} {{ strings.more | default: "more" }}</span>
       {% endif %}
-    </div>
+{% endcapture %}
 
-    <div class="column">
-      <div class="list" data-list-limit="true" data-list-max-height="440" data-list-hidden-count="true">
+{% capture upcoming_block %}
+      <div class="list" data-list-limit="true" data-list-max-height="{{ upcoming_list_h }}" data-list-hidden-count="true">
         {% for day in days offset: 1 %}
           <div class="item">
             <div class="content">
@@ -84,7 +101,7 @@
             <div class="item">
               <div class="content">
                 <span class="title title--small">{% if ev.icon != blank %}{{ ev.icon }} {% endif %}{{ ev.title }}</span>
-                <span class="label label--small">All day</span>
+                <span class="label label--small label--gray-out">{{ strings.all_day | default: "All day" }}</span>
               </div>
             </div>
           {% endfor %}
@@ -92,16 +109,31 @@
             <div class="item">
               <div class="content">
                 <span class="title title--small">{% if ev.icon != blank %}{{ ev.icon }} {% endif %}{{ ev.title }}</span>
-                <span class="label label--small">{{ ev.time }}{% if ev.source != blank %} · {{ ev.source }}{% endif %}</span>
+                <span class="label label--small label--gray-out">{{ ev.time }}{% if ev.source != blank %} · {{ ev.source }}{% endif %}</span>
               </div>
             </div>
           {% endfor %}
         {% endfor %}
       </div>
-    </div>
+{% endcapture %}
 
+{% if portrait %}
+<div class="layout layout--col">
+  {{ focus_block }}
+  {{ upcoming_block }}
+</div>
+{% else %}
+<div class="layout">
+  <div class="columns">
+    <div class="column">
+      {{ focus_block }}
+    </div>
+    <div class="column">
+      {{ upcoming_block }}
+    </div>
   </div>
 </div>
+{% endif %}
 
 <div class="title_bar">
   <img class="image" src="https://usetrmnl.com/images/plugins/trmnl--render.svg" />

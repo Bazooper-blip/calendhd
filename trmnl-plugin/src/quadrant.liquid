@@ -1,5 +1,6 @@
 {% comment %}
-  calenDHD — quadrant: the /now screen in miniature.
+  calenDHD — quadrant: the /now screen in miniature. No list, so nothing to
+  scale for the TRMNL X. Chrome strings come localized from the feed.
 {% endcomment %}
 {% assign today = days | first %}
 
@@ -7,7 +8,7 @@
   {% if current_event %}
     <div class="item">
       <div class="content">
-        <span class="label label--small">NOW · {{ current_event.left_label }} left</span>
+        <span class="label label--small">{{ strings.now | default: "NOW" }} · {{ current_event.left_label }} {{ strings.left | default: "left" }}</span>
         <span class="title title--small">{% if current_event.icon != blank %}{{ current_event.icon }} {% endif %}{{ current_event.title }}</span>
         <span class="label label--small label--underline">{{ current_event.time_range }}</span>
       </div>
@@ -15,7 +16,7 @@
   {% elsif next_event %}
     <div class="item">
       <div class="content">
-        <span class="label label--small">NEXT · in {{ next_event.in_label }}{% unless next_event.day_label == today.label %} ({{ next_event.day_label }}){% endunless %}</span>
+        <span class="label label--small">{{ strings.next | default: "NEXT" }} · {{ strings.in_prefix | default: "in" }} {{ next_event.in_label }}{% unless next_event.day_label == today.label %} ({{ next_event.day_label }}){% endunless %}</span>
         <span class="title title--small">{% if next_event.icon != blank %}{{ next_event.icon }} {% endif %}{{ next_event.title }}</span>
         <span class="label label--small label--underline">{{ next_event.time_range }}</span>
       </div>
@@ -23,13 +24,13 @@
   {% else %}
     <div class="item">
       <div class="content">
-        <span class="title title--small">Nothing scheduled</span>
-        <span class="description">Enjoy the calm.</span>
+        <span class="title title--small">{{ strings.nothing_scheduled | default: "Nothing scheduled" }}</span>
+        <span class="description">{{ strings.enjoy_calm | default: "Enjoy the calm." }}</span>
       </div>
     </div>
   {% endif %}
 
-  <span class="label label--small">{{ today.event_count }} today{% if tasks_total_today > 0 %} · ✓ {{ tasks_done_today }}/{{ tasks_total_today }}{% endif %}</span>
+  <span class="label label--small label--gray-out">{{ today.event_count }} {{ strings.today_lower | default: "today" }}{% if tasks_total_today > 0 %} · ✓ {{ tasks_done_today }}/{{ tasks_total_today }}{% endif %}</span>
 </div>
 
 <div class="title_bar">
