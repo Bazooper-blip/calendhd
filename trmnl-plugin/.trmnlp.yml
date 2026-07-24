@@ -9,3 +9,4 @@ watch:
 custom_fields:
   instance_url: "{{ env.CALENDHD_URL }}"
   feed_token: "{{ env.CALENDHD_TRMNL_TOKEN }}"
+  event_limit: "{{ env.CALENDHD_TRMNL_LIMIT }}"

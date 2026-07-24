@@ -1,8 +1,14 @@
 {% comment %}
   calenDHD — half horizontal: right-now focus on the left, today's agenda on
-  the right.
+  the right. List height scales with trmnl.screen.height (half-height layout,
+  so half the extra headroom); identical to the OG layout when the merge
+  variable is missing. Chrome strings come localized from the feed.
 {% endcomment %}
 {% assign today = days | first %}
+{% assign screen_h = trmnl.screen.height | default: 480 | plus: 0 %}
+{% assign extra = screen_h | minus: 480 | at_most: 200 | at_least: 0 %}
+{% assign extra_half = extra | divided_by: 2 %}
+{% assign agenda_list_h = 170 | plus: extra_half %}
 
 <div class="layout">
   <div class="columns">
@@ -11,7 +17,7 @@
       {% if current_event %}
         <div class="item">
           <div class="content">
-            <span class="label label--small">NOW · {{ current_event.left_label }} left</span>
+            <span class="label label--small">{{ strings.now | default: "NOW" }} · {{ current_event.left_label }} {{ strings.left | default: "left" }}</span>
             <span class="title">{% if current_event.icon != blank %}{{ current_event.icon }} {% endif %}{{ current_event.title }}</span>
             <span class="label label--small label--underline">{{ current_event.time_range }}</span>
           </div>
@@ -19,7 +25,7 @@
       {% elsif next_event %}
         <div class="item">
           <div class="content">
-            <span class="label label--small">NEXT · in {{ next_event.in_label }}{% unless next_event.day_label == today.label %} ({{ next_event.day_label }}){% endunless %}</span>
+            <span class="label label--small">{{ strings.next | default: "NEXT" }} · {{ strings.in_prefix | default: "in" }} {{ next_event.in_label }}{% unless next_event.day_label == today.label %} ({{ next_event.day_label }}){% endunless %}</span>
             <span class="title">{% if next_event.icon != blank %}{{ next_event.icon }} {% endif %}{{ next_event.title }}</span>
             <span class="label label--small label--underline">{{ next_event.time_range }}</span>
           </div>
@@ -27,23 +33,23 @@
       {% else %}
         <div class="item">
           <div class="content">
-            <span class="title">Nothing scheduled</span>
-            <span class="description">Enjoy the calm.</span>
+            <span class="title">{{ strings.nothing_scheduled | default: "Nothing scheduled" }}</span>
+            <span class="description">{{ strings.enjoy_calm | default: "Enjoy the calm." }}</span>
           </div>
         </div>
       {% endif %}
       {% if tasks_total_today > 0 %}
-        <span class="label label--small">✓ {{ tasks_done_today }} of {{ tasks_total_today }} done today</span>
+        <span class="label label--small label--gray-out">✓ {{ tasks_done_today }} {{ strings.of | default: "of" }} {{ tasks_total_today }} {{ strings.done_today | default: "done today" }}</span>
       {% endif %}
     </div>
 
     <div class="column">
-      <div class="list" data-list-limit="true" data-list-max-height="170" data-list-hidden-count="true">
+      <div class="list" data-list-limit="true" data-list-max-height="{{ agenda_list_h }}" data-list-hidden-count="true">
         {% for ev in today.all_day %}
           <div class="item">
             <div class="content">
               <span class="title title--small">{% if ev.icon != blank %}{{ ev.icon }} {% endif %}{{ ev.title }}</span>
-              <span class="label label--small">All day</span>
+              <span class="label label--small label--gray-out">{{ strings.all_day | default: "All day" }}</span>
             </div>
           </div>
         {% endfor %}
@@ -51,14 +57,14 @@
           <div class="item">
             <div class="content">
               <span class="title title--small">{% if ev.is_task %}{% if ev.done %}✓ {% else %}○ {% endif %}{% endif %}{% if ev.icon != blank %}{{ ev.icon }} {% endif %}{{ ev.title }}</span>
-              <span class="label label--small">{{ ev.time }}</span>
+              <span class="label label--small label--gray-out">{{ ev.time }}</span>
             </div>
           </div>
         {% endfor %}
         {% if today.event_count == 0 %}
           <div class="item">
             <div class="content">
-              <span class="description">No events today</span>
+              <span class="description">{{ strings.no_events | default: "No events today" }}</span>
             </div>
           </div>
         {% endif %}

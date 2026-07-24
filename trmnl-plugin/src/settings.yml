@@ -2,7 +2,7 @@
 name: calenDHD
 strategy: polling
 polling_verb: get
-polling_url: "{{ instance_url }}/api/calendhd/trmnl?days=5"
+polling_url: "{{ instance_url }}/api/calendhd/trmnl?days=5&limit={{ event_limit }}"
 polling_headers: "authorization=Bearer {{ feed_token }}"
 refresh_interval: 15
 custom_fields:
@@ -16,3 +16,9 @@ custom_fields:
     description: "Optional. Must match the TRMNL_FEED_TOKEN env var on your calenDHD server. Leave empty if the feed endpoint is open."
     field_type: string
     optional: true
+  - keyname: event_limit
+    name: Events per day
+    description: "Optional. Max events per day in the feed (1–50, server default 10). Raise it on a TRMNL X, which fits more agenda rows than the original device."
+    field_type: string
+    optional: true
+    placeholder: "10"

@@ -3,7 +3,7 @@
 // =============================================================================
 // TRMNL feed endpoint
 //
-// GET /api/calendhd/trmnl?days=5[&token=...]
+// GET /api/calendhd/trmnl?days=5[&limit=10][&token=...]
 //
 // Read-only JSON feed consumed by the TRMNL e-ink dashboard private plugin
 // (see trmnl-plugin/ at the repo root). TRMNL's cloud polls this URL on the
@@ -38,7 +38,8 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
     var SINGLETON_EMAIL = "home@calendhd.local";
     var DEFAULT_EVENT_COLOR = "#7C9885";   // sage — matches calendar.svelte.ts
     var DEFAULT_EXTERNAL_COLOR = "#9A88B5"; // lavender — matches calendar.svelte.ts
-    var MAX_EVENTS_PER_DAY = 10;            // keep the polled payload lean
+    var DEFAULT_EVENTS_PER_DAY = 10;        // keep the polled payload lean (?limit= overrides)
+    var MAX_EVENTS_PER_DAY_CAP = 50;        // hard ceiling for ?limit=
 
     // ---- optional shared-token auth ----------------------------------------
     var requiredToken = $os.getenv("TRMNL_FEED_TOKEN") || "";
@@ -60,6 +61,12 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
     var days = parseInt(e.request.url.query().get("days"), 10);
     if (isNaN(days) || days < 1) days = 5;
     if (days > 14) days = 14;
+
+    // Per-day event cap. The default suits the original 800×480 TRMNL; the
+    // TRMNL X fits more, so the plugin can ask for more via ?limit=.
+    var perDayLimit = parseInt(e.request.url.query().get("limit"), 10);
+    if (isNaN(perDayLimit) || perDayLimit < 1) perDayLimit = DEFAULT_EVENTS_PER_DAY;
+    if (perDayLimit > MAX_EVENTS_PER_DAY_CAP) perDayLimit = MAX_EVENTS_PER_DAY_CAP;
 
     var now = new Date();
     var windowStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
@@ -92,12 +99,38 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
         weekdays: ["Söndag", "Måndag", "Tisdag", "Onsdag", "Torsdag", "Fredag", "Lördag"],
         months: ["jan", "feb", "mar", "apr", "maj", "jun", "jul", "aug", "sep", "okt", "nov", "dec"],
         today: "Idag", tomorrow: "Imorgon",
-        dateLabel: function (d) { return d.getDate() + " " + this.months[d.getMonth()]; }
+        dateLabel: function (d) { return d.getDate() + " " + this.months[d.getMonth()]; },
+        // Static template chrome — mirrors src/lib/i18n/locales/sv.json where a
+        // matching key exists (now.left, now.in, time.allDay, calendar.moreEvents).
+        strings: {
+            now: "NU", next: "NÄSTA",
+            left: "kvar", in_prefix: "om",
+            all_day: "Heldag",
+            no_events: "Inga händelser idag",
+            nothing_scheduled: "Inget planerat",
+            enjoy_calm: "Njut av lugnet.",
+            of: "av", done_today: "klara idag",
+            start_with: "Börja med:",
+            more: "till",
+            today_lower: "idag"
+        }
     } : {
         weekdays: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
         months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
         today: "Today", tomorrow: "Tomorrow",
-        dateLabel: function (d) { return this.months[d.getMonth()] + " " + d.getDate(); }
+        dateLabel: function (d) { return this.months[d.getMonth()] + " " + d.getDate(); },
+        strings: {
+            now: "NOW", next: "NEXT",
+            left: "left", in_prefix: "in",
+            all_day: "All day",
+            no_events: "No events today",
+            nothing_scheduled: "Nothing scheduled",
+            enjoy_calm: "Enjoy the calm.",
+            of: "of", done_today: "done today",
+            start_with: "Start with:",
+            more: "more",
+            today_lower: "today"
+        }
     };
 
     // ---- formatting helpers --------------------------------------------------
@@ -291,7 +324,7 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
 
         day.event_count++;
         var target = ev.is_all_day ? day.all_day : day.events;
-        if (day.all_day.length + day.events.length < MAX_EVENTS_PER_DAY) {
+        if (day.all_day.length + day.events.length < perDayLimit) {
             target.push(ev);
         } else {
             day.more_count++;
@@ -344,6 +377,7 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
         now_label: fmtTime(now),
         time_format: timeFormat,
         locale: locale,
+        strings: L.strings,
         day_progress: dayProgress,
         tasks_total_today: tasksTotalToday,
         tasks_done_today: tasksDoneToday,
