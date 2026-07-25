@@ -77,7 +77,7 @@
           <div class="item">
             <div class="content">
               <span class="title title--small">{% if ev.icon != blank %}{{ ev.icon }} {% endif %}{{ ev.title }}</span>
-              <span class="label label--small label--gray-out">{{ strings.all_day | default: "All day" }}{% if ev.source != blank %} · {{ ev.source }}{% endif %}</span>
+              <span class="label label--small label--gray-out">{{ strings.all_day | default: "All day" }}</span>
             </div>
           </div>
         {% endfor %}
@@ -87,7 +87,7 @@
           <div class="item">
             <div class="content">
               <span class="title title--small">{% if ev.is_task %}{% if ev.done %}✓ {% else %}○ {% endif %}{% endif %}{% if ev.icon != blank %}{{ ev.icon }} {% endif %}{{ ev.title }}</span>
-              <span class="label label--small label--gray-out">{{ ev.time_range }}{% if ev.routine != blank %} · {{ ev.routine }}{% elsif ev.category != blank %} · {{ ev.category }}{% elsif ev.source != blank %} · {{ ev.source }}{% endif %}</span>
+              <span class="label label--small label--gray-out">{{ ev.time_range }}{% if ev.routine != blank %} · {{ ev.routine }}{% elsif ev.category != blank %} · {{ ev.category }}{% endif %}</span>
             </div>
           </div>
           {% endif %}
@@ -142,7 +142,7 @@
             <div class="item">
               <div class="content">
                 <span class="title title--small">{% if ev.icon != blank %}{{ ev.icon }} {% endif %}{{ ev.title }}</span>
-                <span class="label label--small label--gray-out">{{ ev.time }}{% if ev.source != blank %} · {{ ev.source }}{% endif %}</span>
+                <span class="label label--small label--gray-out">{{ ev.time }}</span>
               </div>
             </div>
           {% endfor %}
