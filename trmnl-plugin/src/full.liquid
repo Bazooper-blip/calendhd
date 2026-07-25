@@ -25,6 +25,12 @@
   {% assign upcoming_list_h = 340 %}
 {% endif %}
 
+{% comment %}
+  The event shown on the NOW/NEXT hero card is skipped in today's list
+  (matched by title+time) so it doesn't appear twice.
+{% endcomment %}
+{% if current_event %}{% assign hero = current_event %}{% else %}{% assign hero = next_event %}{% endif %}
+
 {% capture focus_block %}
       {% if current_event %}
         <div class="item">
@@ -69,12 +75,14 @@
           </div>
         {% endfor %}
         {% for ev in today.events %}
+          {% unless hero and ev.title == hero.title and ev.time == hero.time %}
           <div class="item">
             <div class="content">
               <span class="title title--small">{% if ev.is_task %}{% if ev.done %}✓ {% else %}○ {% endif %}{% endif %}{% if ev.icon != blank %}{{ ev.icon }} {% endif %}{{ ev.title }}</span>
               <span class="label label--small label--gray-out">{{ ev.time_range }}{% if ev.routine != blank %} · {{ ev.routine }}{% elsif ev.category != blank %} · {{ ev.category }}{% elsif ev.source != blank %} · {{ ev.source }}{% endif %}</span>
             </div>
           </div>
+          {% endunless %}
         {% endfor %}
         {% if today.event_count == 0 %}
           <div class="item">
@@ -92,11 +100,24 @@
 {% capture upcoming_block %}
       <div class="list" data-list-limit="true" data-list-max-height="{{ upcoming_list_h }}" data-list-hidden-count="true">
         {% for day in days offset: 1 %}
-          <div class="item">
+          {% comment %}
+            Day header: bold (same visual weight as event titles, so events
+            don't outrank their own day), with a thin rule separating day
+            blocks. Empty days get a quiet dash so a bare header reads as
+            "nothing planned", not as a glitch.
+          {% endcomment %}
+          <div class="item"{% unless forloop.first %} style="border-top: 1px solid #555555; margin-top: 10px; padding-top: 8px;"{% endunless %}>
             <div class="content">
-              <span class="label label--small label--underline">{{ day.label }} · {{ day.date_label }}</span>
+              <span class="title title--small">{{ day.label }} · {{ day.date_label }}</span>
             </div>
           </div>
+          {% if day.event_count == 0 %}
+            <div class="item">
+              <div class="content">
+                <span class="label label--small label--gray-out">—</span>
+              </div>
+            </div>
+          {% endif %}
           {% for ev in day.all_day limit: 2 %}
             <div class="item">
               <div class="content">
