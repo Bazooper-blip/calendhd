@@ -27,9 +27,16 @@
 
 {% comment %}
   The event shown on the NOW/NEXT hero card is skipped in today's list
-  (matched by title+time) so it doesn't appear twice.
+  (matched by title+time) so it doesn't appear twice. Comparison goes
+  through a plain hero_key string — no nil property lookups, no compound
+  unless conditions — to stay portable across Liquid engine ports.
 {% endcomment %}
-{% if current_event %}{% assign hero = current_event %}{% else %}{% assign hero = next_event %}{% endif %}
+{% assign hero_key = "" %}
+{% if current_event %}
+  {% assign hero_key = current_event.title | append: "|" | append: current_event.time %}
+{% elsif next_event %}
+  {% assign hero_key = next_event.title | append: "|" | append: next_event.time %}
+{% endif %}
 
 {% capture focus_block %}
       {% if current_event %}
@@ -75,14 +82,15 @@
           </div>
         {% endfor %}
         {% for ev in today.events %}
-          {% unless hero and ev.title == hero.title and ev.time == hero.time %}
+          {% assign ev_key = ev.title | append: "|" | append: ev.time %}
+          {% if ev_key != hero_key %}
           <div class="item">
             <div class="content">
               <span class="title title--small">{% if ev.is_task %}{% if ev.done %}✓ {% else %}○ {% endif %}{% endif %}{% if ev.icon != blank %}{{ ev.icon }} {% endif %}{{ ev.title }}</span>
               <span class="label label--small label--gray-out">{{ ev.time_range }}{% if ev.routine != blank %} · {{ ev.routine }}{% elsif ev.category != blank %} · {{ ev.category }}{% elsif ev.source != blank %} · {{ ev.source }}{% endif %}</span>
             </div>
           </div>
-          {% endunless %}
+          {% endif %}
         {% endfor %}
         {% if today.event_count == 0 %}
           <div class="item">
@@ -106,7 +114,11 @@
             blocks. Empty days get a quiet dash so a bare header reads as
             "nothing planned", not as a glitch.
           {% endcomment %}
-          <div class="item"{% unless forloop.first %} style="border-top: 1px solid #555555; margin-top: 10px; padding-top: 8px;"{% endunless %}>
+          {% if forloop.first %}
+          <div class="item">
+          {% else %}
+          <div class="item" style="border-top: 1px solid #555555; margin-top: 10px; padding-top: 8px;">
+          {% endif %}
             <div class="content">
               <span class="title title--small">{{ day.label }} · {{ day.date_label }}</span>
             </div>

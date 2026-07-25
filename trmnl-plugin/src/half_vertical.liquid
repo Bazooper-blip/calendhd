@@ -9,7 +9,12 @@
 {% assign extra = screen_h | minus: 480 | at_most: 200 | at_least: 0 %}
 {% assign agenda_list_h = 330 | plus: extra %}
 {% comment %} Hero-card event is skipped in the agenda list (no duplicates). {% endcomment %}
-{% if current_event %}{% assign hero = current_event %}{% else %}{% assign hero = next_event %}{% endif %}
+{% assign hero_key = "" %}
+{% if current_event %}
+  {% assign hero_key = current_event.title | append: "|" | append: current_event.time %}
+{% elsif next_event %}
+  {% assign hero_key = next_event.title | append: "|" | append: next_event.time %}
+{% endif %}
 
 <div class="layout layout--col">
   {% if current_event %}
@@ -38,14 +43,15 @@
       </div>
     {% endfor %}
     {% for ev in today.events %}
-      {% unless hero and ev.title == hero.title and ev.time == hero.time %}
+      {% assign ev_key = ev.title | append: "|" | append: ev.time %}
+      {% if ev_key != hero_key %}
       <div class="item">
         <div class="content">
           <span class="title title--small">{% if ev.is_task %}{% if ev.done %}✓ {% else %}○ {% endif %}{% endif %}{% if ev.icon != blank %}{{ ev.icon }} {% endif %}{{ ev.title }}</span>
           <span class="label label--small label--gray-out">{{ ev.time }}</span>
         </div>
       </div>
-      {% endunless %}
+      {% endif %}
     {% endfor %}
     {% if today.event_count == 0 %}
       <div class="item">
