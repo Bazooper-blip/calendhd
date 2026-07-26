@@ -1,0 +1,27 @@
+version: 2
+updates:
+  # Frontend (repo root) and push-service npm packages
+  - package-ecosystem: "npm"
+    directories:
+      - "/"
+      - "/push-service"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      # One PR per week for all minor/patch bumps; majors get their own PRs
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # node:*-alpine base images in docker/Dockerfile.{frontend,push-service}.
+  # The HA addon base image and PB_VERSION live in ha-addon/calendhd/build.yaml
+  # (an HA-specific format Dependabot can't parse) and are bumped manually.
+  - package-ecosystem: "docker"
+    directory: "/docker"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore(deps)"
