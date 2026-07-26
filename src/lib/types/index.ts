@@ -28,6 +28,8 @@ export interface Template extends BaseRecord {
 	category?: string;
 	default_duration_minutes: number;
 	default_is_all_day: boolean;
+	default_start_time?: string; // HH:mm (24h); with end time, prefills events from this template
+	default_end_time?: string; // HH:mm (24h)
 	default_reminders: ReminderConfig[];
 	description?: string;
 	icon?: string;
