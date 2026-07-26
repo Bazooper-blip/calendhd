@@ -42,7 +42,7 @@
       {% if current_event %}
         <div class="item">
           <div class="content">
-            <span class="label label--small">{{ strings.now | default: "NOW" }} · {{ current_event.left_label }} {{ strings.left | default: "left" }}</span>
+            <span class="label label--small">{{ strings.now | default: "NOW" }}</span>
             <span class="title">{% if current_event.icon != blank %}{{ current_event.icon }} {% endif %}{{ current_event.title }}</span>
             <span class="label label--small label--underline">{{ current_event.time_range }}</span>
             {% if current_event.first_step != blank %}
@@ -53,7 +53,7 @@
       {% elsif next_event %}
         <div class="item">
           <div class="content">
-            <span class="label label--small">{{ strings.next | default: "NEXT" }} · {{ strings.in_prefix | default: "in" }} {{ next_event.in_label }}{% unless next_event.day_label == today.label %} ({{ next_event.day_label }}){% endunless %}</span>
+            <span class="label label--small">{{ strings.next | default: "NEXT" }}{% unless next_event.day_label == today.label %} · {{ next_event.day_label }}{% endunless %}</span>
             <span class="title">{% if next_event.icon != blank %}{{ next_event.icon }} {% endif %}{{ next_event.title }}</span>
             <span class="label label--small label--underline">{{ next_event.time_range }}</span>
           </div>

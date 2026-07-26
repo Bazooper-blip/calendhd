@@ -4,7 +4,7 @@ A view-only e-ink dashboard for [calenDHD](../README.md) on [TRMNL](https://uset
 
 ```
 ┌────────────────────────────┬──────────────────────┐
-│ NOW · 34 min left          │ Tomorrow · Jul 12    │
+│ NOW                        │ Tomorrow · Jul 12    │
 │ 🦷 Dentist                 │ 09:00 Routine step   │
 │ 09:00 – 09:45              │ 18:00 Dinner @ Gma   │
 │                            │ Sunday · Jul 13      │
@@ -141,4 +141,4 @@ The feed is read-only, but it does expose your calendar. Options, matching calen
 
 - Local events with a `recurrence_rule` appear only on their stored start date — identical to the web app today (external iCal recurrences *are* expanded, at sync time).
 - Multi-day timed events are listed on their start day only (same as the app's day bucketing).
-- The dashboard refreshes on TRMNL's polling schedule (15 min minimum), so "NOW · x min left" is approximate by nature of e-ink dashboards.
+- The dashboard refreshes on TRMNL's polling schedule (15 min minimum), so the templates show event time ranges rather than live countdowns — a "x min left" figure would be stale for most of each polling interval. The feed still exposes `minutes_left`/`left_label` and `minutes_until`/`in_label` for custom templates that want them.
