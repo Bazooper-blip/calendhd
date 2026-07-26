@@ -20,7 +20,7 @@
 	} from '$utils';
 	import type { DisplayEvent, EnergyLevel } from '$types';
 	import { EventIcon } from '$components/ui';
-	import ExternalEventModal from './ExternalEventModal.svelte';
+	import EventDetailModal from './EventDetailModal.svelte';
 
 	interface RoutineStep {
 		id: string;
@@ -239,11 +239,7 @@
 	}
 
 	function handleEventClick(event: DisplayEvent) {
-		if (event.is_external) {
-			externalDetail = event;
-			return;
-		}
-		goto(`/event/${event.id}`);
+		eventDetail = event;
 	}
 
 	function handleStepCheckbox(e: MouseEvent, stepId: string) {
@@ -261,7 +257,7 @@
 		goto(`/routines/${templateId}`);
 	}
 
-	let externalDetail = $state<DisplayEvent | null>(null);
+	let eventDetail = $state<DisplayEvent | null>(null);
 </script>
 
 <div class="flex-1 overflow-y-auto px-4 py-3 space-y-4">
@@ -694,4 +690,4 @@
 	{/if}
 {/snippet}
 
-<ExternalEventModal event={externalDetail} onclose={() => (externalDetail = null)} />
+<EventDetailModal event={eventDetail} onclose={() => (eventDetail = null)} />

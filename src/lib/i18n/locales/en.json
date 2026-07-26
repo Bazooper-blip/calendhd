@@ -98,6 +98,8 @@
 		"startFrom": "Start from template",
 		"selectTemplate": "Select a template...",
 		"defaultDuration": "Default duration",
+		"setSpecificTime": "Set specific time",
+		"setSpecificTimeDesc": "New events from this template are prefilled with these times",
 		"noTemplates": "No templates yet",
 		"noTemplatesDesc": "Create templates for quick event creation",
 		"created": "Template created",

@@ -102,6 +102,21 @@ export function parseTimeToDate(dateStr: string, timeStr: string): Date {
 	return setMinutes(setHours(date, hours), minutes);
 }
 
+/**
+ * Minutes between two HH:mm times of day. A range that wraps past
+ * midnight (end before start) counts as next-day: 23:00→01:00 = 120.
+ */
+export function deriveDurationMinutes(start: string, end: string): number {
+	const [sh, sm] = start.split(':').map(Number);
+	const [eh, em] = end.split(':').map(Number);
+	return (eh * 60 + em - (sh * 60 + sm) + 1440) % 1440;
+}
+
+/** True when an HH:mm range wraps past midnight (end strictly before start). */
+export function timeCrossesMidnight(start: string, end: string): boolean {
+	return end < start;
+}
+
 // Get array of days in a range
 export function getDaysInRange(start: Date, end: Date): Date[] {
 	return eachDayOfInterval({ start, end });
@@ -146,9 +161,7 @@ export function computeEventLanes(
 	});
 
 	// Earlier start first; on ties the longer item first so it claims lane 0
-	const order = items
-		.map((_, i) => i)
-		.sort((a, b) => starts[a] - starts[b] || ends[b] - ends[a]);
+	const order = items.map((_, i) => i).sort((a, b) => starts[a] - starts[b] || ends[b] - ends[a]);
 
 	const result = items.map(() => ({ lane: 0, laneCount: 1 }));
 

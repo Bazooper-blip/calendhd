@@ -15,7 +15,7 @@
 		endOfMonth
 	} from '$utils';
 	import type { DisplayEvent } from '$types';
-	import ExternalEventModal from './ExternalEventModal.svelte';
+	import EventDetailModal from './EventDetailModal.svelte';
 	import { _ } from '$lib/i18n';
 
 	interface MonthRoutineGroup {
@@ -122,14 +122,10 @@
 		calendar.setViewType('day');
 	}
 
-	let externalDetail = $state<DisplayEvent | null>(null);
+	let eventDetail = $state<DisplayEvent | null>(null);
 
 	function handleEventClick(event: import('$types').DisplayEvent) {
-		if (event.is_external) {
-			externalDetail = event;
-			return;
-		}
-		goto(`/event/${event.id}`);
+		eventDetail = event;
 	}
 </script>
 
@@ -226,4 +222,4 @@
 	</div>
 </div>
 
-<ExternalEventModal event={externalDetail} onclose={() => (externalDetail = null)} />
+<EventDetailModal event={eventDetail} onclose={() => (eventDetail = null)} />

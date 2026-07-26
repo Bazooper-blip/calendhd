@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import { calendar, settingsStore, routinesStore } from '$stores';
 	import {
@@ -17,7 +16,7 @@
 	import { format } from 'date-fns';
 	import EventBlock from './EventBlock.svelte';
 	import RoutineBlock from './RoutineBlock.svelte';
-	import ExternalEventModal from './ExternalEventModal.svelte';
+	import EventDetailModal from './EventDetailModal.svelte';
 
 	/** A routine group merges multiple routine step events into one visual block. */
 	interface RoutineGroup {
@@ -181,14 +180,10 @@
 		}
 	});
 
-	let externalDetail = $state<DisplayEvent | null>(null);
+	let eventDetail = $state<DisplayEvent | null>(null);
 
 	function handleEventClick(event: DisplayEvent) {
-		if (event.is_external) {
-			externalDetail = event;
-			return;
-		}
-		goto(`/event/${event.id}`);
+		eventDetail = event;
 	}
 
 </script>
@@ -316,4 +311,4 @@
 	</div>
 </div>
 
-<ExternalEventModal event={externalDetail} onclose={() => (externalDetail = null)} />
+<EventDetailModal event={eventDetail} onclose={() => (eventDetail = null)} />

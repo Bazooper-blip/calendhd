@@ -15,7 +15,9 @@ import {
 	isToday,
 	isSameDay,
 	isSameMonth,
-	REMINDER_OPTIONS
+	REMINDER_OPTIONS,
+	deriveDurationMinutes,
+	timeCrossesMidnight
 } from './date';
 
 // Use a fixed timezone for reproducible tests
@@ -379,5 +381,33 @@ describe('formatRelativeTime', () => {
 		setDateLocale('sv');
 		const date = new Date(Date.now() - 18 * 60 * 1000);
 		expect(formatRelativeTime(date)).toBe('18 minuter sedan');
+	});
+});
+
+describe('deriveDurationMinutes', () => {
+	it('computes a same-day duration', () => {
+		expect(deriveDurationMinutes('09:00', '10:30')).toBe(90);
+	});
+
+	it('computes a cross-midnight duration', () => {
+		expect(deriveDurationMinutes('23:00', '01:00')).toBe(120);
+	});
+
+	it('returns 0 for equal times', () => {
+		expect(deriveDurationMinutes('09:00', '09:00')).toBe(0);
+	});
+});
+
+describe('timeCrossesMidnight', () => {
+	it('is false for a same-day range', () => {
+		expect(timeCrossesMidnight('09:00', '17:00')).toBe(false);
+	});
+
+	it('is true when end is before start', () => {
+		expect(timeCrossesMidnight('23:00', '01:00')).toBe(true);
+	});
+
+	it('is false for equal times', () => {
+		expect(timeCrossesMidnight('09:00', '09:00')).toBe(false);
 	});
 });

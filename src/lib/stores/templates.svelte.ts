@@ -47,6 +47,8 @@ function createTemplatesStore() {
 			category?: string;
 			default_duration_minutes: number;
 			default_is_all_day: boolean;
+			default_start_time?: string;
+			default_end_time?: string;
 			default_reminders: ReminderConfig[];
 			description?: string;
 			color_override?: string;
