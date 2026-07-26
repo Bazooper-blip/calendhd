@@ -161,9 +161,7 @@ export function computeEventLanes(
 	});
 
 	// Earlier start first; on ties the longer item first so it claims lane 0
-	const order = items
-		.map((_, i) => i)
-		.sort((a, b) => starts[a] - starts[b] || ends[b] - ends[a]);
+	const order = items.map((_, i) => i).sort((a, b) => starts[a] - starts[b] || ends[b] - ends[a]);
 
 	const result = items.map(() => ({ lane: 0, laneCount: 1 }));
 
