@@ -4,6 +4,8 @@
 {% endcomment %}
 {% assign today = days | first %}
 
+{% comment %} View wrapper: required on BYOS renderers (LaraPaper), harmless nested on TRMNL cloud/trmnlp — see full.liquid. {% endcomment %}
+<div class="view view--quadrant">
 <div class="layout layout--col">
   {% if current_event %}
     <div class="item">
@@ -36,4 +38,5 @@
 <div class="title_bar">
   <img class="image" src="https://usetrmnl.com/images/plugins/trmnl--render.svg" />
   <span class="title">calenDHD</span>
+</div>
 </div>
