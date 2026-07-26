@@ -101,10 +101,9 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
         today: "Idag", tomorrow: "Imorgon",
         dateLabel: function (d) { return d.getDate() + " " + this.months[d.getMonth()]; },
         // Static template chrome — mirrors src/lib/i18n/locales/sv.json where a
-        // matching key exists (now.left, now.in, time.allDay, calendar.moreEvents).
+        // matching key exists (time.allDay, calendar.moreEvents).
         strings: {
             now: "NU", next: "NÄSTA",
-            left: "kvar", in_prefix: "om",
             all_day: "Heldag",
             no_events: "Inga händelser idag",
             nothing_scheduled: "Inget planerat",
@@ -121,7 +120,6 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
         dateLabel: function (d) { return this.months[d.getMonth()] + " " + d.getDate(); },
         strings: {
             now: "NOW", next: "NEXT",
-            left: "left", in_prefix: "in",
             all_day: "All day",
             no_events: "No events today",
             nothing_scheduled: "Nothing scheduled",
@@ -147,15 +145,6 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
             return h12 + ":" + pad(d.getMinutes()) + (d.getHours() < 12 ? " AM" : " PM");
         }
         return pad(d.getHours()) + ":" + pad(d.getMinutes());
-    }
-
-    // "34 min" / "2h 15m" — mirrors formatRelative() on the /now screen
-    function fmtRelative(minutes) {
-        if (minutes < 1) return locale === "sv" ? "nu" : "now";
-        if (minutes < 60) return minutes + " min";
-        var h = Math.floor(minutes / 60);
-        var m = minutes % 60;
-        return m === 0 ? h + "h" : h + "h " + m + "m";
     }
 
     // PB stores 'YYYY-MM-DD HH:MM:SS.fffZ'; goja Date needs the T separator.
@@ -340,15 +329,9 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
         if (t.is_all_day) continue;
         var sameDay = dateKey(t._start) === todayKey;
         if (!currentEvent && sameDay && t._start <= now && t._end && now < t._end) {
-            var minutesLeft = Math.floor((t._end.getTime() - now.getTime()) / 60000);
             currentEvent = t;
-            currentEvent.minutes_left = minutesLeft;
-            currentEvent.left_label = fmtRelative(minutesLeft);
         } else if (!nextEvent && t._start > now) {
-            var minutesUntil = Math.floor((t._start.getTime() - now.getTime()) / 60000);
             nextEvent = t;
-            nextEvent.minutes_until = minutesUntil;
-            nextEvent.in_label = fmtRelative(minutesUntil);
             nextEvent.day_label = (dayByKey[dateKey(t._start)] || { label: "" }).label;
         }
     }

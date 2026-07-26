@@ -141,7 +141,7 @@ function call(opts) {
 	check('empty: task counters zero', b.tasks_total_today === 0 && b.tasks_done_today === 0);
 	check(
 		'empty: english strings',
-		b.strings && b.strings.now === 'NOW' && b.strings.all_day === 'All day' && b.strings.in_prefix === 'in',
+		b.strings && b.strings.now === 'NOW' && b.strings.all_day === 'All day' && b.strings.next === 'NEXT',
 		JSON.stringify(b.strings)
 	);
 	check(
@@ -273,10 +273,12 @@ function call(opts) {
 	check('events: routine name resolved', routineStep && routineStep.routine === 'Morning routine');
 
 	check('events: current_event found', b.current_event && b.current_event.title === 'Current thing');
+	// Relative-time fields were removed with the template countdowns (stale
+	// between 15-min polls); make sure they don't creep back in.
 	check(
-		'events: minutes_left ~50',
-		b.current_event && b.current_event.minutes_left >= 48 && b.current_event.minutes_left <= 50,
-		b.current_event && String(b.current_event.minutes_left)
+		'events: no relative-time fields',
+		b.current_event && !('minutes_left' in b.current_event) && !('left_label' in b.current_event) &&
+			b.next_event && !('minutes_until' in b.next_event) && !('in_label' in b.next_event)
 	);
 	// Next timed event after "now" is tomorrow 09:00 (today's remaining events all started already)
 	check('events: next_event is tomorrow 09:00', b.next_event && b.next_event.title === 'Routine step');
@@ -307,7 +309,7 @@ function call(opts) {
 	check('sv: tomorrow label', b.days[1].label === 'Imorgon');
 	check(
 		'sv: swedish strings',
-		b.strings && b.strings.now === 'NU' && b.strings.all_day === 'Heldag' && b.strings.left === 'kvar' && b.strings.in_prefix === 'om',
+		b.strings && b.strings.now === 'NU' && b.strings.all_day === 'Heldag' && b.strings.next === 'NÄSTA',
 		JSON.stringify(b.strings)
 	);
 	const fika = b.days[0].events[0];

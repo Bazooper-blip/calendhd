@@ -4,7 +4,7 @@ A view-only e-ink dashboard for [calenDHD](../README.md) on [TRMNL](https://uset
 
 ```
 ┌────────────────────────────┬──────────────────────┐
-│ NOW · 34 min left          │ Tomorrow · Jul 12    │
+│ NOW                        │ Tomorrow · Jul 12    │
 │ 🦷 Dentist                 │ 09:00 Routine step   │
 │ 09:00 – 09:45              │ 18:00 Dinner @ Gma   │
 │                            │ Sunday · Jul 13      │
@@ -99,9 +99,9 @@ Response (abridged):
   "day_progress": 23,
   "tasks_total_today": 6,
   "tasks_done_today": 2,
-  "strings": { "now": "NOW", "next": "NEXT", "left": "left", "in_prefix": "in", "all_day": "All day", "...": "..." },
-  "current_event": { "title": "Dentist", "icon": "🦷", "time_range": "09:00 – 09:45", "minutes_left": 4, "left_label": "4 min", "...": "..." },
-  "next_event":    { "title": "Groceries", "in_label": "49 min", "day_label": "Today", "...": "..." },
+  "strings": { "now": "NOW", "next": "NEXT", "all_day": "All day", "...": "..." },
+  "current_event": { "title": "Dentist", "icon": "🦷", "time_range": "09:00 – 09:45", "...": "..." },
+  "next_event":    { "title": "Groceries", "day_label": "Today", "...": "..." },
   "days": [
     {
       "date": "2026-07-11", "label": "Today", "weekday": "Saturday",
@@ -141,4 +141,4 @@ The feed is read-only, but it does expose your calendar. Options, matching calen
 
 - Local events with a `recurrence_rule` appear only on their stored start date — identical to the web app today (external iCal recurrences *are* expanded, at sync time).
 - Multi-day timed events are listed on their start day only (same as the app's day bucketing).
-- The dashboard refreshes on TRMNL's polling schedule (15 min minimum), so "NOW · x min left" is approximate by nature of e-ink dashboards.
+- The dashboard refreshes on TRMNL's polling schedule (15 min minimum), so the feed and templates show event time ranges rather than live countdowns — a "x min left" figure would be stale for most of each polling interval.
