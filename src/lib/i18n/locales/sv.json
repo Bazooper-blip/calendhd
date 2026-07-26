@@ -98,6 +98,8 @@
 		"startFrom": "Utgå från mall",
 		"selectTemplate": "Välj en mall...",
 		"defaultDuration": "Standardvaraktighet",
+		"setSpecificTime": "Ange specifik tid",
+		"setSpecificTimeDesc": "Nya händelser från denna mall förifylls med dessa tider",
 		"noTemplates": "Inga mallar ännu",
 		"noTemplatesDesc": "Skapa mallar för snabb händelseskapande",
 		"created": "Mall skapad",

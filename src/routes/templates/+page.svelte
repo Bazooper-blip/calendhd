@@ -3,7 +3,7 @@
 	import { templatesStore, categoriesStore } from '$stores';
 	import { Button, Input, Modal, Select, Toggle, ColorPicker } from '$components/ui';
 	import { toast } from 'svelte-sonner';
-	import { formatDuration } from '$utils';
+	import { formatDuration, deriveDurationMinutes } from '$utils';
 	import type { Template, ReminderConfig } from '$types';
 
 	let showModal = $state(false);
@@ -15,6 +15,9 @@
 	let category = $state('');
 	let defaultDurationMinutes = $state(60);
 	let defaultIsAllDay = $state(false);
+	let useSpecificTime = $state(false);
+	let defaultStartTime = $state('09:00');
+	let defaultEndTime = $state('10:00');
 	let defaultReminders = $state<ReminderConfig[]>([{ minutes_before: 10, type: 'notification' }]);
 	let description = $state('');
 	let colorOverride = $state('');
@@ -31,12 +34,21 @@
 		}))
 	);
 
+	const timesInvalid = $derived(
+		!defaultIsAllDay &&
+			useSpecificTime &&
+			(!defaultStartTime || !defaultEndTime || defaultStartTime === defaultEndTime)
+	);
+
 	function openCreateModal() {
 		editingTemplate = null;
 		name = '';
 		category = '';
 		defaultDurationMinutes = 60;
 		defaultIsAllDay = false;
+		useSpecificTime = false;
+		defaultStartTime = '09:00';
+		defaultEndTime = '10:00';
 		defaultReminders = [{ minutes_before: 10, type: 'notification' }];
 		description = '';
 		colorOverride = '';
@@ -49,6 +61,9 @@
 		category = template.category || '';
 		defaultDurationMinutes = template.default_duration_minutes;
 		defaultIsAllDay = template.default_is_all_day;
+		useSpecificTime = !!(template.default_start_time && template.default_end_time);
+		defaultStartTime = template.default_start_time || '09:00';
+		defaultEndTime = template.default_end_time || '10:00';
 		defaultReminders = template.default_reminders;
 		description = template.description || '';
 		colorOverride = template.color_override || '';
@@ -61,17 +76,23 @@
 	}
 
 	async function handleSubmit() {
-		if (!name.trim()) return;
+		if (!name.trim() || timesInvalid) return;
 
 		loading = true;
 
 		try {
 			// Use $state.snapshot() to convert proxy to plain object for API
+			const hasTimes =
+				!defaultIsAllDay && useSpecificTime && !!defaultStartTime && !!defaultEndTime;
 			const data = {
 				name,
 				category: category || undefined,
-				default_duration_minutes: defaultDurationMinutes,
+				default_duration_minutes: hasTimes
+					? deriveDurationMinutes(defaultStartTime, defaultEndTime)
+					: defaultDurationMinutes,
 				default_is_all_day: defaultIsAllDay,
+				default_start_time: hasTimes ? defaultStartTime : '',
+				default_end_time: hasTimes ? defaultEndTime : '',
 				default_reminders: $state.snapshot(defaultReminders),
 				description: description || undefined,
 				color_override: colorOverride || undefined
@@ -148,7 +169,11 @@
 						<div class="flex-1">
 							<h3 class="font-medium text-neutral-800 dark:text-neutral-100">{template.name}</h3>
 							<p class="text-sm text-neutral-500 dark:text-neutral-400">
-								{template.default_is_all_day ? $t('time.allDay') : formatDuration(template.default_duration_minutes)}
+								{template.default_is_all_day
+									? $t('time.allDay')
+									: template.default_start_time && template.default_end_time
+										? `${template.default_start_time}–${template.default_end_time}`
+										: formatDuration(template.default_duration_minutes)}
 								{#if cat}
 									· {cat.name}
 								{/if}
@@ -217,17 +242,40 @@
 		/>
 
 		{#if !defaultIsAllDay}
-			<div>
-				<label for="duration" class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1">
-					{$t('template.defaultDuration')}
-				</label>
-				<Select
-					id="duration"
-					options={durationOptions}
-					value={defaultDurationMinutes.toString()}
-					onchange={(e) => defaultDurationMinutes = parseInt((e.target as HTMLSelectElement).value)}
-				/>
-			</div>
+			<Toggle
+				bind:checked={useSpecificTime}
+				label={$t('template.setSpecificTime')}
+				description={$t('template.setSpecificTimeDesc')}
+			/>
+
+			{#if useSpecificTime}
+				<div class="grid grid-cols-2 gap-4">
+					<div>
+						<label for="default-start-time" class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1">
+							{$t('event.startTime')}
+						</label>
+						<Input id="default-start-time" type="time" bind:value={defaultStartTime} required />
+					</div>
+					<div>
+						<label for="default-end-time" class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1">
+							{$t('event.endTime')}
+						</label>
+						<Input id="default-end-time" type="time" bind:value={defaultEndTime} required />
+					</div>
+				</div>
+			{:else}
+				<div>
+					<label for="duration" class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1">
+						{$t('template.defaultDuration')}
+					</label>
+					<Select
+						id="duration"
+						options={durationOptions}
+						value={defaultDurationMinutes.toString()}
+						onchange={(e) => defaultDurationMinutes = parseInt((e.target as HTMLSelectElement).value)}
+					/>
+				</div>
+			{/if}
 		{/if}
 
 		<div>
@@ -254,7 +302,7 @@
 
 	{#snippet footer()}
 		<Button variant="ghost" onclick={closeModal}>{$t('common.cancel')}</Button>
-		<Button onclick={handleSubmit} {loading} disabled={!name.trim()}>
+		<Button onclick={handleSubmit} {loading} disabled={!name.trim() || timesInvalid}>
 			{editingTemplate ? $t('common.save') : $t('common.create')}
 		</Button>
 	{/snippet}
