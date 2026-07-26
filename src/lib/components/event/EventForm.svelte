@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { format } from 'date-fns';
+	import { addDays, format } from 'date-fns';
 	import { Button, Input, Select, Toggle, ColorPicker, IconPicker } from '$components/ui';
 	import { categoriesStore, templatesStore, settingsStore } from '$stores';
-	import { REMINDER_OPTIONS, RECURRENCE_PRESETS } from '$utils';
+	import { REMINDER_OPTIONS, RECURRENCE_PRESETS, timeCrossesMidnight } from '$utils';
 	import type { EventFormData, ReminderConfig, RecurrenceRule } from '$types';
 
 	interface Props {
@@ -69,7 +69,15 @@
 		if (template.default_reminders) reminders = template.default_reminders;
 		isAllDay = template.default_is_all_day;
 
-		if (!isAllDay && template.default_duration_minutes && startTime) {
+		if (!isAllDay && template.default_start_time && template.default_end_time) {
+			// Template carries a specific time of day — prefill it; the user
+			// still picks the date. Cross-midnight stop lands on the next day.
+			startTime = template.default_start_time;
+			endTime = template.default_end_time;
+			endDate = timeCrossesMidnight(template.default_start_time, template.default_end_time)
+				? format(addDays(new Date(`${startDate}T00:00:00`), 1), 'yyyy-MM-dd')
+				: startDate;
+		} else if (!isAllDay && template.default_duration_minutes && startTime) {
 			const [hours, minutes] = startTime.split(':').map(Number);
 			const endMinutes = hours * 60 + minutes + template.default_duration_minutes;
 			const endHours = Math.floor(endMinutes / 60) % 24;
