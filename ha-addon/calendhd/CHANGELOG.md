@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.4
+
+- TRMNL: removed the minute countdowns ("NOW · 34 min left", "NEXT · in 49 min") from the dashboard — with a 15-minute polling interval they were stale most of the time. The hero cards now lean on the static event time ranges (the half-vertical layout gains the time range in its badge, where the countdown was the only time info), and NEXT keeps its day label for events on a later day. The feed no longer serves the matching `minutes_left`/`left_label`/`minutes_until`/`in_label` fields or the `left`/`in_prefix` strings. Re-paste the templates from `trmnl-plugin/src/` (or `trmnlp push`) to pick this up.
+
 ## 1.7.3
 
 - TRMNL feed: new `strings` payload object with all static template chrome ("NOW", "All day", "No events today", …) resolved to the household's locale, so Swedish calendars render fully in Swedish on the e-ink display instead of half-English. The updated plugin templates fall back to English against older servers.
