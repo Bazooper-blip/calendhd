@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { Button, Modal } from '$components/ui';
 	import { _ } from '$lib/i18n';
-	import { settingsStore } from '$stores';
+	import { categoriesStore, settingsStore } from '$stores';
 	import { formatDateSmart, formatTimeRange } from '$utils';
 	import { getPocketBase } from '$api/pocketbase';
 	import ExternalEventReminderRow from './ExternalEventReminderRow.svelte';
@@ -27,6 +27,13 @@
 
 	const internal = $derived(
 		event && !event.is_external ? (event.original_event as CalendarEvent) : null
+	);
+
+	const category = $derived(
+		internal?.category ? categoriesStore.getById(internal.category) : null
+	);
+	const categoryColor = $derived(
+		internal?.color_override || category?.color || '#7C9885'
 	);
 
 	function handleEdit() {
@@ -149,15 +156,15 @@
 		</div>
 	{:else if event && internal}
 		<div class="space-y-4">
-			{#if event.category_name}
+			{#if category}
 				<div class="flex items-center gap-2 flex-wrap">
 					<span
 						class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium border-l-4"
-						style:background-color="{event.color}20"
-						style:border-left-color={event.color}
+						style:background-color="{categoryColor}20"
+						style:border-left-color={categoryColor}
 					>
-						<span class="w-2 h-2 rounded-full" style:background-color={event.color}></span>
-						<span class="text-neutral-700 dark:text-neutral-200">{event.category_name}</span>
+						<span class="w-2 h-2 rounded-full" style:background-color={categoryColor}></span>
+						<span class="text-neutral-700 dark:text-neutral-200">{category.name}</span>
 					</span>
 				</div>
 			{/if}
