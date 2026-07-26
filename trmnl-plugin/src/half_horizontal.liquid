@@ -17,6 +17,8 @@
   {% assign hero_key = next_event.title | append: "|" | append: next_event.time %}
 {% endif %}
 
+{% comment %} View wrapper: required on BYOS renderers (LaraPaper), harmless nested on TRMNL cloud/trmnlp — see full.liquid. {% endcomment %}
+<div class="view view--half_horizontal">
 <div class="layout">
   <div class="columns">
 
@@ -88,4 +90,5 @@
   <img class="image" src="https://usetrmnl.com/images/plugins/trmnl--render.svg" />
   <span class="title">calenDHD</span>
   <span class="instance">{{ today_label }}</span>
+</div>
 </div>
