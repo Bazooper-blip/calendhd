@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.1
+
+- Fixed: the version shown in the sidebar footer lagged behind the addon version (1.8.0 still displayed "v1.7.2"). The frontend build now reads the version straight from the addon's `config.yaml` instead of a separately-maintained `package.json` field, so the stamp can't drift again.
+
 ## 1.8.0
 
 - New: templates can carry a specific time of day. A "Set specific time" toggle in the template form stores a start and stop time (migration 0011); creating an event from such a template prefills both times — you still pick the date, and a stop time past midnight lands on the next day automatically. Templates without times keep the duration-only behavior, and the template list shows the time range (e.g. 06:30–07:15) instead of a duration when times are set.

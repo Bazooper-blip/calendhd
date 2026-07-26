@@ -29,6 +29,13 @@ if [ ! -d node_modules ]; then
   npm install
 fi
 
+VERSION=$(grep '^version:' "$ADDON/config.yaml" | head -1 | sed 's/.*"\(.*\)".*/\1/')
+
+# The bundle stamps its version from config.yaml directly (vite.config.ts);
+# syncing package.json is just to keep its cosmetic version field from drifting.
+echo "Syncing package.json version ($VERSION)..."
+npm pkg set version="$VERSION"
+
 echo "Building frontend..."
 npm run build
 
@@ -54,8 +61,6 @@ cp push-service/package.json "$ADDON/push-service/"
 [ -f push-service/package-lock.json ] && cp push-service/package-lock.json "$ADDON/push-service/"
 cp push-service/index.js "$ADDON/push-service/"
 [ -f push-service/generate-vapid.js ] && cp push-service/generate-vapid.js "$ADDON/push-service/"
-
-VERSION=$(grep '^version:' "$ADDON/config.yaml" | head -1 | sed 's/.*"\(.*\)".*/\1/')
 
 echo
 echo "=========================================="

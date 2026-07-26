@@ -1,7 +1,13 @@
+import { readFileSync } from 'node:fs';
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
-import pkg from './package.json';
+
+// The addon config.yaml is the single source of truth for the release version —
+// this stamp is how a device's bundle is identified (sidebar footer).
+const addonConfig = readFileSync(new URL('./ha-addon/calendhd/config.yaml', import.meta.url), 'utf8');
+const version = addonConfig.match(/^version:\s*"([^"]+)"/m)?.[1];
+if (!version) throw new Error('No version found in ha-addon/calendhd/config.yaml');
 
 export default defineConfig({
 	plugins: [
@@ -9,9 +15,7 @@ export default defineConfig({
 		sveltekit()
 	],
 	define: {
-		// Keep package.json "version" in sync with ha-addon/calendhd/config.yaml
-		// on each release — this stamp is how a device's bundle is identified.
-		__APP_VERSION__: JSON.stringify(pkg.version)
+		__APP_VERSION__: JSON.stringify(version)
 	},
 	resolve: {
 		preserveSymlinks: true
