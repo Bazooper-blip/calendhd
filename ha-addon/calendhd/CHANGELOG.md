@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.8.0
+
+- New: templates can carry a specific time of day. A "Set specific time" toggle in the template form stores a start and stop time (migration 0011); creating an event from such a template prefills both times — you still pick the date, and a stop time past midnight lands on the next day automatically. Templates without times keep the duration-only behavior, and the template list shows the time range (e.g. 06:30–07:15) instead of a duration when times are set.
+- New: clicking an event in any calendar view opens a small preview modal instead of jumping straight to the edit page — title, category, date/time, and notes at a glance, with an "Edit Event" button when you actually want to change something. External (subscribed) events keep their existing modal unchanged; routine blocks and task checkboxes behave as before.
+- Dependencies: Svelte 5.56.8, SvelteKit 2.70.1, Tailwind 4.3.3, Lucide 1.27.0, Biome 2.5.5; the addon image now ships PocketBase 0.39.9.
+
 ## 1.7.4
 
 - TRMNL: removed the minute countdowns ("NOW · 34 min left", "NEXT · in 49 min") from the dashboard — with a 15-minute polling interval they were stale most of the time. The hero cards now lean on the static event time ranges (the half-vertical layout gains the time range in its badge, where the countdown was the only time info), and NEXT keeps its day label for events on a later day. The feed no longer serves the matching `minutes_left`/`left_label`/`minutes_until`/`in_label` fields or the `left`/`in_prefix` strings. Re-paste the templates from `trmnl-plugin/src/` (or `trmnlp push`) to pick this up.
