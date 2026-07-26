@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { Modal } from '$components/ui';
+	import { goto } from '$app/navigation';
+	import { Button, Modal } from '$components/ui';
 	import { _ } from '$lib/i18n';
 	import { settingsStore } from '$stores';
 	import { formatDateSmart, formatTimeRange } from '$utils';
 	import { getPocketBase } from '$api/pocketbase';
 	import ExternalEventReminderRow from './ExternalEventReminderRow.svelte';
-	import type { DisplayEvent, ExternalEvent, CalendarSubscription } from '$types';
+	import type { DisplayEvent, ExternalEvent, CalendarEvent, CalendarSubscription } from '$types';
 
 	interface Props {
 		event: DisplayEvent | null;
@@ -20,10 +21,20 @@
 	const open = $derived(event !== null);
 	const format24h = $derived(settingsStore.timeFormat === '24h');
 
-	const external = $derived.by(() => {
-		if (!event) return null;
-		return event.original_event as ExternalEvent;
-	});
+	const external = $derived(
+		event && event.is_external ? (event.original_event as ExternalEvent) : null
+	);
+
+	const internal = $derived(
+		event && !event.is_external ? (event.original_event as CalendarEvent) : null
+	);
+
+	function handleEdit() {
+		if (!event) return;
+		const id = event.id;
+		onclose();
+		goto(`/event/${id}`);
+	}
 
 	$effect(() => {
 		if (!external) {
@@ -65,7 +76,17 @@
 	});
 </script>
 
-<Modal {open} title={event?.title ?? ''} size="md" {onclose}>
+{#snippet editFooter()}
+	<Button onclick={handleEdit}>{$_('event.edit')}</Button>
+{/snippet}
+
+<Modal
+	{open}
+	title={event?.title ?? ''}
+	size="md"
+	{onclose}
+	footer={event && !event.is_external ? editFooter : undefined}
+>
 	{#if event && external}
 		<div class="space-y-4">
 			<div class="flex items-center gap-2 flex-wrap">
@@ -123,6 +144,40 @@
 						{$_('externalEvent.reminderHeader')}
 					</div>
 					<ExternalEventReminderRow {external} {subscription} />
+				</div>
+			{/if}
+		</div>
+	{:else if event && internal}
+		<div class="space-y-4">
+			{#if event.category_name}
+				<div class="flex items-center gap-2 flex-wrap">
+					<span
+						class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium border-l-4"
+						style:background-color="{event.color}20"
+						style:border-left-color={event.color}
+					>
+						<span class="w-2 h-2 rounded-full" style:background-color={event.color}></span>
+						<span class="text-neutral-700 dark:text-neutral-200">{event.category_name}</span>
+					</span>
+				</div>
+			{/if}
+
+			<div>
+				<div class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400 mb-1">
+					{$_('event.date')}
+				</div>
+				<div class="text-sm text-neutral-800 dark:text-neutral-100">{dateLabel}</div>
+				<div class="text-sm text-neutral-600 dark:text-neutral-300">{timeLabel}</div>
+			</div>
+
+			{#if internal.description}
+				<div>
+					<div class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400 mb-1">
+						{$_('event.description')}
+					</div>
+					<div class="text-sm text-neutral-800 dark:text-neutral-100 whitespace-pre-line break-words">
+						{internal.description}
+					</div>
 				</div>
 			{/if}
 		</div>
