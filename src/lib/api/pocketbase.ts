@@ -1,15 +1,15 @@
 import PocketBase from 'pocketbase';
 import type {
-	User,
-	Category,
-	Template,
-	RoutineTemplate,
 	CalendarEvent,
 	CalendarSubscription,
+	Category,
+	DevicePushSubscription,
 	ExternalEvent,
 	ExternalEventReminder,
-	UserSettings,
-	DevicePushSubscription
+	RoutineTemplate,
+	Template,
+	User,
+	UserSettings
 } from '$types';
 
 // PocketBase client singleton
@@ -19,9 +19,10 @@ export function getPocketBase(): PocketBase {
 	if (!pb) {
 		// Use current origin in browser (works when PocketBase serves frontend)
 		// Fall back to env var or localhost for SSR/dev
-		const url = typeof window !== 'undefined'
-			? window.location.origin
-			: (import.meta.env.VITE_POCKETBASE_URL || 'http://127.0.0.1:8090');
+		const url =
+			typeof window !== 'undefined'
+				? window.location.origin
+				: import.meta.env.VITE_POCKETBASE_URL || 'http://127.0.0.1:8090';
 		pb = new PocketBase(url);
 		// Disable auto-cancellation to prevent errors when multiple requests are made
 		pb.autoCancellation(false);
@@ -76,7 +77,9 @@ export async function getCategories(): Promise<Category[]> {
 	return records as unknown as Category[];
 }
 
-export async function createCategory(data: Omit<Category, 'id' | 'created' | 'updated' | 'user'>): Promise<Category> {
+export async function createCategory(
+	data: Omit<Category, 'id' | 'created' | 'updated' | 'user'>
+): Promise<Category> {
 	const user = getCurrentUser();
 	if (!user) throw new Error('Not authenticated');
 
@@ -104,7 +107,9 @@ export async function getTemplates(): Promise<Template[]> {
 	return records as unknown as Template[];
 }
 
-export async function createTemplate(data: Omit<Template, 'id' | 'created' | 'updated' | 'user'>): Promise<Template> {
+export async function createTemplate(
+	data: Omit<Template, 'id' | 'created' | 'updated' | 'user'>
+): Promise<Template> {
 	const user = getCurrentUser();
 	if (!user) throw new Error('Not authenticated');
 
@@ -162,10 +167,7 @@ export function subscribeToRoutineTemplates(
 	callback: (action: 'create' | 'update' | 'delete', record: RoutineTemplate) => void
 ): () => void {
 	collections.routine_templates().subscribe('*', (e) => {
-		callback(
-			e.action as 'create' | 'update' | 'delete',
-			e.record as unknown as RoutineTemplate
-		);
+		callback(e.action as 'create' | 'update' | 'delete', e.record as unknown as RoutineTemplate);
 	});
 
 	return () => {
@@ -191,7 +193,9 @@ export async function getEvent(id: string): Promise<CalendarEvent> {
 	return record as unknown as CalendarEvent;
 }
 
-export async function createEvent(data: Omit<CalendarEvent, 'id' | 'created' | 'updated' | 'user'>): Promise<CalendarEvent> {
+export async function createEvent(
+	data: Omit<CalendarEvent, 'id' | 'created' | 'updated' | 'user'>
+): Promise<CalendarEvent> {
 	const user = getCurrentUser();
 	if (!user) throw new Error('Not authenticated');
 
@@ -209,7 +213,10 @@ export async function createEvent(data: Omit<CalendarEvent, 'id' | 'created' | '
 	}
 }
 
-export async function updateEvent(id: string, data: Partial<CalendarEvent>): Promise<CalendarEvent> {
+export async function updateEvent(
+	id: string,
+	data: Partial<CalendarEvent>
+): Promise<CalendarEvent> {
 	const record = await collections.events().update(id, data);
 	return record as unknown as CalendarEvent;
 }
@@ -252,10 +259,7 @@ export async function deleteSubscription(id: string): Promise<void> {
 }
 
 // External events API
-export async function getExternalEvents(
-	startDate: Date,
-	endDate: Date
-): Promise<ExternalEvent[]> {
+export async function getExternalEvents(startDate: Date, endDate: Date): Promise<ExternalEvent[]> {
 	const user = getCurrentUser();
 	if (!user) return [];
 
@@ -283,7 +287,10 @@ export async function getUserSettings(): Promise<UserSettings | null> {
 	}
 }
 
-export async function updateUserSettings(data: Partial<UserSettings>, existingId?: string): Promise<UserSettings> {
+export async function updateUserSettings(
+	data: Partial<UserSettings>,
+	existingId?: string
+): Promise<UserSettings> {
 	const user = getCurrentUser();
 	if (!user) throw new Error('Not authenticated');
 
@@ -492,9 +499,7 @@ export async function upsertExternalEventReminderRemote(
 	};
 
 	if (existing.length > 0) {
-		const record = await collections
-			.external_event_reminders()
-			.update(existing[0].id, payload);
+		const record = await collections.external_event_reminders().update(existing[0].id, payload);
 		return record as unknown as ExternalEventReminder;
 	}
 	const record = await collections.external_event_reminders().create(payload);

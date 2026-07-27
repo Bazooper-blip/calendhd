@@ -1,10 +1,5 @@
+import { getCurrentUser, getPocketBase, onAuthChange, signInWithEmail } from '$api/pocketbase';
 import { browser } from '$app/environment';
-import {
-	getCurrentUser,
-	getPocketBase,
-	onAuthChange,
-	signInWithEmail
-} from '$api/pocketbase';
 import type { User } from '$types';
 
 // The singleton-init hook on the server creates the user and rotates its
@@ -39,7 +34,7 @@ function createAuthStore() {
 			}
 		}
 
-		let creds;
+		let creds: { email: string; password: string };
 		try {
 			creds = await fetchSingletonCredentials();
 		} catch (err) {

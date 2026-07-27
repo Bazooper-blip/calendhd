@@ -26,9 +26,7 @@ self.addEventListener('push', (event) => {
 		vibrate: [200, 100, 200]
 	};
 
-	event.waitUntil(
-		self.registration.showNotification(data.title || 'calenDHD Reminder', options)
-	);
+	event.waitUntil(self.registration.showNotification(data.title || 'calenDHD Reminder', options));
 });
 
 // ── Notification click handling ─────────────────────────────────────
@@ -41,17 +39,15 @@ self.addEventListener('notificationclick', (event) => {
 	const url = eventId ? `/event/${eventId}` : '/';
 
 	event.waitUntil(
-		self.clients
-			.matchAll({ type: 'window', includeUncontrolled: true })
-			.then((clients) => {
-				const existingClient = clients.find((client) => 'focus' in client);
-				if (existingClient) {
-					existingClient.focus();
-					existingClient.navigate(url);
-				} else {
-					self.clients.openWindow(url);
-				}
-			})
+		self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+			const existingClient = clients.find((client) => 'focus' in client);
+			if (existingClient) {
+				existingClient.focus();
+				existingClient.navigate(url);
+			} else {
+				self.clients.openWindow(url);
+			}
+		})
 	);
 });
 

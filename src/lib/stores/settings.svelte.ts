@@ -1,9 +1,9 @@
+import { getDefaultSettings, getUserSettings, updateUserSettings } from '$api/pocketbase';
 import { browser } from '$app/environment';
-import { getUserSettings, updateUserSettings, getDefaultSettings } from '$api/pocketbase';
-import { auth } from './auth.svelte';
 import { setLocale } from '$lib/i18n';
-import { setTimezone, setDateLocale, setWeekStartsOn } from '$lib/utils/date';
+import { setDateLocale, setTimezone, setWeekStartsOn } from '$lib/utils/date';
 import type { UserSettings } from '$types';
+import { auth } from './auth.svelte';
 
 // Settings store using Svelte 5 runes
 function createSettingsStore() {
@@ -44,7 +44,14 @@ function createSettingsStore() {
 		},
 		get colorPalette(): 'sage' | 'ocean' | 'lavender' | 'rose' | 'amber' | 'teal' {
 			const val = settings?.color_palette;
-			if (val === 'sage' || val === 'ocean' || val === 'lavender' || val === 'rose' || val === 'amber' || val === 'teal') {
+			if (
+				val === 'sage' ||
+				val === 'ocean' ||
+				val === 'lavender' ||
+				val === 'rose' ||
+				val === 'amber' ||
+				val === 'teal'
+			) {
 				return val;
 			}
 			return 'sage';

@@ -1,34 +1,34 @@
-import { browser } from '$app/environment';
 import {
-	startOfDay,
-	endOfDay,
-	startOfWeek,
-	endOfWeek,
-	startOfMonth,
-	endOfMonth,
 	addDays,
-	addWeeks,
 	addMonths,
+	addWeeks,
+	endOfDay,
+	endOfMonth,
+	endOfWeek,
+	startOfDay,
+	startOfMonth,
+	startOfWeek,
 	subDays,
-	subWeeks,
-	subMonths
+	subMonths,
+	subWeeks
 } from 'date-fns';
-import { isSameDay } from '$utils';
+import { get } from 'svelte/store';
+import { _ } from 'svelte-i18n';
+import { toast } from 'svelte-sonner';
 import {
+	createEvent as createServerEvent,
+	deleteEvent as deleteServerEvent,
 	getEvents,
 	getExternalEvents,
 	subscribeToEvents,
-	createEvent as createServerEvent,
-	updateEvent as updateServerEvent,
-	deleteEvent as deleteServerEvent
+	updateEvent as updateServerEvent
 } from '$api/pocketbase';
+import { browser } from '$app/environment';
+import type { CalendarEvent, CalendarSubscription, DisplayEvent, ExternalEvent } from '$types';
+import { isSameDay } from '$utils';
 import { auth } from './auth.svelte';
-import { settingsStore } from './settings.svelte';
 import { routinesStore } from './routines.svelte';
-import { toast } from 'svelte-sonner';
-import { get } from 'svelte/store';
-import { _ } from 'svelte-i18n';
-import type { CalendarEvent, CalendarSubscription, ExternalEvent, DisplayEvent } from '$types';
+import { settingsStore } from './settings.svelte';
 
 export type ViewType = 'day' | 'week' | 'month';
 
@@ -69,7 +69,7 @@ function createCalendarStore() {
 					start: startOfWeek(currentDate, { weekStartsOn }),
 					end: endOfWeek(currentDate, { weekStartsOn })
 				};
-			case 'month':
+			case 'month': {
 				const monthStart = startOfMonth(currentDate);
 				const monthEnd = endOfMonth(currentDate);
 				// Include days from adjacent months visible in the calendar grid
@@ -77,6 +77,7 @@ function createCalendarStore() {
 					start: startOfWeek(monthStart, { weekStartsOn }),
 					end: endOfWeek(monthEnd, { weekStartsOn })
 				};
+			}
 		}
 	}
 
@@ -132,7 +133,9 @@ function createCalendarStore() {
 
 			// Convert external events
 			for (const event of externalEvents) {
-				const subscription = (event as ExternalEvent & { expand?: { subscription?: CalendarSubscription } }).expand?.subscription;
+				const subscription = (
+					event as ExternalEvent & { expand?: { subscription?: CalendarSubscription } }
+				).expand?.subscription;
 				allEvents.push({
 					id: event.id,
 					title: event.title,
@@ -240,9 +243,12 @@ function createCalendarStore() {
 				// fires before the network is ready, and no `online` event
 				// follows because connectivity never "changed" for the OS.
 				if (retryAttempt < 3) {
-					setTimeout(() => {
-						if (!isStale()) this.loadEvents(retryAttempt + 1);
-					}, 2000 * 2 ** retryAttempt);
+					setTimeout(
+						() => {
+							if (!isStale()) this.loadEvents(retryAttempt + 1);
+						},
+						2000 * 2 ** retryAttempt
+					);
 				}
 			}
 
@@ -308,7 +314,7 @@ function createCalendarStore() {
 		// Toggle task completion with flexible timing cascade
 		async toggleTaskComplete(id: string) {
 			const event = events.find((e) => e.id === id);
-			if (!event || !event.is_task) return;
+			if (!event?.is_task) return;
 
 			try {
 				const completed_at = event.completed_at ? undefined : new Date().toISOString();
@@ -324,10 +330,11 @@ function createCalendarStore() {
 
 					// Find all events for this routine today, sorted by step index
 					const routineEvents = events
-						.filter((e) =>
-							e.routine_template === event.routine_template &&
-							e.start_time &&
-							new Date(e.start_time).toDateString() === new Date(event.start_time).toDateString()
+						.filter(
+							(e) =>
+								e.routine_template === event.routine_template &&
+								e.start_time &&
+								new Date(e.start_time).toDateString() === new Date(event.start_time).toDateString()
 						)
 						.sort((a, b) => (a.routine_step_index ?? 0) - (b.routine_step_index ?? 0));
 
@@ -359,8 +366,12 @@ function createCalendarStore() {
 						const [hStr, mStr] = scheduleTime.split(':');
 						const baseDate = new Date(event.start_time);
 						let cursor = new Date(
-							baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(),
-							parseInt(hStr, 10), parseInt(mStr, 10), 0
+							baseDate.getFullYear(),
+							baseDate.getMonth(),
+							baseDate.getDate(),
+							parseInt(hStr, 10),
+							parseInt(mStr, 10),
+							0
 						);
 
 						// Walk from step 0 to rebuild original times
