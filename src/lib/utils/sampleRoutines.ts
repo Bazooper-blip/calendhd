@@ -1,4 +1,4 @@
-import type { RoutineStep, RoutineSchedule } from '$types';
+import type { RoutineSchedule, RoutineStep } from '$types';
 
 interface SampleRoutine {
 	name: string;
@@ -29,7 +29,12 @@ export const SAMPLE_ROUTINES: SampleRoutine[] = [
 		},
 		steps: [
 			{ title: 'Wake up + light', duration_minutes: 10, energy_level: 'low', timing_mode: 'flexible' },
-			{ title: 'Glass of water + meds', duration_minutes: 5, energy_level: 'low', timing_mode: 'fixed' },
+			{
+				title: 'Glass of water + meds',
+				duration_minutes: 5,
+				energy_level: 'low',
+				timing_mode: 'fixed'
+			},
 			{ title: 'Shower', duration_minutes: 15, energy_level: 'medium', timing_mode: 'flexible' },
 			{ title: 'Breakfast', duration_minutes: 20, energy_level: 'low', timing_mode: 'flexible' },
 			{ title: 'Plan the day', duration_minutes: 10, energy_level: 'medium', timing_mode: 'flexible' }
@@ -46,10 +51,30 @@ export const SAMPLE_ROUTINES: SampleRoutine[] = [
 			time: '21:30'
 		},
 		steps: [
-			{ title: 'Tidy living space', duration_minutes: 10, energy_level: 'low', timing_mode: 'flexible' },
-			{ title: 'Lay out clothes for tomorrow', duration_minutes: 5, energy_level: 'low', timing_mode: 'flexible' },
-			{ title: 'Skincare + brush teeth', duration_minutes: 10, energy_level: 'low', timing_mode: 'flexible' },
-			{ title: 'Read / no-screen time', duration_minutes: 30, energy_level: 'low', timing_mode: 'flexible' },
+			{
+				title: 'Tidy living space',
+				duration_minutes: 10,
+				energy_level: 'low',
+				timing_mode: 'flexible'
+			},
+			{
+				title: 'Lay out clothes for tomorrow',
+				duration_minutes: 5,
+				energy_level: 'low',
+				timing_mode: 'flexible'
+			},
+			{
+				title: 'Skincare + brush teeth',
+				duration_minutes: 10,
+				energy_level: 'low',
+				timing_mode: 'flexible'
+			},
+			{
+				title: 'Read / no-screen time',
+				duration_minutes: 30,
+				energy_level: 'low',
+				timing_mode: 'flexible'
+			},
 			{ title: 'Lights out', duration_minutes: 5, energy_level: 'low', timing_mode: 'fixed' }
 		]
 	},
@@ -63,10 +88,30 @@ export const SAMPLE_ROUTINES: SampleRoutine[] = [
 			time: '17:00'
 		},
 		steps: [
-			{ title: 'Review the week ahead', duration_minutes: 15, energy_level: 'medium', timing_mode: 'flexible' },
-			{ title: 'Check inbox + admin', duration_minutes: 30, energy_level: 'medium', timing_mode: 'flexible' },
-			{ title: 'Pay any outstanding bills', duration_minutes: 15, energy_level: 'medium', timing_mode: 'flexible' },
-			{ title: 'Meal plan + grocery list', duration_minutes: 20, energy_level: 'low', timing_mode: 'flexible' }
+			{
+				title: 'Review the week ahead',
+				duration_minutes: 15,
+				energy_level: 'medium',
+				timing_mode: 'flexible'
+			},
+			{
+				title: 'Check inbox + admin',
+				duration_minutes: 30,
+				energy_level: 'medium',
+				timing_mode: 'flexible'
+			},
+			{
+				title: 'Pay any outstanding bills',
+				duration_minutes: 15,
+				energy_level: 'medium',
+				timing_mode: 'flexible'
+			},
+			{
+				title: 'Meal plan + grocery list',
+				duration_minutes: 20,
+				energy_level: 'low',
+				timing_mode: 'flexible'
+			}
 		]
 	}
 ];

@@ -1,25 +1,24 @@
-export * from './date';
-export * from './recurrence';
-export * from './notifications';
-
 // Re-export commonly used date-fns functions
 // Note: isToday, isSameDay, isSameMonth are exported from ./date with timezone awareness
 export {
-	format,
-	parseISO,
-	isValid,
-	startOfWeek,
-	endOfWeek,
-	startOfMonth,
-	endOfMonth,
-	startOfDay,
 	addDays,
-	addWeeks,
 	addMonths,
+	addWeeks,
+	endOfMonth,
+	endOfWeek,
+	format,
+	isValid,
+	parseISO,
+	startOfDay,
+	startOfMonth,
+	startOfWeek,
 	subDays,
-	subWeeks,
-	subMonths
+	subMonths,
+	subWeeks
 } from 'date-fns';
+export * from './date';
+export * from './notifications';
+export * from './recurrence';
 
 // Class name utility
 export function cn(...classes: (string | boolean | undefined | null)[]): string {

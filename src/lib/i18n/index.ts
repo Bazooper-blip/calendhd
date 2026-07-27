@@ -1,5 +1,12 @@
+import {
+	addMessages,
+	getLocaleFromNavigator,
+	init,
+	locale,
+	register,
+	waitLocale
+} from 'svelte-i18n';
 import { browser } from '$app/environment';
-import { init, register, getLocaleFromNavigator, locale, waitLocale, addMessages } from 'svelte-i18n';
 
 // Import default locale synchronously to avoid loading issues
 import en from './locales/en.json';
@@ -53,6 +60,5 @@ export const availableLocales = [
 ];
 
 // Re-export for convenience
-export { locale, t, date, time, number, isLoading } from 'svelte-i18n';
 // Use _ as alias for t (common convention)
-export { t as _ } from 'svelte-i18n';
+export { date, isLoading, locale, number, t, t as _, time } from 'svelte-i18n';

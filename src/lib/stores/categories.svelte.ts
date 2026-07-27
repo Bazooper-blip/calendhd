@@ -1,13 +1,13 @@
-import { browser } from '$app/environment';
 import {
-	getCategories,
 	createCategory,
-	updateCategory,
 	deleteCategory,
-	subscribeToCategories
+	getCategories,
+	subscribeToCategories,
+	updateCategory
 } from '$api/pocketbase';
-import { auth } from './auth.svelte';
+import { browser } from '$app/environment';
 import type { Category } from '$types';
+import { auth } from './auth.svelte';
 
 // Categories store using Svelte 5 runes
 function createCategoriesStore() {

@@ -1,13 +1,13 @@
-import { browser } from '$app/environment';
 import {
-	getRoutineTemplates,
 	createRoutineTemplate,
-	updateRoutineTemplate,
 	deleteRoutineTemplate,
-	subscribeToRoutineTemplates
+	getRoutineTemplates,
+	subscribeToRoutineTemplates,
+	updateRoutineTemplate
 } from '$api/pocketbase';
+import { browser } from '$app/environment';
+import type { RoutineSchedule, RoutineStep, RoutineTemplate } from '$types';
 import { auth } from './auth.svelte';
-import type { RoutineTemplate, RoutineStep, RoutineSchedule } from '$types';
 
 function createRoutinesStore() {
 	let routines = $state<RoutineTemplate[]>([]);

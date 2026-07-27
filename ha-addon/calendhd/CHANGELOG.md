@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.8.2
+
+- Dev tooling: type checking now runs on the TypeScript 7 native compiler (`svelte-check --tsgo` via svelte-check 4.7.4), roughly twice as fast. TypeScript 6 remains the primary in-project compiler as svelte-check requires; TS 7 is installed alongside it under the `@typescript/native` npm alias.
+- Dev tooling: fixed the pre-existing Biome failures in `src/` (formatting drift, unorganized imports, and a few safe code fixes), so `npm run lint` passes again. No user-facing changes.
+
 ## 1.8.1
 
 - Fixed: the version shown in the sidebar footer lagged behind the addon version (1.8.0 still displayed "v1.7.2"). The frontend build now reads the version straight from the addon's `config.yaml` instead of a separately-maintained `package.json` field, so the stamp can't drift again.

@@ -1,7 +1,7 @@
+import { createTemplate, deleteTemplate, getTemplates, updateTemplate } from '$api/pocketbase';
 import { browser } from '$app/environment';
-import { getTemplates, createTemplate, updateTemplate, deleteTemplate } from '$api/pocketbase';
+import type { ReminderConfig, Template } from '$types';
 import { auth } from './auth.svelte';
-import type { Template, ReminderConfig } from '$types';
 
 // Templates store using Svelte 5 runes
 function createTemplatesStore() {
