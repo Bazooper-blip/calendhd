@@ -49,6 +49,16 @@
 			toast.error($_('errors.generic'));
 		}
 	}
+
+	async function resumeExternal(pauseId: string) {
+		try {
+			await calendar.resumeExternalEvent(pauseId);
+			toast.success($_('event.resumed'));
+		} catch (error) {
+			console.error('Failed to resume external event:', error);
+			toast.error($_('errors.generic'));
+		}
+	}
 </script>
 
 <!-- Mobile backdrop -->
@@ -136,8 +146,10 @@
 			{/if}
 
 			<!-- Paused events: the only way back to a paused event — they're
-			     hidden from every calendar view until resumed -->
-			{#if calendar.pausedEvents.length > 0}
+			     hidden from every calendar view until resumed. Local events
+			     link to their edit page; external ones (from subscriptions)
+			     are resume-only. -->
+			{#if calendar.pausedEvents.length > 0 || calendar.externalPauses.length > 0}
 				<div class="pt-4 mt-4 border-t border-neutral-100 dark:border-neutral-700">
 					<h3 class="px-3 text-xs font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">
 						{$_('nav.paused')}
@@ -158,6 +170,28 @@
 								<button
 									type="button"
 									onclick={() => resumeEvent(event.id)}
+									class="shrink-0 p-1 rounded text-neutral-400 dark:text-neutral-500 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+									aria-label={$_('event.resume')}
+									title={$_('event.resume')}
+								>
+									<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+									</svg>
+								</button>
+							</div>
+						{/each}
+						{#each calendar.externalPauses as pause (pause.id)}
+							<div class="flex items-center gap-2 px-3 py-2">
+								<svg class="w-4 h-4 shrink-0 text-neutral-400 dark:text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+								</svg>
+								<span class="flex-1 min-w-0 truncate text-sm text-neutral-600 dark:text-neutral-400">
+									{pause.title || $_('externalEvent.fromCalendar')}
+								</span>
+								<button
+									type="button"
+									onclick={() => resumeExternal(pause.id)}
 									class="shrink-0 p-1 rounded text-neutral-400 dark:text-neutral-500 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
 									aria-label={$_('event.resume')}
 									title={$_('event.resume')}

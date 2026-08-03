@@ -58,3 +58,30 @@ onRecordAfterDeleteSuccess((e) => {
         e.record.get("ical_uid")
     );
 }, "external_event_reminders");
+
+// Pause rows (external_event_pauses) hold the BASE uid of a series — a
+// create cancels the series' pending reminders, a delete (resume)
+// reschedules them. Same read-keys-before-delegating rule as above.
+onRecordAfterCreateSuccess((e) => {
+    const helpers = require(`${__hooks}/pb_helpers.js`);
+    helpers.rescheduleExternalRemindersForPause(
+        e.record.get("subscription"),
+        e.record.get("ical_uid")
+    );
+}, "external_event_pauses");
+
+onRecordAfterUpdateSuccess((e) => {
+    const helpers = require(`${__hooks}/pb_helpers.js`);
+    helpers.rescheduleExternalRemindersForPause(
+        e.record.get("subscription"),
+        e.record.get("ical_uid")
+    );
+}, "external_event_pauses");
+
+onRecordAfterDeleteSuccess((e) => {
+    const helpers = require(`${__hooks}/pb_helpers.js`);
+    helpers.rescheduleExternalRemindersForPause(
+        e.record.get("subscription"),
+        e.record.get("ical_uid")
+    );
+}, "external_event_pauses");

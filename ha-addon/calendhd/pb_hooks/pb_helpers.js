@@ -52,6 +52,20 @@ function pbDateFilter(date) {
     return date.toISOString().replace("T", " ");
 }
 
+// Recurring external occurrences get per-occurrence UIDs of the form
+// "<feed uid>::<YYYYMMDDTHHMMSS>" (see 050_subscription_sync). Pause rows in
+// external_event_pauses are keyed by the BASE uid so one row covers the whole
+// series. Only strip a suffix that matches the sync's stamp format — a feed's
+// own uid could legitimately contain "::".
+// Mirrors baseIcalUid() in src/lib/utils/externalEvents.ts — keep in sync.
+function baseIcalUid(uid) {
+    if (!uid) return uid;
+    var idx = uid.lastIndexOf("::");
+    if (idx === -1) return uid;
+    var suffix = uid.substring(idx + 2);
+    return /^\d{8}T\d{6}$/.test(suffix) ? uid.substring(0, idx) : uid;
+}
+
 // Expand an RRULE into concrete { start, end } occurrences within
 // [rangeStart, rangeEnd]. Pure function (no $app/$dbx) so it is unit-testable
 // under plain Node — see expandRecurrence.test.cjs. When there is no RRULE (or
@@ -262,7 +276,25 @@ function expandRecurrence(rruleStr, startDate, endDate, isAllDay, rangeStart, ra
 module.exports = {
     parseJsonField: parseJsonField,
     pbDateFilter: pbDateFilter,
+    baseIcalUid: baseIcalUid,
     expandRecurrence: expandRecurrence,
+
+    // True when a pause row exists for this external event's series
+    // (external_event_pauses is keyed by subscription + BASE uid).
+    isExternalEventPaused: function(subscriptionId, icalUid) {
+        if (!subscriptionId || !icalUid) return false;
+        try {
+            var rows = $app.findRecordsByFilter(
+                "external_event_pauses",
+                "subscription = {:sub} && ical_uid = {:uid}",
+                "", 1, 0,
+                { sub: subscriptionId, uid: baseIcalUid(icalUid) }
+            );
+            return !!(rows && rows.length > 0);
+        } catch (err) {
+            return false;
+        }
+    },
 
     deleteRoutineEventsForDate: function(routineId, targetDate) {
         var dayStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 0, 0, 0);
@@ -423,6 +455,10 @@ module.exports = {
             // No override — use default
         }
 
+        // A paused event/series never notifies; still fall through to the
+        // cleanup below so pausing cancels already-scheduled reminders.
+        var paused = this.isExternalEventPaused(subscriptionId, icalUid);
+
         // Clean up any unsent scheduled rows for this (subscription, uid)
         try {
             var stale = $app.findAllRecords("external_scheduled_reminders", $dbx.and(
@@ -436,7 +472,7 @@ module.exports = {
             // Nothing to clean up
         }
 
-        if (disabled) return;
+        if (disabled || paused) return;
 
         var eventTime = new Date(startTime);
         var scheduledFor = new Date(eventTime.getTime() - (minutesBefore * 60 * 1000));
@@ -504,6 +540,29 @@ module.exports = {
             }
         } catch (err) {
             console.log("[ext-rem] reschedule for override failed:", err);
+        }
+    },
+
+    // Pause rows are keyed by BASE uid, so a change must re-evaluate the
+    // single event with that exact uid AND every "<uid>::<stamp>" occurrence
+    // of a recurring series. `~` over-matching (LIKE treats `_` and `%` in
+    // the uid as wildcards) is harmless — scheduleExternalReminder is
+    // idempotent per event and re-checks the pause itself.
+    rescheduleExternalRemindersForPause: function(subscriptionId, baseUid) {
+        if (!subscriptionId || !baseUid) return;
+        var self = this;
+        try {
+            var events = $app.findRecordsByFilter(
+                "external_events",
+                "subscription = {:sub} && (uid = {:uid} || uid ~ {:prefix})",
+                "", 500, 0,
+                { sub: subscriptionId, uid: baseUid, prefix: baseUid + "::%" }
+            );
+            for (var i = 0; i < events.length; i++) {
+                self.scheduleExternalReminder(events[i]);
+            }
+        } catch (err) {
+            console.log("[ext-rem] reschedule for pause failed:", err);
         }
     },
 

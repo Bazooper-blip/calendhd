@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { Button, Modal } from '$components/ui';
+	import { toast } from 'svelte-sonner';
+	import { Button, Modal, Toggle } from '$components/ui';
 	import { _ } from '$lib/i18n';
-	import { categoriesStore, settingsStore } from '$stores';
-	import { formatDateSmart, formatTimeRange } from '$utils';
+	import { calendar, categoriesStore, settingsStore } from '$stores';
+	import { baseIcalUid, formatDateSmart, formatTimeRange } from '$utils';
 	import { getPocketBase } from '$api/pocketbase';
 	import ExternalEventReminderRow from './ExternalEventReminderRow.svelte';
 	import type { DisplayEvent, ExternalEvent, CalendarEvent, CalendarSubscription } from '$types';
@@ -41,6 +42,26 @@
 		const id = event.id;
 		onclose();
 		goto(`/event/${id}`);
+	}
+
+	const externalPaused = $derived(external ? calendar.isExternalEventPaused(external) : false);
+
+	async function handleExternalPauseChange(ext: ExternalEvent, paused: boolean) {
+		try {
+			if (paused) {
+				await calendar.pauseExternalEvent(ext);
+				toast.success($_('event.pausedToast'));
+			} else {
+				const pause = calendar.externalPauses.find(
+					(p) => p.subscription === ext.subscription && p.ical_uid === baseIcalUid(ext.uid)
+				);
+				if (pause) await calendar.resumeExternalEvent(pause.id);
+				toast.success($_('event.resumed'));
+			}
+		} catch (error) {
+			console.error('Failed to toggle external event pause:', error);
+			toast.error($_('errors.generic'));
+		}
 	}
 
 	$effect(() => {
@@ -153,6 +174,15 @@
 					<ExternalEventReminderRow {external} {subscription} />
 				</div>
 			{/if}
+
+			<div class="pt-2 border-t border-neutral-100 dark:border-neutral-700">
+				<Toggle
+					checked={externalPaused}
+					label={$_('event.pause')}
+					description={$_('externalEvent.pauseDescription')}
+					onchange={(checked) => handleExternalPauseChange(external, checked)}
+				/>
+			</div>
 		</div>
 	{:else if event && internal}
 		<div class="space-y-4">

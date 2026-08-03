@@ -54,6 +54,7 @@
 		"pauseDescription": "Behåll händelsen men dölj den från alla kalendervyer och hoppa över dess påminnelser — praktiskt vid semester",
 		"resume": "Återuppta",
 		"resumed": "Händelsen återupptagen",
+		"pausedToast": "Händelse pausad",
 		"duration": "Varaktighet",
 		"save": "Spara händelse",
 		"create": "Skapa händelse",
@@ -81,6 +82,7 @@
 	"externalEvent": {
 		"readOnly": "Skrivskyddad",
 		"fromCalendar": "Extern kalender",
+		"pauseDescription": "Dölj denna händelse — och alla förekomster om den upprepas — från alla kalendervyer och hoppa över dess påminnelser. Förblir pausad när kalendern synkas",
 		"location": "Plats",
 		"reminderCustom": "Anpassad",
 		"reminderHeader": "Påminnelse",

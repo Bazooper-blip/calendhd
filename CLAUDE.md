@@ -128,11 +128,12 @@ src/lib/components/
 10. `0010_prune_unused_fields.js` — drops columns nothing reads or writes: `user_settings.{reduce_animations, high_contrast, ha_device_id, notification_method, buffer_minutes, density, daily_wins_enabled, streak_celebration_enabled, day_view_style}`, `events.{image, local_id, last_synced, recurrence_parent, template}`, `templates.image`, `external_events.raw_ics`. Also removed the stale `pb_schema_import.json` manual-import path — migrations are the only schema mechanism.
 11. `0011_template_default_times.js` — `templates.{default_start_time, default_end_time}` (HH:mm) so templates can carry a specific time of day
 12. `0012_event_pause.js` — `events.is_paused` (bool): paused (recurring) events keep their row but are hidden from every calendar view + the TRMNL feed and skip reminders; resumable from the sidebar's "Paused events" section
+13. `0013_external_event_pause.js` — new `external_event_pauses` collection: pause for external (subscribed) events, keyed by (subscription, **base** iCal UID) so it survives sync's wipe-and-replace and one row pauses a whole recurring series (occurrence uids are `<uid>::<stamp>`; `baseIcalUid()` strips the stamp — mirrored in `pb_helpers.js` and `src/lib/utils/externalEvents.ts`)
 
 **Hooks** (`pocketbase/pb_hooks/`):
 - `005_singleton_init.pb.js` — Creates/rotates the singleton `home@calendhd.local` user on bootstrap; serves credentials at `GET /api/calendhd/bootstrap` (same-origin)
 - `010_reminder_scheduler.pb.js` — Schedules reminders on event create/update
-- `015_external_reminder_scheduler.pb.js` — Thin shell that delegates to pb_helpers; on `external_events` create/update writes a row to `external_scheduled_reminders` applying per-event override + subscription default; reschedules when overrides or subscription settings change
+- `015_external_reminder_scheduler.pb.js` — Thin shell that delegates to pb_helpers; on `external_events` create/update writes a row to `external_scheduled_reminders` applying per-event override + subscription default; reschedules when overrides, subscription settings, or external pauses change
 - `020_reminder_cron.pb.js` — Cron job to send scheduled reminders; uses `event.first_step` as push body when set
 - `030_reminder_cleanup.pb.js` — Cleanup old sent reminders
 - `040_notification_test.pb.js` — Test notification endpoint

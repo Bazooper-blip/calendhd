@@ -54,6 +54,7 @@
 		"pauseDescription": "Keep it saved but hide it from all calendar views and skip its reminders — handy for vacations",
 		"resume": "Resume",
 		"resumed": "Event resumed",
+		"pausedToast": "Event paused",
 		"duration": "Duration",
 		"save": "Save Event",
 		"create": "Create Event",
@@ -81,6 +82,7 @@
 	"externalEvent": {
 		"readOnly": "Read-only",
 		"fromCalendar": "External calendar",
+		"pauseDescription": "Hide this event — and every occurrence if it repeats — from all calendar views and skip its reminders. Stays paused when the calendar syncs",
 		"location": "Location",
 		"reminderCustom": "Custom",
 		"reminderHeader": "Reminder",
