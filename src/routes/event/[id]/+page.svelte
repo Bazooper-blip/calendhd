@@ -60,7 +60,8 @@
 				color_override: data.color_override,
 				icon: data.icon,
 				reminders: data.reminders,
-				recurrence_rule: data.recurrence_rule
+				recurrence_rule: data.recurrence_rule,
+				is_paused: data.is_paused
 			});
 
 			toast.success($t('event.updated'));
@@ -108,7 +109,8 @@
 			color_override: event.color_override,
 			icon: event.icon,
 			reminders: event.reminders,
-			recurrence_rule: event.recurrence_rule
+			recurrence_rule: event.recurrence_rule,
+			is_paused: event.is_paused
 		};
 	});
 </script>

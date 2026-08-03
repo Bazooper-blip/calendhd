@@ -126,6 +126,8 @@ src/lib/components/
 8. `0008_day_view_style.js` — `user_settings.day_view_style` (timeline/agenda; column still exists but the app no longer reads it — day view is always agenda)
 9. `0009_remove_brain_dump.js` — drops the `brain_dump` collection (feature removed from the app)
 10. `0010_prune_unused_fields.js` — drops columns nothing reads or writes: `user_settings.{reduce_animations, high_contrast, ha_device_id, notification_method, buffer_minutes, density, daily_wins_enabled, streak_celebration_enabled, day_view_style}`, `events.{image, local_id, last_synced, recurrence_parent, template}`, `templates.image`, `external_events.raw_ics`. Also removed the stale `pb_schema_import.json` manual-import path — migrations are the only schema mechanism.
+11. `0011_template_default_times.js` — `templates.{default_start_time, default_end_time}` (HH:mm) so templates can carry a specific time of day
+12. `0012_event_pause.js` — `events.is_paused` (bool): paused (recurring) events keep their row but are hidden from every calendar view + the TRMNL feed and skip reminders; resumable from the sidebar's "Paused events" section
 
 **Hooks** (`pocketbase/pb_hooks/`):
 - `005_singleton_init.pb.js` — Creates/rotates the singleton `home@calendhd.local` user on bootstrap; serves credentials at `GET /api/calendhd/bootstrap` (same-origin)

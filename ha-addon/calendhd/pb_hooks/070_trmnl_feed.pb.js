@@ -204,6 +204,8 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
 
     // ---- normalize to feed events -------------------------------------------
     function localToFeed(rec) {
+        // Mirror the app: paused events are hidden from every view.
+        if (rec.getBool("is_paused")) return null;
         var start = parsePbDate(rec.getString("start_time"));
         if (!start) return null;
         var end = parsePbDate(rec.getString("end_time"));

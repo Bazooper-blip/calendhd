@@ -15,7 +15,8 @@
 		"subscriptions": "Subscriptions",
 		"settings": "Settings",
 		"routines": "Routines",
-		"now": "Right now"
+		"now": "Right now",
+		"paused": "Paused events"
 	},
 	"now": {
 		"happeningNow": "Happening now",
@@ -49,6 +50,10 @@
 		"reminders": "Reminders",
 		"addReminder": "+ Add reminder",
 		"repeat": "Repeat",
+		"pause": "Pause this event",
+		"pauseDescription": "Keep it saved but hide it from all calendar views and skip its reminders — handy for vacations",
+		"resume": "Resume",
+		"resumed": "Event resumed",
 		"duration": "Duration",
 		"save": "Save Event",
 		"create": "Create Event",

@@ -46,6 +46,13 @@ cronAdd("reminder_sender", "* * * * *", function() {
             return;
         }
 
+        // Belt-and-braces: the scheduler already deletes pending reminders
+        // when an event is paused, but never notify for a paused event.
+        if (event.getBool("is_paused")) {
+            markReminderSent(reminder, nowISO, "event_paused");
+            return;
+        }
+
         // Load user settings
         var userSettings;
         try {

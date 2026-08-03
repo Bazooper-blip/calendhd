@@ -4,6 +4,11 @@
 onRecordAfterCreateSuccess(function(e) {
     var event = e.record;
 
+    // Paused (recurring) events must stay silent until resumed.
+    if (event.getBool("is_paused")) {
+        return;
+    }
+
     // PB JSVM returns json fields as byte arrays — decode via shared helper.
     var helpers = require(`${__hooks}/pb_helpers.js`);
     var reminders = helpers.parseJsonField(event.get("reminders"));
@@ -63,6 +68,12 @@ onRecordAfterUpdateSuccess(function(e) {
         }
     } catch (err) {
         // No existing reminders found, that's OK
+    }
+
+    // Pausing cancels the pending reminders deleted above; resuming falls
+    // through and reschedules them from the current reminders config.
+    if (event.getBool("is_paused")) {
+        return;
     }
 
     // Create new reminders

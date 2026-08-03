@@ -20,6 +20,7 @@ import {
 	deleteEvent as deleteServerEvent,
 	getEvents,
 	getExternalEvents,
+	getPausedEvents,
 	subscribeToEvents,
 	updateEvent as updateServerEvent
 } from '$api/pocketbase';
@@ -38,6 +39,10 @@ function createCalendarStore() {
 	let viewType = $state<ViewType>('week');
 	let events = $state<CalendarEvent[]>([]);
 	let externalEvents = $state<ExternalEvent[]>([]);
+	// Paused events across ALL dates (not just the view range) — feeds the
+	// sidebar's "Paused events" resume list, since paused events are hidden
+	// from every calendar view.
+	let pausedEvents = $state<CalendarEvent[]>([]);
 	let loading = $state(false);
 
 	// Timestamp of the last successful loadEvents(). The layout's resume
@@ -51,6 +56,17 @@ function createCalendarStore() {
 	// Monotonic token for loadEvents() — bumped on every call, used to discard
 	// stale writes when navigation fires overlapping loads.
 	let loadGeneration = 0;
+
+	// Keep the paused list in sync with a created/updated/deleted record
+	function syncPausedEvent(action: 'create' | 'update' | 'delete', record: CalendarEvent) {
+		if (action !== 'delete' && record.is_paused) {
+			pausedEvents = [...pausedEvents.filter((e) => e.id !== record.id), record].sort(
+				(a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+			);
+		} else {
+			pausedEvents = pausedEvents.filter((e) => e.id !== record.id);
+		}
+	}
 
 	// Calculate view range based on current date and view type
 	function getViewRange(): { start: Date; end: Date } {
@@ -94,6 +110,9 @@ function createCalendarStore() {
 		get externalEvents() {
 			return externalEvents;
 		},
+		get pausedEvents() {
+			return pausedEvents;
+		},
 		get loading() {
 			return loading;
 		},
@@ -108,8 +127,9 @@ function createCalendarStore() {
 		get displayEvents(): DisplayEvent[] {
 			const allEvents: DisplayEvent[] = [];
 
-			// Convert calendar events
+			// Convert calendar events (paused events are hidden from every view)
 			for (const event of events) {
+				if (event.is_paused) continue;
 				allEvents.push({
 					id: event.id,
 					title: event.title,
@@ -228,13 +248,15 @@ function createCalendarStore() {
 			const { start, end } = getViewRange();
 
 			try {
-				const [serverEvents, serverExternalEvents] = await Promise.all([
+				const [serverEvents, serverExternalEvents, serverPausedEvents] = await Promise.all([
 					getEvents(start, end),
-					getExternalEvents(start, end)
+					getExternalEvents(start, end),
+					getPausedEvents()
 				]);
 				if (isStale()) return;
 				events = serverEvents;
 				externalEvents = serverExternalEvents;
+				pausedEvents = serverPausedEvents;
 				lastLoadSuccessAt = Date.now();
 			} catch (error) {
 				console.error('Failed to load events from server:', error);
@@ -265,6 +287,7 @@ function createCalendarStore() {
 			}
 
 			unsubscribe = subscribeToEvents((action, record) => {
+				syncPausedEvent(action, record);
 				switch (action) {
 					case 'create':
 						// Only add if not already present (avoid duplicate from optimistic update)
@@ -298,17 +321,20 @@ function createCalendarStore() {
 			if (!events.some((e) => e.id === serverEvent.id)) {
 				events = [...events, serverEvent];
 			}
+			syncPausedEvent('create', serverEvent);
 			return serverEvent;
 		},
 
 		async updateEvent(id: string, changes: Partial<CalendarEvent>) {
 			const serverEvent = await updateServerEvent(id, changes);
 			events = events.map((e) => (e.id === id ? serverEvent : e));
+			syncPausedEvent('update', serverEvent);
 		},
 
 		async deleteEvent(id: string) {
 			await deleteServerEvent(id);
 			events = events.filter((e) => e.id !== id);
+			pausedEvents = pausedEvents.filter((e) => e.id !== id);
 		},
 
 		// Toggle task completion with flexible timing cascade
