@@ -185,6 +185,16 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
         }
     } catch (err) { /* no routines yet */ }
 
+    // Paused external events/series, keyed "subscription|base uid" — pause
+    // rows store the base uid, so one entry hides a whole recurring series.
+    var externalPauseKeys = {};
+    try {
+        var pauseRows = $app.findRecordsByFilter("external_event_pauses", "user = {:uid}", "", 500, 0, { uid: userId });
+        for (var pi = 0; pi < pauseRows.length; pi++) {
+            externalPauseKeys[pauseRows[pi].getString("subscription") + "|" + pauseRows[pi].getString("ical_uid")] = true;
+        }
+    } catch (err) { /* none paused */ }
+
     // ---- load events in window ---------------------------------------------
     var filter = "user = {:uid} && start_time >= {:start} && start_time <= {:end}";
     var filterParams = {
@@ -237,6 +247,10 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
     }
 
     function externalToFeed(rec) {
+        // Mirror the app: paused external events/series are hidden everywhere.
+        if (externalPauseKeys[rec.getString("subscription") + "|" + helpers.baseIcalUid(rec.getString("uid"))]) {
+            return null;
+        }
         var start = parsePbDate(rec.getString("start_time"));
         if (!start) return null;
         var end = parsePbDate(rec.getString("end_time"));

@@ -5,12 +5,16 @@ import type {
 	Category,
 	DevicePushSubscription,
 	ExternalEvent,
+	ExternalEventPause,
 	ExternalEventReminder,
 	RoutineTemplate,
 	Template,
 	User,
 	UserSettings
 } from '$types';
+// Import the module directly, not the $utils barrel — the barrel re-exports
+// notifications.ts which imports back from this file (cycle).
+import { baseIcalUid } from '$utils/externalEvents';
 
 // PocketBase client singleton
 let pb: PocketBase | null = null;
@@ -38,6 +42,7 @@ const collections = {
 	events: () => getPocketBase().collection('events'),
 	calendar_subscriptions: () => getPocketBase().collection('calendar_subscriptions'),
 	external_events: () => getPocketBase().collection('external_events'),
+	external_event_pauses: () => getPocketBase().collection('external_event_pauses'),
 	external_event_reminders: () => getPocketBase().collection('external_event_reminders'),
 	user_settings: () => getPocketBase().collection('user_settings'),
 	push_subscriptions: () => getPocketBase().collection('push_subscriptions'),
@@ -475,6 +480,50 @@ export function subscribeToCategories(
 	return () => {
 		collections.categories().unsubscribe('*');
 	};
+}
+
+// External event pauses (keyed by subscription + BASE iCal uid — one row
+// pauses a whole recurring series; survives sync's wipe-and-replace)
+
+export async function getExternalEventPauses(): Promise<ExternalEventPause[]> {
+	const user = getCurrentUser();
+	if (!user) return [];
+	const records = await collections.external_event_pauses().getFullList({
+		filter: `user = "${user.id}"`,
+		sort: 'title',
+		batch: 200
+	});
+	return records as unknown as ExternalEventPause[];
+}
+
+export async function pauseExternalEvent(
+	subscriptionId: string,
+	icalUid: string,
+	title: string
+): Promise<ExternalEventPause> {
+	const user = getCurrentUser();
+	if (!user) throw new Error('Not authenticated');
+
+	const baseUid = baseIcalUid(icalUid);
+	const existing = await collections.external_event_pauses().getFullList({
+		filter: `subscription = "${subscriptionId}" && ical_uid = "${baseUid.replace(/"/g, '\\"')}"`,
+		batch: 1
+	});
+	if (existing.length > 0) {
+		return existing[0] as unknown as ExternalEventPause;
+	}
+
+	const record = await collections.external_event_pauses().create({
+		user: user.id,
+		subscription: subscriptionId,
+		ical_uid: baseUid,
+		title
+	});
+	return record as unknown as ExternalEventPause;
+}
+
+export async function resumeExternalEvent(pauseId: string): Promise<void> {
+	await collections.external_event_pauses().delete(pauseId);
 }
 
 // External event reminder overrides

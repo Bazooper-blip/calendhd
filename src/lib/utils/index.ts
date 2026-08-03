@@ -17,6 +17,7 @@ export {
 	subWeeks
 } from 'date-fns';
 export * from './date';
+export * from './externalEvents';
 export * from './notifications';
 export * from './recurrence';
 

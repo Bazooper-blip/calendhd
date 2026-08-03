@@ -1,8 +1,9 @@
 # Changelog
 
-## 1.9.0
+## 1.9.1
 
 - New: recurring events can be paused (migration 0012 adds `events.is_paused`). A "Pause this event" toggle appears in the event form whenever a repeat rule is set; a paused event keeps everything — title, times, recurrence, reminder config — but disappears from the day/week/month views, the Right-now screen, and the TRMNL feed, and its pending reminders are cancelled (recreated on resume). Handy for vacations. Paused events are listed in a new "Paused events" sidebar section, with a one-tap resume button and a link to the event's edit page; removing an event's repeat rule also clears its pause.
+- New: external (subscribed) events can be paused too, from a toggle in their detail modal. Pauses are stored in a new `external_event_pauses` collection (migration 0013) keyed by subscription + base iCal UID, so they survive the wipe-and-replace every calendar sync performs, and pausing one occurrence of a recurring series pauses the whole series. Same effects as local pauses — hidden from all views and the TRMNL feed, external reminders cancelled while paused — and they show up in the same sidebar "Paused events" list for one-tap resume.
 
 ## 1.8.2
 

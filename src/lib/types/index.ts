@@ -132,6 +132,17 @@ export interface ExternalEvent extends BaseRecord {
 	recurrence_rule?: RecurrenceRule;
 }
 
+// Paused external event/series, keyed by (subscription, BASE iCal UID) so it
+// survives the wipe-and-replace done by subscription sync and covers every
+// occurrence of a recurring series (occurrence uids are "<uid>::<stamp>").
+// `title` is a display snapshot for the sidebar's "Paused events" list.
+export interface ExternalEventPause extends BaseRecord {
+	user: string;
+	subscription: string;
+	ical_uid: string;
+	title?: string;
+}
+
 // Per-external-event reminder override, keyed by stable iCal UID so it
 // survives the wipe-and-replace done by subscription sync.
 export interface ExternalEventReminder extends BaseRecord {

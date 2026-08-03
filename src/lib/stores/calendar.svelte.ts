@@ -19,14 +19,23 @@ import {
 	createEvent as createServerEvent,
 	deleteEvent as deleteServerEvent,
 	getEvents,
+	getExternalEventPauses,
 	getExternalEvents,
 	getPausedEvents,
+	pauseExternalEvent as pauseServerExternalEvent,
+	resumeExternalEvent as resumeServerExternalEvent,
 	subscribeToEvents,
 	updateEvent as updateServerEvent
 } from '$api/pocketbase';
 import { browser } from '$app/environment';
-import type { CalendarEvent, CalendarSubscription, DisplayEvent, ExternalEvent } from '$types';
-import { isSameDay } from '$utils';
+import type {
+	CalendarEvent,
+	CalendarSubscription,
+	DisplayEvent,
+	ExternalEvent,
+	ExternalEventPause
+} from '$types';
+import { baseIcalUid, isSameDay } from '$utils';
 import { auth } from './auth.svelte';
 import { routinesStore } from './routines.svelte';
 import { settingsStore } from './settings.svelte';
@@ -43,6 +52,10 @@ function createCalendarStore() {
 	// sidebar's "Paused events" resume list, since paused events are hidden
 	// from every calendar view.
 	let pausedEvents = $state<CalendarEvent[]>([]);
+	// Paused external events/series: one row per (subscription, base uid),
+	// stored separately from external_events so it survives sync's
+	// wipe-and-replace. Also feeds the sidebar's resume list.
+	let externalPauses = $state<ExternalEventPause[]>([]);
 	let loading = $state(false);
 
 	// Timestamp of the last successful loadEvents(). The layout's resume
@@ -113,6 +126,9 @@ function createCalendarStore() {
 		get pausedEvents() {
 			return pausedEvents;
 		},
+		get externalPauses() {
+			return externalPauses;
+		},
 		get loading() {
 			return loading;
 		},
@@ -151,8 +167,11 @@ function createCalendarStore() {
 				});
 			}
 
-			// Convert external events
+			// Convert external events (paused series are hidden from every view;
+			// pause rows are keyed by subscription + BASE uid)
+			const externalPauseKeys = new Set(externalPauses.map((p) => `${p.subscription}|${p.ical_uid}`));
 			for (const event of externalEvents) {
+				if (externalPauseKeys.has(`${event.subscription}|${baseIcalUid(event.uid)}`)) continue;
 				const subscription = (
 					event as ExternalEvent & { expand?: { subscription?: CalendarSubscription } }
 				).expand?.subscription;
@@ -248,15 +267,18 @@ function createCalendarStore() {
 			const { start, end } = getViewRange();
 
 			try {
-				const [serverEvents, serverExternalEvents, serverPausedEvents] = await Promise.all([
-					getEvents(start, end),
-					getExternalEvents(start, end),
-					getPausedEvents()
-				]);
+				const [serverEvents, serverExternalEvents, serverPausedEvents, serverExternalPauses] =
+					await Promise.all([
+						getEvents(start, end),
+						getExternalEvents(start, end),
+						getPausedEvents(),
+						getExternalEventPauses()
+					]);
 				if (isStale()) return;
 				events = serverEvents;
 				externalEvents = serverExternalEvents;
 				pausedEvents = serverPausedEvents;
+				externalPauses = serverExternalPauses;
 				lastLoadSuccessAt = Date.now();
 			} catch (error) {
 				console.error('Failed to load events from server:', error);
@@ -335,6 +357,29 @@ function createCalendarStore() {
 			await deleteServerEvent(id);
 			events = events.filter((e) => e.id !== id);
 			pausedEvents = pausedEvents.filter((e) => e.id !== id);
+		},
+
+		// Pause an external event/series (creates the pause row keyed by
+		// subscription + base uid; idempotent when already paused)
+		async pauseExternalEvent(event: ExternalEvent) {
+			const pause = await pauseServerExternalEvent(event.subscription, event.uid, event.title);
+			if (!externalPauses.some((p) => p.id === pause.id)) {
+				externalPauses = [...externalPauses, pause].sort((a, b) =>
+					(a.title || '').localeCompare(b.title || '')
+				);
+			}
+		},
+
+		// Resume a paused external event/series (deletes the pause row)
+		async resumeExternalEvent(pauseId: string) {
+			await resumeServerExternalEvent(pauseId);
+			externalPauses = externalPauses.filter((p) => p.id !== pauseId);
+		},
+
+		// Whether this external event (or its recurring series) is paused
+		isExternalEventPaused(event: ExternalEvent): boolean {
+			const key = `${event.subscription}|${baseIcalUid(event.uid)}`;
+			return externalPauses.some((p) => `${p.subscription}|${p.ical_uid}` === key);
 		},
 
 		// Toggle task completion with flexible timing cascade
