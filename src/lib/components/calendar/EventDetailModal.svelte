@@ -46,6 +46,12 @@
 
 	const externalPaused = $derived(external ? calendar.isExternalEventPaused(external) : false);
 
+	// Pause is a recurring-events feature (matching the local event form,
+	// where the toggle only appears when a repeat rule is set). Recurring
+	// external occurrences are exactly the ones sync stamps with a
+	// "::YYYYMMDDTHHMMSS" uid suffix, so a stripped base uid marks them.
+	const externalRecurring = $derived(external ? baseIcalUid(external.uid) !== external.uid : false);
+
 	async function handleExternalPauseChange(ext: ExternalEvent, paused: boolean) {
 		try {
 			if (paused) {
@@ -175,14 +181,16 @@
 				</div>
 			{/if}
 
-			<div class="pt-2 border-t border-neutral-100 dark:border-neutral-700">
-				<Toggle
-					checked={externalPaused}
-					label={$_('event.pause')}
-					description={$_('externalEvent.pauseDescription')}
-					onchange={(checked) => handleExternalPauseChange(external, checked)}
-				/>
-			</div>
+			{#if externalRecurring}
+				<div class="pt-2 border-t border-neutral-100 dark:border-neutral-700">
+					<Toggle
+						checked={externalPaused}
+						label={$_('event.pause')}
+						description={$_('externalEvent.pauseDescription')}
+						onchange={(checked) => handleExternalPauseChange(external, checked)}
+					/>
+				</div>
+			{/if}
 		</div>
 	{:else if event && internal}
 		<div class="space-y-4">
