@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.2
+
+- Fixed: the "Pause this event" toggle in the external event detail modal showed on every subscribed event; it now only appears on recurring ones (occurrences of a series), matching the local event form where the toggle requires a repeat rule. Already-paused events still resume normally from the sidebar's "Paused events" list.
+
 ## 1.9.1
 
 - New: recurring events can be paused (migration 0012 adds `events.is_paused`). A "Pause this event" toggle appears in the event form whenever a repeat rule is set; a paused event keeps everything — title, times, recurrence, reminder config — but disappears from the day/week/month views, the Right-now screen, and the TRMNL feed, and its pending reminders are cancelled (recreated on resume). Handy for vacations. Paused events are listed in a new "Paused events" sidebar section, with a one-tap resume button and a link to the event's edit page; removing an event's repeat rule also clears its pause.
