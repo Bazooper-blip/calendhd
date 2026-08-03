@@ -15,7 +15,8 @@
 		"subscriptions": "Prenumerationer",
 		"settings": "Inställningar",
 		"routines": "Rutiner",
-		"now": "Just nu"
+		"now": "Just nu",
+		"paused": "Pausade händelser"
 	},
 	"now": {
 		"happeningNow": "Händer nu",
@@ -49,6 +50,10 @@
 		"reminders": "Påminnelser",
 		"addReminder": "+ Lägg till påminnelse",
 		"repeat": "Upprepa",
+		"pause": "Pausa denna händelse",
+		"pauseDescription": "Behåll händelsen men dölj den från alla kalendervyer och hoppa över dess påminnelser — praktiskt vid semester",
+		"resume": "Återuppta",
+		"resumed": "Händelsen återupptagen",
 		"duration": "Varaktighet",
 		"save": "Spara händelse",
 		"create": "Skapa händelse",

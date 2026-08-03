@@ -34,7 +34,8 @@
 				color_override: data.color_override,
 				icon: data.icon,
 				reminders: data.reminders,
-				recurrence_rule: data.recurrence_rule
+				recurrence_rule: data.recurrence_rule,
+				is_paused: data.is_paused
 			});
 
 			toast.success($t('event.created'));

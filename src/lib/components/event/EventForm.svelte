@@ -32,6 +32,7 @@
 		initialData.reminders || settingsStore.defaultReminders
 	);
 	let recurrenceRule = $state<RecurrenceRule | undefined>(initialData.recurrence_rule);
+	let isPaused = $state(initialData.is_paused || false);
 
 	// Derived
 	const categoryOptions = $derived(
@@ -126,7 +127,10 @@
 			color_override: colorOverride || undefined,
 			icon: icon || undefined,
 			reminders: $state.snapshot(reminders),
-			recurrence_rule: recurrenceRule ? $state.snapshot(recurrenceRule) : undefined
+			recurrence_rule: recurrenceRule ? $state.snapshot(recurrenceRule) : undefined,
+			// Pausing only makes sense for recurring events — dropping the
+			// recurrence also clears any pause.
+			is_paused: recurrenceRule ? isPaused : false
 		};
 
 		onsubmit(data);
@@ -290,6 +294,15 @@
 			).toString()}
 			onchange={(e) => setRecurrence(parseInt((e.target as HTMLSelectElement).value))}
 		/>
+		{#if recurrenceRule}
+			<div class="mt-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900/40 p-3">
+				<Toggle
+					bind:checked={isPaused}
+					label={$t('event.pause')}
+					description={$t('event.pauseDescription')}
+				/>
+			</div>
+		{/if}
 	</div>
 
 	<!-- Reminders -->

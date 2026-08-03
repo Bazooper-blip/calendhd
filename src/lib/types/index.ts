@@ -96,6 +96,7 @@ export interface CalendarEvent extends BaseRecord {
 	icon?: string;
 	color_override?: string;
 	recurrence_rule?: RecurrenceRule;
+	is_paused?: boolean; // paused (recurring) events stay saved but are hidden from all views and skip reminders
 	routine_template?: string; // relation to routine_templates
 	routine_step_index?: number; // 0-based index of the step within the routine
 	energy_level?: EnergyLevel;
@@ -205,4 +206,5 @@ export interface EventFormData {
 	icon?: string;
 	reminders: ReminderConfig[];
 	recurrence_rule?: RecurrenceRule;
+	is_paused?: boolean;
 }

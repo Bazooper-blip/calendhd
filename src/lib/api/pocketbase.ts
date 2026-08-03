@@ -188,6 +188,21 @@ export async function getEvents(startDate: Date, endDate: Date): Promise<Calenda
 	return records as unknown as CalendarEvent[];
 }
 
+// All paused events, regardless of date. The sidebar's "Paused events"
+// section is the only way back to a paused event (they're hidden from every
+// calendar view), so this deliberately ignores the view range.
+export async function getPausedEvents(): Promise<CalendarEvent[]> {
+	const user = getCurrentUser();
+	if (!user) return [];
+
+	const records = await collections.events().getFullList({
+		filter: 'is_paused = true',
+		sort: 'start_time',
+		batch: 200
+	});
+	return records as unknown as CalendarEvent[];
+}
+
 export async function getEvent(id: string): Promise<CalendarEvent> {
 	const record = await collections.events().getOne(id);
 	return record as unknown as CalendarEvent;
