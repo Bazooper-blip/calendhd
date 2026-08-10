@@ -42,6 +42,9 @@ function createSettingsStore() {
 		get notificationSound() {
 			return settings?.notification_sound ?? defaults.notification_sound;
 		},
+		get notifyNewEvents() {
+			return settings?.notify_new_events ?? defaults.notify_new_events ?? false;
+		},
 		get colorPalette(): 'sage' | 'ocean' | 'lavender' | 'rose' | 'amber' | 'teal' {
 			const val = settings?.color_palette;
 			if (

@@ -208,6 +208,8 @@
 		"defaultReminders": "Standardpåminnelser",
 		"notificationSound": "Notifikationsljud",
 		"notificationSoundDescription": "Spela ett ljud med notifikationer",
+		"notifyNewEvents": "Meddela när händelser läggs till",
+		"notifyNewEventsDescription": "Skicka en pushnotis till alla enheter när en ny händelse läggs till i kalendern",
 		"enableNotifications": "Aktivera notifikationer",
 		"notificationsEnabled": "Notifikationer aktiverade",
 		"notificationsEnabledDesc": "Du kommer att få påminnelser för dina händelser",

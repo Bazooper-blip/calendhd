@@ -362,6 +362,7 @@ export function getDefaultSettings(): Omit<UserSettings, 'id' | 'created' | 'upd
 		color_palette: 'sage',
 		default_reminders: [{ minutes_before: 10, type: 'notification' }],
 		notification_sound: true,
+		notify_new_events: false,
 		timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
 	};
 }

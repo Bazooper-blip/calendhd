@@ -335,6 +335,13 @@
 						label={$_('settings.notificationSound')}
 						description={$_('settings.notificationSoundDescription') || 'Play a sound with notifications'}
 					/>
+
+					<Toggle
+						checked={settingsStore.notifyNewEvents}
+						onchange={(checked) => handleChange('notify_new_events', checked)}
+						label={$_('settings.notifyNewEvents')}
+						description={$_('settings.notifyNewEventsDescription')}
+					/>
 				</div>
 			</section>
 

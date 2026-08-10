@@ -177,6 +177,7 @@ export interface UserSettings extends BaseRecord {
 	color_palette: 'sage' | 'ocean' | 'lavender' | 'rose' | 'amber' | 'teal';
 	default_reminders: ReminderConfig[];
 	notification_sound: boolean;
+	notify_new_events?: boolean; // push to all devices when a local event is created (opt-in)
 	timezone: string;
 }
 

@@ -208,6 +208,8 @@
 		"defaultReminders": "Default reminders",
 		"notificationSound": "Notification sound",
 		"notificationSoundDescription": "Play a sound with notifications",
+		"notifyNewEvents": "Notify when events are added",
+		"notifyNewEventsDescription": "Send a push notification to all devices when a new event is added to the calendar",
 		"enableNotifications": "Enable Notifications",
 		"notificationsEnabled": "Notifications enabled",
 		"notificationsEnabledDesc": "You will receive reminders for your events",
