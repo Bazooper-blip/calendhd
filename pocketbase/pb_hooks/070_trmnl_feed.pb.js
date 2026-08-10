@@ -3,7 +3,7 @@
 // =============================================================================
 // TRMNL feed endpoint
 //
-// GET /api/calendhd/trmnl?days=5[&limit=10][&token=...]
+// GET /api/calendhd/trmnl?days=5[&limit=10][&icons=none][&token=...]
 //
 // Read-only JSON feed consumed by the TRMNL e-ink dashboard private plugin
 // (see trmnl-plugin/ at the repo root). TRMNL's cloud polls this URL on the
@@ -67,6 +67,16 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
     var perDayLimit = parseInt(e.request.url.query().get("limit"), 10);
     if (isNaN(perDayLimit) || perDayLimit < 1) perDayLimit = DEFAULT_EVENTS_PER_DAY;
     if (perDayLimit > MAX_EVENTS_PER_DAY_CAP) perDayLimit = MAX_EVENTS_PER_DAY_CAP;
+
+    // Icon handling. Event icons are either an emoji (renders fine on TRMNL —
+    // the renderer screenshots real HTML) or a "lucide:<name>" ref only the
+    // web app can draw; helpers.textIcon maps those to an emoji equivalent so
+    // the device never shows literal "lucide:pill" text. ?icons=none strips
+    // icons entirely for renderers without an emoji font.
+    var stripIcons = e.request.url.query().get("icons") === "none";
+    function feedIcon(raw) {
+        return stripIcons ? "" : helpers.textIcon(raw);
+    }
 
     var now = new Date();
     var windowStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
@@ -226,7 +236,7 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
         var endStr = (!isAllDay && end) ? fmtTime(end) : "";
         return {
             title: rec.getString("title"),
-            icon: rec.getString("icon"),
+            icon: feedIcon(rec.getString("icon")),
             time: timeStr,
             end_time: endStr,
             time_range: endStr ? timeStr + " – " + endStr : timeStr,

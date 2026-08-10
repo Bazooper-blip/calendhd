@@ -81,7 +81,7 @@ All stores are singletons using Svelte 5 runes in `.svelte.ts` files:
 |-------|-----------|---------|
 | `auth.svelte.ts` | user, isAuthenticated | Auto-login singleton account; fetches credentials from `/api/calendhd/bootstrap` (no hardcoded password) |
 | `calendar.svelte.ts` | currentDate, viewType, events, displayEvents | Calendar state, event CRUD, flexible timing cascade for routine steps; fires routine-completion celebration toast |
-| `settings.svelte.ts` | settings | User preferences: default view, week start, time format, theme, accent, locale, timezone, reminders, notification sound. (The old "Focus" section — density, buffer, daily wins, streaks — was removed along with those features) |
+| `settings.svelte.ts` | settings | User preferences: default view, week start, time format, theme, accent, locale, timezone, reminders, notification sound, new-event push toggle. (The old "Focus" section — density, buffer, daily wins, streaks — was removed along with those features) |
 | `categories.svelte.ts` | categories | Category CRUD with 8 default colors, reorderable |
 | `templates.svelte.ts` | templates | Event template CRUD |
 | `routines.svelte.ts` | routines | Routine template CRUD with active/inactive toggling |
@@ -129,11 +129,13 @@ src/lib/components/
 11. `0011_template_default_times.js` — `templates.{default_start_time, default_end_time}` (HH:mm) so templates can carry a specific time of day
 12. `0012_event_pause.js` — `events.is_paused` (bool): paused (recurring) events keep their row but are hidden from every calendar view + the TRMNL feed and skip reminders; resumable from the sidebar's "Paused events" section
 13. `0013_external_event_pause.js` — new `external_event_pauses` collection: pause for external (subscribed) events, keyed by (subscription, **base** iCal UID) so it survives sync's wipe-and-replace and one row pauses a whole recurring series (occurrence uids are `<uid>::<stamp>`; `baseIcalUid()` strips the stamp — mirrored in `pb_helpers.js` and `src/lib/utils/externalEvents.ts`)
+14. `0014_new_event_notifications.js` — `user_settings.notify_new_events` (bool, opt-in): push to all devices when a local event is created (see hook 025)
 
 **Hooks** (`pocketbase/pb_hooks/`):
 - `005_singleton_init.pb.js` — Creates/rotates the singleton `home@calendhd.local` user on bootstrap; serves credentials at `GET /api/calendhd/bootstrap` (same-origin)
 - `010_reminder_scheduler.pb.js` — Schedules reminders on event create/update
 - `015_external_reminder_scheduler.pb.js` — Thin shell that delegates to pb_helpers; on `external_events` create/update writes a row to `external_scheduled_reminders` applying per-event override + subscription default; reschedules when overrides, subscription settings, or external pauses change
+- `025_new_event_notification.pb.js` — On local `events` create, pushes "New event added" to all devices via `sendPushToAllDevices` (locale/time-format aware); opt-in via `user_settings.notify_new_events`; skips routine-generated (routine generator cron would spam) and paused events; external_events are excluded (sync wipe-and-replace would re-announce the feed); tested by `node pocketbase/tests/newEventNotify.test.cjs`
 - `020_reminder_cron.pb.js` — Cron job to send scheduled reminders; uses `event.first_step` as push body when set
 - `030_reminder_cleanup.pb.js` — Cleanup old sent reminders
 - `040_notification_test.pb.js` — Test notification endpoint
@@ -146,7 +148,7 @@ src/lib/components/
 - `GET /api/calendhd/bootstrap` — singleton credentials (auth bootstrap)
 - `GET /api/calendhd/vapid-public-key` — VAPID public key for push subscriptions
 - `POST /api/calendhd/test-notification` — server-side push test (requires auth)
-- `GET /api/calendhd/trmnl` — TRMNL dashboard feed: today + upcoming days as merge-variable-friendly JSON, plus a locale-resolved `strings` object for template chrome (`?days=1..14`, default 5; `?limit=1..50` events/day, default 10; requires `Authorization: Bearer`/`?token=` only when `TRMNL_FEED_TOKEN` is set)
+- `GET /api/calendhd/trmnl` — TRMNL dashboard feed: today + upcoming days as merge-variable-friendly JSON, plus a locale-resolved `strings` object for template chrome (`?days=1..14`, default 5; `?limit=1..50` events/day, default 10; `?icons=none` strips event icons — by default `lucide:*` icon refs are mapped to emoji via `textIcon()` in `pb_helpers.js`; requires `Authorization: Bearer`/`?token=` only when `TRMNL_FEED_TOKEN` is set)
 
 ### PocketBase JSVM gotchas (read before touching any `pb_hooks/*.pb.js`)
 

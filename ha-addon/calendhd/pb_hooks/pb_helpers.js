@@ -66,6 +66,80 @@ function baseIcalUid(uid) {
     return /^\d{8}T\d{6}$/.test(suffix) ? uid.substring(0, idx) : uid;
 }
 
+// Event icons are either a literal emoji or a "lucide:<name>" reference the
+// web app renders as an SVG. Text-only consumers (the TRMNL feed) can't render
+// SVGs, so map the curated IconPicker set to the closest emoji; unknown names
+// return "" (better no icon than "lucide:pill" printed on an e-ink screen).
+// Mirrors the lucideCategories list in src/lib/components/ui/IconPicker.svelte
+// — extend this map when adding icons there.
+var LUCIDE_EMOJI = {
+    // Suggested / Common
+    "calendar": "📅", "clock": "🕐", "bell": "🔔", "heart": "❤️", "pill": "💊",
+    "brain": "🧠", "target": "🎯", "zap": "⚡", "briefcase": "💼", "house": "🏠",
+    "check": "✅", "star": "⭐", "coffee": "☕", "car": "🚗", "plane": "✈️",
+    "book-open": "📖", "dumbbell": "🏋️", "users": "👥", "shopping-cart": "🛒",
+    "mail": "📧", "phone": "📞", "map-pin": "📍", "bookmark": "🔖", "flag": "🚩",
+    "award": "🏆",
+    // Activities
+    "bike": "🚴", "music": "🎵", "gamepad-2": "🎮", "film": "🎬",
+    "utensils": "🍽️", "wine": "🍷", "palette": "🎨", "camera": "📷",
+    "headphones": "🎧", "ticket": "🎫", "theater": "🎭", "clapperboard": "🎬",
+    "dice-5": "🎲", "tent": "⛺",
+    // Health
+    "stethoscope": "🩺", "heart-pulse": "💓", "apple": "🍎", "droplets": "💧",
+    "moon": "🌙", "sun": "☀️", "thermometer": "🌡️", "eye": "👁️", "shield": "🛡️",
+    "activity": "📈", "salad": "🥗", "bed": "🛏️", "bath": "🛁", "leaf": "🍃",
+    "syringe": "💉", "bandage": "🩹", "scan": "🩻", "accessibility": "♿",
+    // Work
+    "laptop": "💻", "monitor": "🖥️", "code": "💻", "presentation": "📊",
+    "chart-bar": "📊", "wallet": "👛", "file-text": "📄", "clipboard": "📋",
+    "pen-tool": "🖊️", "paperclip": "📎", "folder": "📁", "credit-card": "💳",
+    "graduation-cap": "🎓", "handshake": "🤝", "megaphone": "📢",
+    "calculator": "🧮", "archive": "🗃️", "inbox": "📥", "printer": "🖨️",
+    // People
+    "user": "👤", "baby": "👶", "dog": "🐕", "cat": "🐱", "cake": "🎂",
+    "party-popper": "🎉", "gift": "🎁", "smile": "😊", "laugh": "😄",
+    "hand-heart": "🫶", "crown": "👑", "person-standing": "🧍", "glasses": "👓",
+    "shirt": "👕", "flower-2": "🌸", "heart-handshake": "💞",
+    "message-circle": "💬", "phone-call": "📞", "video": "📹",
+    // Travel
+    "map": "🗺️", "compass": "🧭", "navigation": "🧭", "train-front": "🚆",
+    "bus": "🚌", "ship": "🚢", "rocket": "🚀", "globe": "🌍", "mountain": "⛰️",
+    "trees": "🌳", "umbrella": "☂️", "luggage": "🧳", "fuel": "⛽",
+    "anchor": "⚓", "sunrise": "🌅", "car-taxi-front": "🚕",
+    "parking-meter": "🅿️", "signpost": "🪧", "highway": "🛣️",
+    // Weather
+    "cloud": "☁️", "cloud-rain": "🌧️", "cloud-snow": "🌨️", "snowflake": "❄️",
+    "wind": "💨", "rainbow": "🌈", "thermometer-sun": "🌡️",
+    "cloud-lightning": "⛈️", "cloud-drizzle": "🌦️", "cloud-fog": "🌫️",
+    "haze": "🌫️", "cloudy": "☁️", "sun-moon": "🌗", "waves": "🌊",
+    // Home & Routine
+    "lamp": "💡", "sofa": "🛋️", "alarm-clock": "⏰", "key": "🔑", "lock": "🔒",
+    "door-open": "🚪", "washing-machine": "🧺", "microwave": "♨️",
+    "refrigerator": "🧊", "cooking-pot": "🍲", "spray-can": "🧴",
+    "trash-2": "🗑️", "recycle": "♻️",
+    // Education
+    "notebook-pen": "📝", "pencil": "✏️", "ruler": "📏", "school": "🏫",
+    "library": "📚", "languages": "🌐", "microscope": "🔬", "atom": "⚛️",
+    "flask-conical": "🧪", "backpack": "🎒", "pen": "🖊️", "highlighter": "🖍️",
+    "notebook": "📓", "square-pen": "📝",
+    // Finance
+    "receipt": "🧾", "piggy-bank": "🐷", "banknote": "💵", "coins": "🪙",
+    "landmark": "🏛️", "trending-up": "📈", "trending-down": "📉",
+    "circle-dollar-sign": "💲", "hand-coins": "🪙", "chart-line": "📈"
+};
+
+// Convert an event icon to something a text/emoji-only renderer can show:
+// emoji pass through, "lucide:<name>" refs become their emoji equivalent,
+// unmapped lucide names become "".
+function textIcon(icon) {
+    if (!icon) return "";
+    if (icon.indexOf("lucide:") === 0) {
+        return LUCIDE_EMOJI[icon.substring(7)] || "";
+    }
+    return icon;
+}
+
 // Expand an RRULE into concrete { start, end } occurrences within
 // [rangeStart, rangeEnd]. Pure function (no $app/$dbx) so it is unit-testable
 // under plain Node — see expandRecurrence.test.cjs. When there is no RRULE (or
@@ -277,6 +351,7 @@ module.exports = {
     parseJsonField: parseJsonField,
     pbDateFilter: pbDateFilter,
     baseIcalUid: baseIcalUid,
+    textIcon: textIcon,
     expandRecurrence: expandRecurrence,
 
     // True when a pause row exists for this external event's series

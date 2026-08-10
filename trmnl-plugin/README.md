@@ -79,13 +79,16 @@ trmnlp push
 
 ## The feed endpoint
 
-`GET /api/calendhd/trmnl?days=5[&limit=10][&token=...]`
+`GET /api/calendhd/trmnl?days=5[&limit=10][&icons=none][&token=...]`
 
 | Param | Default | Notes |
 |-------|---------|-------|
 | `days` | 5 | Window size including today, clamped to 1–14 |
 | `limit` | 10 | Max events per day (all-day + timed), clamped to 1–50; overflow lands in `more_count`. Raise on a TRMNL X. |
+| `icons` | — | Pass `none` to strip event icons from the feed entirely (for renderers without an emoji font) |
 | `token` | — | Alternative to the `Authorization: Bearer` header |
+
+Event icons: emoji icons pass through as-is (TRMNL's renderer screenshots real HTML, so emoji come out fine — dithered to grayscale on e-ink). Icons picked from the app's Lucide tab are stored as `lucide:<name>` refs that only the web app can draw as SVGs; the feed maps those to the closest emoji (e.g. `lucide:pill` → 💊) and drops any it can't map, so the device never shows literal `lucide:pill` text.
 
 Response (abridged):
 

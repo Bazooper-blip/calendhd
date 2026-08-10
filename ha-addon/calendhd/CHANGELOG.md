@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.3
+
+- Fixed: events whose icon was picked from the app's Lucide tab showed the raw reference (e.g. "lucide:pill") as literal text on TRMNL displays. The TRMNL feed now maps Lucide icons to their closest emoji (`lucide:pill` → 💊) and drops any it can't map; emoji icons pass through unchanged. New `?icons=none` feed parameter strips icons entirely for renderers without an emoji font.
+- New: opt-in "Notify when events are added" toggle in Settings → Notifications (migration 0014 adds `user_settings.notify_new_events`, default off). When enabled, adding an event pushes "New event added: \<title\> · \<date/time\>" to every subscribed device — handy so the whole household sees what someone else just put on the calendar. Routine-generated and paused events stay silent, as do external (subscribed) events — calendar sync recreates those rows on every poll, so announcing them would re-notify the whole feed. Note: the device that created the event is notified too (the singleton account can't tell devices apart), which is why the toggle is off by default.
+
 ## 1.9.2
 
 - Fixed: the "Pause this event" toggle in the external event detail modal showed on every subscribed event; it now only appears on recurring ones (occurrences of a series), matching the local event form where the toggle requires a repeat rule. Already-paused events still resume normally from the sidebar's "Paused events" list.

@@ -362,6 +362,59 @@ function call(opts) {
 	check('limit: invalid falls back to default', bad.events.length === 10, 'got ' + bad.events.length);
 }
 
+// =====================================================================
+// 6. Icon handling: emoji pass through, lucide:* maps to emoji, ?icons=none
+// =====================================================================
+{
+	envVars = {};
+	const now = new Date();
+	const today0 = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+	collections = {
+		events: [
+			fakeRecord('ic1', {
+				title: 'Emoji icon',
+				start_time: pbDateString(today0),
+				is_all_day: false,
+				icon: '🦷'
+			}),
+			fakeRecord('ic2', {
+				title: 'Lucide icon',
+				start_time: pbDateString(new Date(today0.getTime() + 60000)),
+				is_all_day: false,
+				icon: 'lucide:pill'
+			}),
+			fakeRecord('ic3', {
+				title: 'Unknown lucide',
+				start_time: pbDateString(new Date(today0.getTime() + 120000)),
+				is_all_day: false,
+				icon: 'lucide:some-future-icon'
+			})
+		],
+		external_events: []
+	};
+
+	const day = call().body.days[0];
+	const byTitle = (title) => day.events.find((e2) => e2.title === title);
+	check('icons: emoji passes through', byTitle('Emoji icon').icon === '🦷');
+	check(
+		'icons: lucide:pill maps to 💊',
+		byTitle('Lucide icon').icon === '💊',
+		JSON.stringify(byTitle('Lucide icon').icon)
+	);
+	check(
+		'icons: unmapped lucide name dropped (never literal lucide:*)',
+		byTitle('Unknown lucide').icon === '',
+		JSON.stringify(byTitle('Unknown lucide').icon)
+	);
+
+	const stripped = call({ query: { icons: 'none' } }).body.days[0];
+	check(
+		'icons: icons=none strips everything',
+		stripped.events.every((e2) => e2.icon === ''),
+		JSON.stringify(stripped.events.map((e2) => e2.icon))
+	);
+}
+
 // --- summary ---
 console.log(`\n${passed} passed, ${failures} failed`);
 process.exit(failures ? 1 : 0);
