@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.9.4
+
+- Dependencies: routine refresh across the board — Svelte 5.56.10, SvelteKit 2.70.3, Vite 8.2.2, Vitest 4.1.11, Biome 2.5.10, bits-ui 2.19.0, Lucide 1.33.0, svelte-sonner 1.2.1, and the PocketBase JS SDK 0.27.3 → 0.28.0 (purely additive — it adds a `logs.truncate()` handler for a future PocketBase release; nothing this app calls changed).
+- Addon image: PocketBase 0.39.9 → 0.39.11 (bug fixes and dependency refresh only; no JSVM, hooks, or migrations API changes) and the Home Assistant base image 21.0.0 → 21.0.2.
+- Fixed: `ha-addon/build-local.sh` had drifted back to PocketBase 0.39.4 while `build.yaml` and the `Dockerfile` were on 0.39.9, so local test builds shipped a different PocketBase than the released addon. All three are unified on 0.39.11 again.
+- Dev tooling: TypeScript is deliberately unchanged (6.0.3 primary, 7.0.2 alongside under the `@typescript/native` alias for `svelte-check --tsgo`). TypeScript 7 still cannot be the sole in-project compiler — svelte-check rejects that setup, because TS 7 exposes no classic JS compiler API.
+
 ## 1.9.3
 
 - Fixed: events whose icon was picked from the app's Lucide tab showed the raw reference (e.g. "lucide:pill") as literal text on TRMNL displays. The TRMNL feed now maps Lucide icons to their closest emoji (`lucide:pill` → 💊) and drops any it can't map; emoji icons pass through unchanged. New `?icons=none` feed parameter strips icons entirely for renderers without an emoji font.
