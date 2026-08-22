@@ -1,6 +1,6 @@
 {
   "name": "calendhd",
-  "version": "1.9.3",
+  "version": "1.9.4",
   "description": "A calm, ADHD-friendly calendar PWA for neurodivergent minds",
   "private": true,
   "type": "module",
@@ -31,33 +31,33 @@
     "format:check": "biome format src"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.8",
+    "@biomejs/biome": "^2.5.10",
     "@sveltejs/adapter-static": "^3.0.10",
-    "@sveltejs/kit": "^2.70.2",
+    "@sveltejs/kit": "^2.70.3",
     "@sveltejs/vite-plugin-svelte": "^7.3.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^26.2.0",
     "@typescript/native": "npm:typescript@7",
-    "svelte": "^5.56.9",
+    "svelte": "^5.56.10",
     "svelte-check": "^4.7.6",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
-    "vite": "^8.2.1",
-    "vitest": "^4.1.10"
+    "vite": "^8.2.2",
+    "vitest": "^4.1.11"
   },
   "dependencies": {
-    "@lucide/svelte": "^1.31.0",
-    "bits-ui": "^2.18.1",
+    "@lucide/svelte": "^1.33.0",
+    "bits-ui": "^2.19.0",
     "date-fns": "^4.4.0",
     "date-fns-tz": "^3.2.0",
-    "pocketbase": "^0.27.3",
+    "pocketbase": "^0.28.0",
     "svelte-i18n": "^4.0.1",
-    "svelte-sonner": "^1.1.1"
+    "svelte-sonner": "^1.2.1"
   },
   "overrides": {
     "cookie": "^0.7.2",
     "svelte-i18n": {
-      "esbuild": "^0.28.0"
+      "esbuild": "^0.28.2"
     }
   },
   "engines": {
