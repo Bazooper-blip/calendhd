@@ -111,20 +111,30 @@ check('update handler registered', typeof updateHandler === 'function');
 function pbDateString(d) {
 	return d.toISOString().replace('T', ' ');
 }
+let nextCalls = 0;
 function fireCreate(fields) {
 	savedRows = [];
-	createHandler({ record: fakeRecord('ev1', fields) });
+	createHandler({ record: fakeRecord('ev1', fields), next: () => nextCalls++ });
 	return savedRows;
 }
 function fireUpdate(fields) {
 	savedRows = [];
 	deletedRows = [];
-	updateHandler({ record: fakeRecord('ev1', fields) });
+	updateHandler({ record: fakeRecord('ev1', fields), next: () => nextCalls++ });
 	return savedRows;
 }
 
 const REMINDERS = JSON.stringify([{ minutes_before: 30, type: 'notification' }]);
 const now = new Date();
+
+// 0. Handlers must propagate the hook chain — a handler that skips e.next()
+//    silently suppresses every other handler on the same (hook, collection).
+{
+	nextCalls = 0;
+	fireCreate({ user: 'user1', title: 'chain', start_time: pbDateString(now) });
+	fireUpdate({ user: 'user1', title: 'chain', start_time: pbDateString(now) });
+	check('handlers call e.next()', nextCalls === 2, 'got ' + nextCalls);
+}
 
 // 1. Non-recurring future event: reminder at start - 30min (existing behavior)
 {

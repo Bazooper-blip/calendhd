@@ -11,11 +11,13 @@
 // Schedule on external_event create/update — subscription sync calls these N
 // times per refresh because it deletes-and-recreates external_events.
 onRecordAfterCreateSuccess((e) => {
+    e.next();
     const helpers = require(`${__hooks}/pb_helpers.js`);
     helpers.scheduleExternalReminder(e.record);
 }, "external_events");
 
 onRecordAfterUpdateSuccess((e) => {
+    e.next();
     const helpers = require(`${__hooks}/pb_helpers.js`);
     helpers.scheduleExternalReminder(e.record);
 }, "external_events");
@@ -28,6 +30,7 @@ onRecordAfterUpdateSuccess((e) => {
 // short-circuit when reminders are disabled — wasteful on every sync
 // but ensures settings-change-without-sync paths stay correct.
 onRecordAfterUpdateSuccess((e) => {
+    e.next();
     const helpers = require(`${__hooks}/pb_helpers.js`);
     helpers.rescheduleExternalRemindersForSubscription(e.record.id);
 }, "calendar_subscriptions");
@@ -36,6 +39,7 @@ onRecordAfterUpdateSuccess((e) => {
 // (subscription, uid). Read keys BEFORE delegating because the deleted record
 // is still queryable inside the callback.
 onRecordAfterCreateSuccess((e) => {
+    e.next();
     const helpers = require(`${__hooks}/pb_helpers.js`);
     helpers.rescheduleExternalRemindersForOverride(
         e.record.get("subscription"),
@@ -44,6 +48,7 @@ onRecordAfterCreateSuccess((e) => {
 }, "external_event_reminders");
 
 onRecordAfterUpdateSuccess((e) => {
+    e.next();
     const helpers = require(`${__hooks}/pb_helpers.js`);
     helpers.rescheduleExternalRemindersForOverride(
         e.record.get("subscription"),
@@ -52,6 +57,7 @@ onRecordAfterUpdateSuccess((e) => {
 }, "external_event_reminders");
 
 onRecordAfterDeleteSuccess((e) => {
+    e.next();
     const helpers = require(`${__hooks}/pb_helpers.js`);
     helpers.rescheduleExternalRemindersForOverride(
         e.record.get("subscription"),
@@ -63,6 +69,7 @@ onRecordAfterDeleteSuccess((e) => {
 // create cancels the series' pending reminders, a delete (resume)
 // reschedules them. Same read-keys-before-delegating rule as above.
 onRecordAfterCreateSuccess((e) => {
+    e.next();
     const helpers = require(`${__hooks}/pb_helpers.js`);
     helpers.rescheduleExternalRemindersForPause(
         e.record.get("subscription"),
@@ -71,6 +78,7 @@ onRecordAfterCreateSuccess((e) => {
 }, "external_event_pauses");
 
 onRecordAfterUpdateSuccess((e) => {
+    e.next();
     const helpers = require(`${__hooks}/pb_helpers.js`);
     helpers.rescheduleExternalRemindersForPause(
         e.record.get("subscription"),
@@ -79,6 +87,7 @@ onRecordAfterUpdateSuccess((e) => {
 }, "external_event_pauses");
 
 onRecordAfterDeleteSuccess((e) => {
+    e.next();
     const helpers = require(`${__hooks}/pb_helpers.js`);
     helpers.rescheduleExternalRemindersForPause(
         e.record.get("subscription"),

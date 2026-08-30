@@ -8,6 +8,7 @@ cronAdd("routine_generator", "0 4 * * *", () => {
 
 // Generate on routine create (today + tomorrow)
 onRecordAfterCreateSuccess((e) => {
+    e.next();
     const helpers = require(`${__hooks}/pb_helpers.js`);
     const routine = e.record;
     if (routine.get("is_active")) {
@@ -20,6 +21,7 @@ onRecordAfterCreateSuccess((e) => {
 
 // Delete + regenerate on routine update (today + tomorrow)
 onRecordAfterUpdateSuccess((e) => {
+    e.next();
     const helpers = require(`${__hooks}/pb_helpers.js`);
     const routine = e.record;
     const today = new Date();
@@ -38,6 +40,7 @@ onRecordAfterUpdateSuccess((e) => {
 
 // Cascade delete: remove all generated events when routine is deleted
 onRecordAfterDeleteSuccess((e) => {
+    e.next();
     const routineId = e.record.id;
     try {
         const events = $app.findRecordsByFilter("events", "routine_template = {:rid}", "", 100, 0, { rid: routineId });

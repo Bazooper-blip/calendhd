@@ -2,6 +2,7 @@
 
 // Schedule reminders when events are created
 onRecordAfterCreateSuccess(function(e) {
+    e.next();
     var event = e.record;
 
     // Paused (recurring) events must stay silent until resumed.
@@ -60,6 +61,7 @@ onRecordAfterCreateSuccess(function(e) {
 
 // Reschedule reminders when events are updated
 onRecordAfterUpdateSuccess(function(e) {
+    e.next();
     var event = e.record;
 
     // Delete existing unsent reminders for this event
