@@ -22,10 +22,11 @@
 // the routine generator and ICS parser already make.
 //
 // Semantics intentionally mirror the app:
-//   - events are bucketed by their stored start_time's local day (the app's
-//     getEventsForDay does the same; local recurrence_rule is not expanded
-//     anywhere, and external iCal recurrences are already materialized into
-//     concrete rows by 050_subscription_sync)
+//   - events are bucketed by their start's local day (the app's
+//     getEventsForDay does the same); local recurrence_rule is expanded into
+//     in-window occurrences via helpers.expandLocalRecurrence (mirroring the
+//     app's displayEvents), while external iCal recurrences are already
+//     materialized into concrete rows by 050_subscription_sync
 //   - current/next mirror the /now screen (timed events only)
 //   - day_progress mirrors DayProgress.svelte (waking hours 06:00–22:00)
 // =============================================================================
@@ -207,6 +208,11 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
 
     // ---- load events in window ---------------------------------------------
     var filter = "user = {:uid} && start_time >= {:start} && start_time <= {:end}";
+    // Local recurring events are stored as a single seed row that may start
+    // before the window but still produce occurrences inside it (occurrences
+    // never precede the seed, so the upper bound stays). Mirrors getEvents()
+    // in src/lib/api/pocketbase.ts.
+    var localFilter = "user = {:uid} && (start_time >= {:start} || recurrence_rule != null) && start_time <= {:end}";
     var filterParams = {
         uid: userId,
         start: helpers.pbDateFilter(windowStart),
@@ -216,19 +222,22 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
     var localRecords = [];
     var externalRecords = [];
     try {
-        localRecords = $app.findRecordsByFilter("events", filter, "start_time", 500, 0, filterParams);
+        localRecords = $app.findRecordsByFilter("events", localFilter, "start_time", 500, 0, filterParams);
     } catch (err) { /* none in window */ }
     try {
         externalRecords = $app.findRecordsByFilter("external_events", filter, "start_time", 500, 0, filterParams);
     } catch (err) { /* none in window */ }
 
     // ---- normalize to feed events -------------------------------------------
-    function localToFeed(rec) {
+    // For recurring events the loop below passes per-occurrence overrides
+    // (start/end/done); without them the record's own fields are used.
+    function localToFeed(rec, occStart, occEnd, occDone) {
         // Mirror the app: paused events are hidden from every view.
         if (rec.getBool("is_paused")) return null;
-        var start = parsePbDate(rec.getString("start_time"));
+        var isOccurrence = !!occStart;
+        var start = isOccurrence ? occStart : parsePbDate(rec.getString("start_time"));
         if (!start) return null;
-        var end = parsePbDate(rec.getString("end_time"));
+        var end = isOccurrence ? occEnd : parsePbDate(rec.getString("end_time"));
         var isAllDay = rec.getBool("is_all_day");
         var cat = categoryById[rec.getString("category")] || null;
         var routineName = routineNameById[rec.getString("routine_template")] || "";
@@ -242,7 +251,7 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
             time_range: endStr ? timeStr + " – " + endStr : timeStr,
             is_all_day: isAllDay,
             is_task: rec.getBool("is_task"),
-            done: rec.getString("completed_at") !== "",
+            done: isOccurrence ? !!occDone : rec.getString("completed_at") !== "",
             category: cat ? cat.name : "",
             color: rec.getString("color_override") || (cat && cat.color) || DEFAULT_EVENT_COLOR,
             is_external: false,
@@ -292,8 +301,35 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
 
     var all = [];
     for (var li = 0; li < localRecords.length; li++) {
-        var fe = localToFeed(localRecords[li]);
-        if (fe) all.push(fe);
+        var rec = localRecords[li];
+        var rule = helpers.parseJsonField(rec.get("recurrence_rule"));
+        if (rule && rule.frequency) {
+            // Expand the seed row into concrete in-window occurrences
+            // (mirrors displayEvents in src/lib/stores/calendar.svelte.ts).
+            if (rec.getBool("is_paused")) continue;
+            var seedStart = parsePbDate(rec.getString("start_time"));
+            if (!seedStart) continue;
+            var seedEnd = parsePbDate(rec.getString("end_time"));
+            // Guard corrupted rows where end precedes start.
+            var durMs = seedEnd ? Math.max(0, seedEnd.getTime() - seedStart.getTime()) : 0;
+            var completedAt = parsePbDate(rec.getString("completed_at"));
+            var occs = helpers.expandLocalRecurrence(rule, seedStart, windowStart, windowEnd);
+            for (var oi = 0; oi < occs.length; oi++) {
+                var occStart = occs[oi];
+                var isSeedOcc = occStart.getTime() === seedStart.getTime();
+                var occEnd = isSeedOcc
+                    ? seedEnd
+                    : (seedEnd && durMs > 0 ? new Date(occStart.getTime() + durMs) : null);
+                // Completion is per-day for recurring tasks ("did I do it
+                // today?") since one row backs the whole series.
+                var occDone = !!completedAt && dateKey(completedAt) === dateKey(occStart);
+                var ofe = localToFeed(rec, occStart, occEnd, occDone);
+                if (ofe) all.push(ofe);
+            }
+        } else {
+            var fe = localToFeed(rec);
+            if (fe) all.push(fe);
+        }
     }
     for (var xi = 0; xi < externalRecords.length; xi++) {
         var xe = externalToFeed(externalRecords[xi]);

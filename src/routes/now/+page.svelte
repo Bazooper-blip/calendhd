@@ -51,11 +51,13 @@
 	}
 
 	function handleStart(event: DisplayEvent) {
-		if (!event.is_external) goto(`/event/${event.id}`);
+		// event.id is a per-occurrence display key for recurring events —
+		// record actions must go through original_event.id.
+		if (!event.is_external) goto(`/event/${event.original_event.id}`);
 	}
 
 	function handleComplete(event: DisplayEvent) {
-		if (event.is_task) calendar.toggleTaskComplete(event.id);
+		if (event.is_task) calendar.toggleTaskComplete(event.original_event.id);
 	}
 </script>
 

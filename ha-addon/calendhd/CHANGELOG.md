@@ -1,6 +1,11 @@
 # Changelog
 
-## 1.9.4
+## 1.10.0
+
+- Fixed: recurring events created in calenDHD (e.g. "weekly") only ever appeared on their original date — the repeat rule was stored but never expanded anywhere, so the next week's occurrences were missing from the day/week/month views, the /now screen, and the TRMNL feed (external iCal recurrences were unaffected because sync materializes those into concrete rows). All calendar views now expand `recurrence_rule` into the visible occurrences (daily / every-other-day / weekly / biweekly / monthly / yearly, honoring interval, weekday lists, end date, and count), and the TRMNL feed does the same via a mirrored helper in `pb_helpers.js`.
+- Fixed: reminders on recurring events fired only for the first occurrence (the seed row's start time). The scheduler now arms the reminder for the next upcoming occurrence, and after each send the reminder cron re-arms the following one — so a weekly event reminds you every week. Push messages also describe the upcoming occurrence's day ("today at 07:40") instead of the long-past seed date.
+- Recurring tasks: the checkbox completion is per-day — completing today's occurrence doesn't mark next week's as done (a single row backs the whole series).
+- Editing any occurrence opens the series (the stored event); pausing hides the whole series as before.
 
 - Dependencies: routine refresh across the board — Svelte 5.56.10, SvelteKit 2.70.3, Vite 8.2.2, Vitest 4.1.11, Biome 2.5.10, bits-ui 2.19.0, Lucide 1.33.0, svelte-sonner 1.2.1, and the PocketBase JS SDK 0.27.3 → 0.28.0 (purely additive — it adds a `logs.truncate()` handler for a future PocketBase release; nothing this app calls changed).
 - Addon image: PocketBase 0.39.9 → 0.39.11 (bug fixes and dependency refresh only; no JSVM, hooks, or migrations API changes) and the Home Assistant base image 21.0.0 → 21.0.2.

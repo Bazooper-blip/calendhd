@@ -185,10 +185,17 @@ export async function getEvents(startDate: Date, endDate: Date): Promise<Calenda
 	const user = getCurrentUser();
 	if (!user) return [];
 
-	// Filter by date range - PocketBase API rules handle user access
+	// Filter by date range - PocketBase API rules handle user access.
+	// Recurring events are stored as a single seed row; one whose start lies
+	// before the range may still produce occurrences inside it, so recurring
+	// seeds are fetched regardless of range start (occurrences never precede
+	// the seed, so anything starting after the range stays excluded). The
+	// store's displayEvents expands them into the visible occurrences.
+	const rangeEnd = endDate.toISOString();
 	const records = await collections.events().getFullList({
-		filter: `start_time >= "${startDate.toISOString()}" && start_time <= "${endDate.toISOString()}"`,
-		sort: 'start_time'
+		filter: `(start_time >= "${startDate.toISOString()}" || recurrence_rule != null) && start_time <= "${rangeEnd}"`,
+		sort: 'start_time',
+		batch: 200
 	});
 	return records as unknown as CalendarEvent[];
 }

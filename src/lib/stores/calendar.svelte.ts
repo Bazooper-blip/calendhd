@@ -35,7 +35,7 @@ import type {
 	ExternalEvent,
 	ExternalEventPause
 } from '$types';
-import { baseIcalUid, isSameDay } from '$utils';
+import { baseIcalUid, expandRecurrenceRule, isSameDay } from '$utils';
 import { auth } from './auth.svelte';
 import { routinesStore } from './routines.svelte';
 import { settingsStore } from './settings.svelte';
@@ -143,28 +143,55 @@ function createCalendarStore() {
 		get displayEvents(): DisplayEvent[] {
 			const allEvents: DisplayEvent[] = [];
 
-			// Convert calendar events (paused events are hidden from every view)
+			// Convert calendar events (paused events are hidden from every view).
+			// Events with a recurrence_rule are expanded into one DisplayEvent per
+			// occurrence in the view range — the single stored row is the seed of
+			// the series (external iCal recurrences are instead materialized into
+			// rows by the sync hook, so they take the plain path below).
+			const { start: rangeStart, end: rangeEnd } = getViewRange();
 			for (const event of events) {
 				if (event.is_paused) continue;
-				allEvents.push({
-					id: event.id,
-					title: event.title,
-					start: new Date(event.start_time),
-					end: event.end_time ? new Date(event.end_time) : undefined,
-					is_all_day: event.is_all_day,
-					is_task: event.is_task || false,
-					is_completed: !!event.completed_at,
-					color: event.color_override || '#7C9885', // default sage green
-					icon: event.icon,
-					is_external: false,
-					routine_template: event.routine_template,
-					routine_step_index: event.routine_step_index,
-					energy_level: event.energy_level,
-					routine_group_name: event.routine_template
-						? routinesStore.getById(event.routine_template)?.name
-						: undefined,
-					original_event: event
-				});
+				const seedStart = new Date(event.start_time);
+				const seedEnd = event.end_time ? new Date(event.end_time) : undefined;
+				// Guard against corrupted rows where end precedes start — a
+				// negative duration would place occurrence ends in the past.
+				const durationMs = seedEnd ? Math.max(0, seedEnd.getTime() - seedStart.getTime()) : 0;
+				const occurrenceStarts = event.recurrence_rule?.frequency
+					? expandRecurrenceRule(event.recurrence_rule, seedStart, rangeStart, rangeEnd)
+					: [seedStart];
+				for (const start of occurrenceStarts) {
+					const isSeedOccurrence = start.getTime() === seedStart.getTime();
+					allEvents.push({
+						// Virtual occurrences need their own id for keyed {#each}
+						// blocks; anything that mutates the record must go through
+						// original_event.id instead.
+						id: isSeedOccurrence ? event.id : `${event.id}::r${start.getTime()}`,
+						title: event.title,
+						start,
+						end: isSeedOccurrence
+							? seedEnd
+							: seedEnd && durationMs > 0
+								? new Date(start.getTime() + durationMs)
+								: undefined,
+						is_all_day: event.is_all_day,
+						is_task: event.is_task || false,
+						// Recurring tasks: completion is per-day ("did I do it
+						// today?") since a single row backs the whole series.
+						is_completed: event.recurrence_rule?.frequency
+							? !!event.completed_at && isSameDay(new Date(event.completed_at), start)
+							: !!event.completed_at,
+						color: event.color_override || '#7C9885', // default sage green
+						icon: event.icon,
+						is_external: false,
+						routine_template: event.routine_template,
+						routine_step_index: event.routine_step_index,
+						energy_level: event.energy_level,
+						routine_group_name: event.routine_template
+							? routinesStore.getById(event.routine_template)?.name
+							: undefined,
+						original_event: event
+					});
+				}
 			}
 
 			// Convert external events (paused series are hidden from every view;
