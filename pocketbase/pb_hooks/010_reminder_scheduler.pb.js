@@ -2,6 +2,7 @@
 
 // Schedule reminders when events are created
 onRecordAfterCreateSuccess(function(e) {
+    e.next();
     var event = e.record;
 
     // Paused (recurring) events must stay silent until resumed.
@@ -22,8 +23,13 @@ onRecordAfterCreateSuccess(function(e) {
     }
 
     var userId = event.get("user");
-    var eventTime = new Date(startTime);
+    // PB stores 'YYYY-MM-DD HH:MM:SS.fffZ'; normalize to the T separator.
+    var eventTime = new Date(String(startTime).replace(" ", "T"));
     var now = new Date();
+    // Recurring events: target the next upcoming occurrence, not the seed
+    // start (which may be long past). The cron re-arms the following
+    // occurrence after each send.
+    var rule = helpers.parseJsonField(event.get("recurrence_rule"));
 
     for (var i = 0; i < reminders.length; i++) {
         var reminder = reminders[i];
@@ -32,9 +38,9 @@ onRecordAfterCreateSuccess(function(e) {
         }
 
         var minutesBefore = reminder.minutes_before || 0;
-        var scheduledFor = new Date(eventTime.getTime() - (minutesBefore * 60 * 1000));
+        var scheduledFor = helpers.nextReminderTime(rule, eventTime, minutesBefore, now);
 
-        if (scheduledFor <= now) {
+        if (!scheduledFor) {
             continue;
         }
 
@@ -55,6 +61,7 @@ onRecordAfterCreateSuccess(function(e) {
 
 // Reschedule reminders when events are updated
 onRecordAfterUpdateSuccess(function(e) {
+    e.next();
     var event = e.record;
 
     // Delete existing unsent reminders for this event
@@ -89,8 +96,12 @@ onRecordAfterUpdateSuccess(function(e) {
     }
 
     var userId = event.get("user");
-    var eventTime = new Date(startTime);
+    // PB stores 'YYYY-MM-DD HH:MM:SS.fffZ'; normalize to the T separator.
+    var eventTime = new Date(String(startTime).replace(" ", "T"));
     var now = new Date();
+    // Recurring events: target the next upcoming occurrence, not the seed
+    // start (which may be long past).
+    var rule = helpers.parseJsonField(event.get("recurrence_rule"));
 
     for (var i = 0; i < reminders.length; i++) {
         var reminder = reminders[i];
@@ -99,9 +110,9 @@ onRecordAfterUpdateSuccess(function(e) {
         }
 
         var minutesBefore = reminder.minutes_before || 0;
-        var scheduledFor = new Date(eventTime.getTime() - (minutesBefore * 60 * 1000));
+        var scheduledFor = helpers.nextReminderTime(rule, eventTime, minutesBefore, now);
 
-        if (scheduledFor <= now) {
+        if (!scheduledFor) {
             continue;
         }
 

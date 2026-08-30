@@ -22,6 +22,7 @@
 // =============================================================================
 
 onRecordAfterCreateSuccess(function (e) {
+    e.next();
     var event = e.record;
 
     if (event.getBool("is_paused")) return;

@@ -34,6 +34,11 @@ function fakeRecord(id, fields) {
 		},
 		getBool(k) {
 			return !!fields[k];
+		},
+		// json fields go through record.get() + helpers.parseJsonField (which
+		// accepts strings, matching one of the forms PB JSVM can return)
+		get(k) {
+			return fields[k];
 		}
 	};
 }
@@ -314,6 +319,69 @@ function call(opts) {
 	);
 	const fika = b.days[0].events[0];
 	check('12h: PM time', fika && fika.time === '2:05 PM', fika && fika.time);
+}
+
+// =====================================================================
+// 4b. Recurring local events expand into the window
+// =====================================================================
+{
+	envVars = {};
+	const now = new Date();
+	// Weekly event seeded 7 days ago at 10:00 — must appear once, today.
+	const weeklySeed = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7, 10, 0, 0);
+	// Daily event seeded 3 days ago 09:30–10:00, completed on its seed day —
+	// must appear today AND tomorrow, not done, with a shifted time range.
+	const dailySeed = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 3, 9, 30, 0);
+	const dailySeedEnd = new Date(dailySeed.getTime() + 30 * 60000);
+
+	collections = {
+		user_settings: [fakeRecord('s1', { time_format: '24h', locale: 'en' })],
+		events: [
+			fakeRecord('rec1', {
+				title: 'Idrott',
+				start_time: pbDateString(weeklySeed),
+				is_all_day: false,
+				recurrence_rule: '{"frequency":"weekly"}'
+			}),
+			fakeRecord('rec2', {
+				title: 'Göra läxa',
+				start_time: pbDateString(dailySeed),
+				end_time: pbDateString(dailySeedEnd),
+				is_all_day: false,
+				is_task: true,
+				completed_at: pbDateString(dailySeed),
+				recurrence_rule: '{"frequency":"daily"}'
+			})
+		]
+	};
+
+	filterCalls = [];
+	const res = call({ query: { days: '3' } });
+	const b = res.body;
+	check('recurring: 200', res.status === 200);
+
+	// The events query must not exclude recurring seeds that started before
+	// the window (the mock returns rows regardless — assert on the filter).
+	const evCall = filterCalls.find((c) => c.collection === 'events');
+	check(
+		'recurring: filter fetches recurring seeds outside window',
+		evCall && evCall.filter.indexOf('recurrence_rule') >= 0,
+		evCall && evCall.filter
+	);
+
+	const today = b.days[0];
+	const tomorrow = b.days[1];
+	const idrottToday = today.events.filter((e2) => e2.title === 'Idrott');
+	check('recurring: weekly occurs today', idrottToday.length === 1, JSON.stringify(today.events.map((e2) => e2.title)));
+	check('recurring: weekly keeps wall-clock time', idrottToday[0] && idrottToday[0].time === '10:00', idrottToday[0] && idrottToday[0].time);
+	check('recurring: weekly absent tomorrow', !tomorrow.events.some((e2) => e2.title === 'Idrott'));
+
+	const laxaToday = today.events.filter((e2) => e2.title === 'Göra läxa');
+	const laxaTomorrow = tomorrow.events.filter((e2) => e2.title === 'Göra läxa');
+	check('recurring: daily occurs today', laxaToday.length === 1, JSON.stringify(today.events.map((e2) => e2.title)));
+	check('recurring: daily occurs tomorrow', laxaTomorrow.length === 1);
+	check('recurring: occurrence end shifted', laxaToday[0] && laxaToday[0].time_range === '09:30 – 10:00', laxaToday[0] && laxaToday[0].time_range);
+	check('recurring: done is per-day', laxaToday[0] && laxaToday[0].done === false);
 }
 
 // =====================================================================

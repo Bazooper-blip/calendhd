@@ -70,9 +70,11 @@ new Function('onRecordAfterCreateSuccess', '$app', 'require', '__hooks', hookSrc
 );
 check('handler registered', typeof handler === 'function');
 
+let nextCalls = 0;
 function fire(eventFields) {
 	pushCalls = [];
-	handler({ record: fakeRecord('ev1', eventFields) });
+	nextCalls = 0;
+	handler({ record: fakeRecord('ev1', eventFields), next: () => nextCalls++ });
 	return pushCalls;
 }
 
@@ -83,9 +85,11 @@ const baseEvent = {
 	is_all_day: false
 };
 
-// 1. Opt-in gating
+// 1. Opt-in gating (the handler must still propagate the hook chain even
+//    when it stays silent — see hookChain.test.cjs)
 settingsRows = [];
 check('no settings row -> silent', fire(baseEvent).length === 0);
+check('silent path still calls e.next()', nextCalls === 1, 'got ' + nextCalls);
 
 settingsRows = [fakeRecord('s1', { notify_new_events: false })];
 check('toggle off -> silent', fire(baseEvent).length === 0);

@@ -66,6 +66,20 @@ cronAdd("reminder_sender", "* * * * *", function() {
         var eventStart = event.get("start_time") || "";
         var firstStep = event.get("first_step") || "";
 
+        // Recurring events: the stored start_time is the series seed (often
+        // long past). Describe the occurrence this reminder was armed for —
+        // the first one at/after its scheduled_for.
+        var helpers = require(`${__hooks}/pb_helpers.js`);
+        var rule = helpers.parseJsonField(event.get("recurrence_rule"));
+        if (rule && rule.frequency && eventStart) {
+            var seedStart = new Date(String(eventStart).replace(" ", "T"));
+            var schedFor = new Date(String(reminder.get("scheduled_for")).replace(" ", "T"));
+            var occStart = helpers.firstLocalOccurrenceOnOrAfter(rule, seedStart, schedFor);
+            if (occStart) {
+                eventStart = occStart.toISOString();
+            }
+        }
+
         // Format the notification message — first_step (if set) is the actionable
         // body line; otherwise fall back to "<title> at <HH:mm>". The push-service
         // shows title as the heading and message as the body.
@@ -95,6 +109,61 @@ cronAdd("reminder_sender", "* * * * *", function() {
             console.log("Sent reminder for '" + eventTitle + "' via " + deliveryMethod + " to user " + userId);
         } else {
             console.log("Failed to send reminder for '" + eventTitle + "': " + errorMessage);
+        }
+
+        // Recurring events: re-arm the next occurrence's reminders. (The
+        // scheduler hook only arms on create/update; without this the series
+        // would go silent after its first send.)
+        if (rule && rule.frequency) {
+            rearmRecurringReminders(event, rule, helpers, new Date());
+        }
+    }
+
+    // Insert the next scheduled_reminders row(s) for a recurring event.
+    // Every firing re-computes ALL of the event's reminder configs; rows
+    // whose scheduled_for already exists unsent are skipped, so an event
+    // with several lead times ends up with exactly one row per config.
+    function rearmRecurringReminders(event, rule, helpers, nowDate) {
+        var reminders = helpers.parseJsonField(event.get("reminders"));
+        if (!reminders || !Array.isArray(reminders) || reminders.length === 0) {
+            return;
+        }
+        var seedStart = new Date(String(event.get("start_time")).replace(" ", "T"));
+
+        var pendingTimes = {};
+        try {
+            var pending = $app.findRecordsByFilter("scheduled_reminders", "event = {:ev}", "", 200, 0, { ev: event.id });
+            for (var i = 0; i < pending.length; i++) {
+                if (!pending[i].getString("sent_at")) {
+                    pendingTimes[pending[i].getString("scheduled_for")] = true;
+                }
+            }
+        } catch (err) { /* none pending */ }
+
+        for (var j = 0; j < reminders.length; j++) {
+            if (reminders[j].type !== "notification") {
+                continue;
+            }
+            var scheduledFor = helpers.nextReminderTime(rule, seedStart, reminders[j].minutes_before || 0, nowDate);
+            if (!scheduledFor) {
+                continue; // series exhausted (count/end_date)
+            }
+            // Stored rows use PB's space-separated datetime format.
+            if (pendingTimes[scheduledFor.toISOString().replace("T", " ")]) {
+                continue;
+            }
+            try {
+                var collection = $app.findCollectionByNameOrId("scheduled_reminders");
+                var record = new Record(collection);
+                record.set("user", event.get("user"));
+                record.set("event", event.id);
+                record.set("scheduled_for", scheduledFor.toISOString());
+                record.set("reminder_type", "notification");
+                $app.save(record);
+                console.log("Re-armed recurring reminder for '" + event.get("title") + "' at " + scheduledFor.toISOString());
+            } catch (err) {
+                console.log("Failed to re-arm recurring reminder:", err);
+            }
         }
     }
 

@@ -34,7 +34,9 @@
 
 	function handleCheckboxClick(e: MouseEvent) {
 		e.stopPropagation();
-		calendar.toggleTaskComplete(event.id);
+		// event.id is a per-occurrence display key for recurring events —
+		// mutations must target the underlying record.
+		calendar.toggleTaskComplete(event.original_event.id);
 	}
 </script>
 

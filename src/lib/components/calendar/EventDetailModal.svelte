@@ -39,7 +39,9 @@
 
 	function handleEdit() {
 		if (!event) return;
-		const id = event.id;
+		// event.id is a per-occurrence display key for recurring events —
+		// editing must open the underlying record (the whole series).
+		const id = event.original_event.id;
 		onclose();
 		goto(`/event/${id}`);
 	}

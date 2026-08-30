@@ -347,12 +347,134 @@ function expandRecurrence(rruleStr, startDate, endDate, isAllDay, rangeStart, ra
     }
 }
 
+// ─────────────────────────────────────────────────────────────────
+// Local-event recurrence (events.recurrence_rule JSON)
+// Mirrors expandRecurrenceRule in src/lib/utils/recurrence.ts — the frontend
+// expands for display; these expand for the TRMNL feed and reminder pipeline.
+// All stepping is on local wall-clock time (the PB server runs in the
+// household's timezone — same assumption the routine generator makes).
+// ─────────────────────────────────────────────────────────────────
+
+function localAddDays(dt, n) {
+    return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate() + n,
+        dt.getHours(), dt.getMinutes(), dt.getSeconds(), dt.getMilliseconds());
+}
+
+// Clamps into short months (Jan 31 + 1mo -> Feb 28) without drifting, because
+// every candidate is computed from the seed, never the previous occurrence.
+function localAddMonths(dt, n) {
+    var y = dt.getFullYear();
+    var m = dt.getMonth() + n;
+    var daysInTarget = new Date(y, m + 1, 0).getDate();
+    return new Date(y, m, Math.min(dt.getDate(), daysInTarget),
+        dt.getHours(), dt.getMinutes(), dt.getSeconds(), dt.getMilliseconds());
+}
+
+// Shared iterator over a rule's occurrences from the seed onward, in order.
+// visit(cur) returns false to stop. Handles interval/count/end_date and
+// weekly days_of_week (Sunday-anchored week parity for interval > 1).
+function iterateLocalOccurrences(rule, seedStart, visit) {
+    // Hard cap so a malformed rule can't spin (~13 years of day-stepping).
+    var MAX_ITERATIONS = 5000;
+
+    var until = null;
+    if (rule.end_date) {
+        var ed = String(rule.end_date);
+        if (/^\d{4}-\d{2}-\d{2}$/.test(ed)) {
+            var p = ed.split("-");
+            // date-only UNTIL is inclusive of the day
+            until = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10), 23, 59, 59, 999);
+        } else {
+            until = new Date(rule.end_date);
+        }
+    }
+    var maxCount = rule.count && rule.count > 0 ? rule.count : Infinity;
+    var daysOfWeek = rule.frequency === "weekly" && rule.days_of_week && rule.days_of_week.length > 0
+        ? rule.days_of_week
+        : null;
+    var interval = rule.interval && rule.interval > 0 ? rule.interval : 1;
+
+    function candidate(k) {
+        switch (rule.frequency) {
+            case "daily": return localAddDays(seedStart, k * interval);
+            case "every_other_day": return localAddDays(seedStart, k * 2);
+            case "weekly": return daysOfWeek ? localAddDays(seedStart, k) : localAddDays(seedStart, k * 7 * interval);
+            case "biweekly": return localAddDays(seedStart, k * 14);
+            case "monthly": return localAddMonths(seedStart, k * interval);
+            case "yearly": return localAddMonths(seedStart, k * interval * 12);
+            default: return k === 0 ? seedStart : null; // unknown: seed only
+        }
+    }
+    function matches(occ, k) {
+        if (!daysOfWeek) return true;
+        if (daysOfWeek.indexOf(occ.getDay()) === -1) return false;
+        return Math.floor((k + seedStart.getDay()) / 7) % interval === 0;
+    }
+
+    var count = 0;
+    for (var k = 0; k < MAX_ITERATIONS; k++) {
+        var cur = candidate(k);
+        if (!cur) break;
+        if (until && cur > until) break;
+        if (matches(cur, k)) {
+            count++;
+            if (count > maxCount) break;
+            if (!visit(cur)) break;
+        }
+    }
+}
+
+// Occurrence start Dates within [rangeStart, rangeEnd] (inclusive; seed
+// occurrence included when in range). Returns [] for a missing/invalid rule.
+function expandLocalRecurrence(rule, seedStart, rangeStart, rangeEnd) {
+    if (!rule || !rule.frequency) return [];
+    var out = [];
+    iterateLocalOccurrences(rule, seedStart, function (cur) {
+        if (cur > rangeEnd) return false;
+        if (cur >= rangeStart) out.push(cur);
+        return true;
+    });
+    return out;
+}
+
+// First occurrence with start >= t, or null when the series never reaches t
+// (count/end_date exhausted). A missing rule degrades to the bare seed.
+function firstLocalOccurrenceOnOrAfter(rule, seedStart, t) {
+    if (!rule || !rule.frequency) return seedStart >= t ? seedStart : null;
+    var found = null;
+    iterateLocalOccurrences(rule, seedStart, function (cur) {
+        if (cur >= t) {
+            found = cur;
+            return false;
+        }
+        return true;
+    });
+    return found;
+}
+
+// When the reminder for `minutesBefore` ahead of the next occurrence should
+// fire, strictly in the future of `now`; null when the series is over (or the
+// event is non-recurring and its single reminder time has passed).
+function nextReminderTime(rule, seedStart, minutesBefore, now) {
+    var lead = (minutesBefore || 0) * 60000;
+    if (!rule || !rule.frequency) {
+        var single = new Date(seedStart.getTime() - lead);
+        return single > now ? single : null;
+    }
+    // occurrence - lead > now  <=>  occurrence >= now + lead + 1ms
+    var occ = firstLocalOccurrenceOnOrAfter(rule, seedStart, new Date(now.getTime() + lead + 1));
+    return occ ? new Date(occ.getTime() - lead) : null;
+}
+
 module.exports = {
     parseJsonField: parseJsonField,
     pbDateFilter: pbDateFilter,
     baseIcalUid: baseIcalUid,
     textIcon: textIcon,
     expandRecurrence: expandRecurrence,
+    expandLocalRecurrence: expandLocalRecurrence,
+    firstLocalOccurrenceOnOrAfter: firstLocalOccurrenceOnOrAfter,
+    nextReminderTime: nextReminderTime,
 
     // True when a pause row exists for this external event's series
     // (external_event_pauses is keyed by subscription + BASE uid).

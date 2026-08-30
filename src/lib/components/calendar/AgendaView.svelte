@@ -407,7 +407,7 @@
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
 					<!-- svelte-ignore a11y_interactive_supports_focus -->
 					<span
-						onclick={(e) => handleSingleCheckbox(e, ev.id)}
+						onclick={(e) => handleSingleCheckbox(e, ev.original_event.id)}
 						class={cn(
 							'flex-shrink-0 mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors cursor-pointer',
 							ev.is_completed ? 'bg-white/30 border-white/50' : 'border-white/70 hover:border-white'
@@ -569,7 +569,7 @@
 			{#if ev.is_task}
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<span
-					onclick={(e) => handleSingleCheckbox(e, ev.id)}
+					onclick={(e) => handleSingleCheckbox(e, ev.original_event.id)}
 					class={cn(
 						'flex-shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center cursor-pointer transition-colors',
 						ev.is_completed
