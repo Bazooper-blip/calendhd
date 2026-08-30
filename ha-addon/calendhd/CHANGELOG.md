@@ -6,6 +6,10 @@
 - Fixed: reminders on recurring events fired only for the first occurrence (the seed row's start time). The scheduler now arms the reminder for the next upcoming occurrence, and after each send the reminder cron re-arms the following one — so a weekly event reminds you every week. Push messages also describe the upcoming occurrence's day ("today at 07:40") instead of the long-past seed date.
 - Recurring tasks: the checkbox completion is per-day — completing today's occurrence doesn't mark next week's as done (a single row backs the whole series).
 - Editing any occurrence opens the series (the stored event); pausing hides the whole series as before.
+- Fixed (production bug since 1.9.3): **newly created events never got their reminders scheduled** — only later edits did. PocketBase chains hook handlers and requires each to call `e.next()`; the 1.9.3 new-event-notification handler ran first on events-create and silently swallowed the reminder scheduler. All 15 record hooks now call `e.next()` (verified empirically on PB 0.39.11 and 0.40.1), and `pocketbase/tests/hookChain.test.cjs` statically enforces it.
+- PocketBase 0.39.11 → 0.40.1 (json/v2 internals, backup improvements, SQLite defensive mode; validated against a copy of production data: migrations, bootstrap, recurring filter, TRMNL feed, reminder scheduling, and a live cron send + weekly re-arm all pass).
+- Home Assistant base image 21.0.2 → 21.0.3.
+- Dependencies: Svelte 5.57.0, @lucide/svelte 1.37.0, Biome 2.5.11, @types/node 26.4.0. (TypeScript stays dual-pinned at 6.0.3 primary — svelte-check still can't use TS 7 as the sole compiler.)
 
 - Dependencies: routine refresh across the board — Svelte 5.56.10, SvelteKit 2.70.3, Vite 8.2.2, Vitest 4.1.11, Biome 2.5.10, bits-ui 2.19.0, Lucide 1.33.0, svelte-sonner 1.2.1, and the PocketBase JS SDK 0.27.3 → 0.28.0 (purely additive — it adds a `logs.truncate()` handler for a future PocketBase release; nothing this app calls changed).
 - Addon image: PocketBase 0.39.9 → 0.39.11 (bug fixes and dependency refresh only; no JSVM, hooks, or migrations API changes) and the Home Assistant base image 21.0.0 → 21.0.2.

@@ -39,8 +39,8 @@ echo "Building Docker image for ${ARCH}..."
 cd "$ADDON_DIR"
 
 docker build \
-    --build-arg BUILD_FROM="ghcr.io/hassio-addons/base:21.0.2" \
-    --build-arg PB_VERSION="0.39.11" \
+    --build-arg BUILD_FROM="ghcr.io/hassio-addons/base:21.0.3" \
+    --build-arg PB_VERSION="0.40.1" \
     --platform "linux/${ARCH}" \
     -t "local/calendhd:${ARCH}" \
     .
