@@ -1,12 +1,15 @@
 // Static guard: every onRecord*Success handler in pb_hooks must call e.next().
 //
 // PocketBase's hook system chains handlers — a handler that does not call
-// e.next() stops the chain, silently suppressing every other handler bound to
-// the same (hook, collection). This bit production: 025_new_event_notification
-// registered on events-create ahead of 010_reminder_scheduler in the executed
-// chain, so from 1.9.3 newly created events never got reminders scheduled
-// (verified empirically on PB 0.39.11 and 0.40.1 — only the first handler in
-// the chain ran).
+// e.next() stops the chain, silently suppressing the handlers loaded after
+// it. Hook FILE LOAD ORDER is filesystem-dependent (empirically not reliably
+// alphabetical), so with e.next() missing exactly one arbitrary handler per
+// (hook, collection) survives. This bit production: from 1.9.3,
+// 025_new_event_notification suppressed 010_reminder_scheduler on
+// events-create, so newly created events never got reminders scheduled
+// (verified empirically on PB 0.39.11 and 0.40.1). The live counterpart,
+// integration.live.cjs, asserts both events-create side effects against a
+// real PocketBase so the suppression is caught whichever handler survives.
 //
 //   Run:  node pocketbase/tests/hookChain.test.cjs
 
