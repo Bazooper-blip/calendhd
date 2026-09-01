@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.11.0
+
+- New: the week view shows the current week number in the corner above the hour column (e.g. "W36" / "v.36"). ISO 8601 numbering when the week starts on Monday; when the week starts on Sunday or Saturday, week 1 is the week containing Jan 1 - always matching the configured week start and locale.
+- TRMNL: the feed now exposes `week_number` and a locale-formatted `week_label`, honoring `user_settings.week_starts_on` (helper mirrored in `pb_helpers.js`, covered by the Node test harness and the live PocketBase integration test).
+- TRMNL full layout rearranged: upcoming days now sit in the left column and today in the right; the bottom "calenDHD" title bar is gone, replaced by a date + week number heading atop the today column, with the freed height going to the upcoming list. Portrait stacking keeps today first. Half/quadrant layouts keep their title bars (they identify the plugin in mashups), and the template still renders against older servers that don't send `week_label` - the heading just omits the week number.
+
 ## 1.10.0
 
 - Fixed: recurring events created in calenDHD (e.g. "weekly") only ever appeared on their original date — the repeat rule was stored but never expanded anywhere, so the next week's occurrences were missing from the day/week/month views, the /now screen, and the TRMNL feed (external iCal recurrences were unaffected because sync materializes those into concrete rows). All calendar views now expand `recurrence_rule` into the visible occurrences (daily / every-other-day / weekly / biweekly / monthly / yearly, honoring interval, weekday lists, end date, and count), and the TRMNL feed does the same via a mirrored helper in `pb_helpers.js`.

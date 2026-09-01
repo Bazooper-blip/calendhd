@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { calendar, settingsStore, routinesStore } from '$stores';
+	import { _ } from '$lib/i18n';
 	import {
 		computeEventLanes,
 		formatDayOfWeek,
 		getContrastColor,
 		getDaysInRange,
 		getEventPosition,
+		getWeekNumber,
 		isToday,
 		isSameDay,
 		startOfWeek,
@@ -54,6 +56,8 @@
 			endOfWeek(date, { weekStartsOn })
 		)
 	);
+
+	const weekNumber = $derived(getWeekNumber(days[0], weekStartsOn));
 
 	// Get raw events for a day
 	function getEventsForDay(day: Date, allDay: boolean) {
@@ -190,29 +194,36 @@
 
 <div class="flex flex-col h-full">
 	<!-- Week header -->
-	<div class="flex-shrink-0 border-b border-neutral-100 dark:border-neutral-800 pl-14">
-		<div class="grid grid-cols-7 gap-px">
-			{#each days as day (day.getTime())}
-				<div class="px-2 py-2 text-center">
-					<span class="text-xs text-neutral-500 dark:text-neutral-400">{formatDayOfWeek(day, true)}</span>
-					<button
-						type="button"
-						onclick={() => {
-							calendar.setDate(day);
-							calendar.setViewType('day');
-						}}
-						class="w-8 h-8 mx-auto mt-1 rounded-full flex items-center justify-center text-sm font-semibold transition-colors {isToday(day)
-							? 'bg-primary-500 text-white'
-							: 'text-neutral-800 dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-700'}"
-					>
-						{day.getDate()}
-					</button>
-				</div>
-			{/each}
+	<div class="flex-shrink-0 border-b border-neutral-100 dark:border-neutral-800">
+		<div class="flex">
+			<div class="w-14 flex-shrink-0 flex items-center justify-center">
+				<span class="text-xs font-medium text-neutral-400 dark:text-neutral-500">
+					{$_('calendar.weekNumber', { values: { week: weekNumber } })}
+				</span>
+			</div>
+			<div class="flex-1 grid grid-cols-7 gap-px">
+				{#each days as day (day.getTime())}
+					<div class="px-2 py-2 text-center">
+						<span class="text-xs text-neutral-500 dark:text-neutral-400">{formatDayOfWeek(day, true)}</span>
+						<button
+							type="button"
+							onclick={() => {
+								calendar.setDate(day);
+								calendar.setViewType('day');
+							}}
+							class="w-8 h-8 mx-auto mt-1 rounded-full flex items-center justify-center text-sm font-semibold transition-colors {isToday(day)
+								? 'bg-primary-500 text-white'
+								: 'text-neutral-800 dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-700'}"
+						>
+							{day.getDate()}
+						</button>
+					</div>
+				{/each}
+			</div>
 		</div>
 
 		<!-- All-day events row -->
-		<div class="grid grid-cols-7 gap-px border-t border-neutral-100 dark:border-neutral-800">
+		<div class="grid grid-cols-7 gap-px border-t border-neutral-100 dark:border-neutral-800 pl-14">
 			{#each days as day (day.getTime())}
 				<div class="min-h-[2rem] p-1 space-y-0.5">
 					{#each getEventsForDay(day, true) as event (event.id)}

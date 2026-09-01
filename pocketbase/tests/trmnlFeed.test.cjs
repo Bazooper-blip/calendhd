@@ -483,6 +483,44 @@ function call(opts) {
 	);
 }
 
+
+// =====================================================================
+// 7. Week number: helper math + feed fields
+// =====================================================================
+{
+	const helpers = pbRequire(path.join(__dirname, '..', 'pb_hooks', 'pb_helpers.js'));
+
+	// Fixed-date helper checks (mirror getWeekNumber tests in src/lib/utils/date.test.ts)
+	check('week: ISO Sep 1 2026 -> 36', helpers.weekNumber(new Date(2026, 8, 1), 1) === 36);
+	check('week: ISO Dec 29 2025 -> 1', helpers.weekNumber(new Date(2025, 11, 29), 1) === 1);
+	check('week: Sunday start Jan 1 2026 -> 1', helpers.weekNumber(new Date(2026, 0, 1), 0) === 1);
+	check('week: Sunday start Jan 4 2026 -> 2', helpers.weekNumber(new Date(2026, 0, 4), 0) === 2);
+	check('week: Saturday start Jan 2 2026 -> 1', helpers.weekNumber(new Date(2026, 0, 2), 6) === 1);
+
+	// Feed: no settings row -> ISO week of today (app default is Monday start)
+	envVars = {};
+	collections = {};
+	const b = call().body;
+	check(
+		'week: feed defaults to ISO week of today',
+		b.week_number === helpers.weekNumber(new Date(), 1),
+		'got ' + b.week_number
+	);
+	check('week: english label', b.week_label === 'W' + b.week_number, JSON.stringify(b.week_label));
+
+	// Feed: Swedish locale + Sunday week start
+	collections = {
+		user_settings: [fakeRecord('s1', { locale: 'sv', week_starts_on: 0 })]
+	};
+	const bs = call().body;
+	check(
+		'week: honors week_starts_on',
+		bs.week_number === helpers.weekNumber(new Date(), 0),
+		'got ' + bs.week_number
+	);
+	check('week: swedish label', bs.week_label === 'v.' + bs.week_number, JSON.stringify(bs.week_label));
+}
+
 // --- summary ---
 console.log(`\n${passed} passed, ${failures} failed`);
 process.exit(failures ? 1 : 0);

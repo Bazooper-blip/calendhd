@@ -466,6 +466,36 @@ function nextReminderTime(rule, seedStart, minutesBefore, now) {
     return occ ? new Date(occ.getTime() - lead) : null;
 }
 
+// Week number of the week containing `date`, mirroring getWeekNumber in
+// src/lib/utils/date.ts: ISO 8601 numbering when weeks start on Monday
+// (weekStartsOn 1); otherwise the week containing Jan 1 is week 1.
+function weekNumber(date, weekStartsOn) {
+    if (weekStartsOn === 1) {
+        // ISO 8601: the week's Thursday decides which year the week belongs to.
+        var thu = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        thu.setDate(thu.getDate() + 3 - ((thu.getDay() + 6) % 7));
+        var jan4 = new Date(thu.getFullYear(), 0, 4);
+        return 1 + Math.round(
+            ((thu.getTime() - jan4.getTime()) / 86400000 - 3 + ((jan4.getDay() + 6) % 7)) / 7
+        );
+    }
+    function startOfWeek(d) {
+        var s = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        s.setDate(s.getDate() - ((s.getDay() - weekStartsOn + 7) % 7));
+        return s;
+    }
+    var sow = startOfWeek(date);
+    var year = date.getFullYear();
+    var week1Next = startOfWeek(new Date(year + 1, 0, 1));
+    var week1This = startOfWeek(new Date(year, 0, 1));
+    var base;
+    if (sow.getTime() >= week1Next.getTime()) base = week1Next;
+    else if (sow.getTime() >= week1This.getTime()) base = week1This;
+    else base = startOfWeek(new Date(year - 1, 0, 1));
+    // Round out DST-induced hour offsets across the span.
+    return Math.round((sow.getTime() - base.getTime()) / 604800000) + 1;
+}
+
 module.exports = {
     parseJsonField: parseJsonField,
     pbDateFilter: pbDateFilter,
@@ -475,6 +505,7 @@ module.exports = {
     expandLocalRecurrence: expandLocalRecurrence,
     firstLocalOccurrenceOnOrAfter: firstLocalOccurrenceOnOrAfter,
     nextReminderTime: nextReminderTime,
+    weekNumber: weekNumber,
 
     // True when a pause row exists for this external event's series
     // (external_event_pauses is keyed by subscription + BASE uid).

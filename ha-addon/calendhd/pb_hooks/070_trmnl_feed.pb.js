@@ -94,12 +94,15 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
 
     var timeFormat = "24h";
     var locale = "en";
+    var weekStartsOn = 1; // app default (see getDefaultSettings in src/lib/api/pocketbase.ts)
     try {
         var settingsRows = $app.findRecordsByFilter("user_settings", "user = {:uid}", "", 1, 0, { uid: userId });
         if (settingsRows && settingsRows.length > 0) {
             timeFormat = settingsRows[0].getString("time_format") || "24h";
             var loc = settingsRows[0].getString("locale") || "en";
             locale = loc.indexOf("sv") === 0 ? "sv" : "en";
+            var wsRaw = parseInt(settingsRows[0].getString("week_starts_on"), 10);
+            if (wsRaw === 0 || wsRaw === 1 || wsRaw === 6) weekStartsOn = wsRaw;
         }
     } catch (err) {
         // No settings yet — defaults are fine.
@@ -407,6 +410,9 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
         dayProgress = Math.round(((currentMinutes - 6 * 60) / (16 * 60)) * 100);
     }
 
+    // Week number of the current week (mirrors the app week view header).
+    var weekNumber = helpers.weekNumber(now, weekStartsOn);
+
     // Strip internal Date fields before serializing.
     for (var ki = 0; ki < all.length; ki++) {
         delete all[ki]._start;
@@ -420,6 +426,8 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
             ? L.weekdays[now.getDay()] + " " + L.dateLabel(now)
             : L.weekdays[now.getDay()] + ", " + L.dateLabel(now),
         now_label: fmtTime(now),
+        week_number: weekNumber,
+        week_label: (locale === "sv" ? "v." : "W") + weekNumber,
         time_format: timeFormat,
         locale: locale,
         strings: L.strings,

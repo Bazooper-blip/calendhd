@@ -17,7 +17,8 @@ import {
 	isSameMonth,
 	REMINDER_OPTIONS,
 	deriveDurationMinutes,
-	timeCrossesMidnight
+	timeCrossesMidnight,
+	getWeekNumber
 } from './date';
 
 // Use a fixed timezone for reproducible tests
@@ -409,5 +410,28 @@ describe('timeCrossesMidnight', () => {
 
 	it('is false for equal times', () => {
 		expect(timeCrossesMidnight('09:00', '09:00')).toBe(false);
+	});
+});
+
+describe('getWeekNumber', () => {
+	it('uses ISO 8601 numbering when the week starts on Monday', () => {
+		// Tue Sep 1 2026 falls in ISO week 36
+		expect(getWeekNumber(new Date(2026, 8, 1), 1)).toBe(36);
+	});
+
+	it('assigns late-December days to ISO week 1 of the next year', () => {
+		// Mon Dec 29 2025 starts ISO week 1 of 2026
+		expect(getWeekNumber(new Date(2025, 11, 29), 1)).toBe(1);
+	});
+
+	it('numbers weeks from the week containing Jan 1 when the week starts on Sunday', () => {
+		// Thu Jan 1 2026 is in week 1 (Dec 28 - Jan 3); Sun Jan 4 starts week 2
+		expect(getWeekNumber(new Date(2026, 0, 1), 0)).toBe(1);
+		expect(getWeekNumber(new Date(2026, 0, 4), 0)).toBe(2);
+	});
+
+	it('respects a Saturday week start', () => {
+		// Fri Jan 2 2026 is in the week Dec 27 - Jan 2, which contains Jan 1
+		expect(getWeekNumber(new Date(2026, 0, 2), 6)).toBe(1);
 	});
 });
