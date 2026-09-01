@@ -68,7 +68,8 @@ Defined in `svelte.config.js`:
 | Stores | `src/lib/stores/*.svelte.ts` | Rune-based stores: auth, calendar, categories, templates, settings, routines |
 | i18n | `src/lib/i18n/` | English (default, sync-loaded) and Swedish (lazy-loaded) via svelte-i18n; locale files must stay key-balanced (Python structural diff in CI-style sweeps) |
 | Date Utils | `src/lib/utils/date.ts` | Timezone-aware date formatting/manipulation via date-fns + date-fns-tz |
-| Recurrence | `src/lib/utils/recurrence.ts` | Recurrence rule formatting and presets |
+| Recurrence | `src/lib/utils/recurrence.ts` | Recurrence rule expansion, formatting and presets |
+| Display events | `src/lib/utils/displayEvents.ts` | `buildDisplayEvents()` / `resolveOpenEndedEvents()` — raw rows → the `DisplayEvent` list views render |
 | Notifications | `src/lib/utils/notifications.ts` | Web Push API, VAPID key handling |
 | Sample routines | `src/lib/utils/sampleRoutines.ts` | Hardcoded starter-pack routines used by the empty-state button on `/routines` |
 | Types | `src/lib/types/index.ts` | Core types: CalendarEvent, Category, Template, RoutineTemplate, DisplayEvent, RecurrenceRule, UserSettings |
@@ -93,15 +94,18 @@ src/lib/components/
 ├── layout/     Header, Sidebar
 ├── calendar/   DayView, AgendaView, WeekView, MonthView, EventBlock,
 │               RoutineBlock, ExternalEventModal
-├── event/      EventForm, QuickAdd
+├── event/      EventForm, QuickAdd, RecurrencePicker (preset + "Ends: never / on date / after N" — shared by EventForm and the templates page)
 ├── ui/         Button, Input, Modal, Select, Toggle, ColorPicker, IconPicker,
 │               EventIcon
 └── index.ts    Barrel re-export of all subcomponents
 ```
 
 **Time-blindness UX** (intentional design — keep these affordances coherent when editing):
-- Day view is agenda-only (`DayView` = header + `AgendaView`; the old 24h-grid "timeline" style was removed): past/now/upcoming sections, pulsing "Now" cards with minutes-left, a highlighted next-up card with time-until, "Free for ~X" gap rows (fixed ≥20 min threshold, not a setting), collapsed "earlier today", and a tomorrow-preview footer
-- Week view: horizontal red "now" line at the current minute with auto-scroll-to-now; overlapping events split into side-by-side lanes (`computeEventLanes` in `date.ts`) so each stays tappable on narrow columns
+- Day view is agenda-only (`DayView` = header + `AgendaView`; the old 24h-grid "timeline" style was removed): past/now/upcoming sections, pulsing "Now" cards with minutes-left, a highlighted next-up card with time-until, "Free for ~X" gap rows (fixed ≥20 min threshold, not a setting; tappable → new event at the gap start), collapsed "earlier today", an empty-day "Add an event" button, and a tomorrow-preview footer
+- Week view: horizontal red "now" line at the current minute with auto-scroll-to-now; overlapping events split into side-by-side lanes (`computeEventLanes` in `date.ts`) so each stays tappable on narrow columns; tapping empty column space opens `/event/new?date=&time=` (30-min snap), an empty all-day cell opens `?allDay=1`. Month view deliberately keeps tap-on-cell → day view (cells are too small on phones for an "empty space" target)
+- **Open-ended events** (start, no `end_time`; "No end time" toggle in the form): `resolveOpenEndedEvents()` in `utils/displayEvents.ts` gives them a resolved `end` = next timed event that day or end of day, and sets `is_open_ended`. Every view agrees the event is "now" until then; time labels check the flag and say "From 12:30" / "Ongoing" instead of showing the synthetic end. Local events only (an external iCal event without DTEND is zero-length by spec)
+- **Display-event pipeline**: `buildDisplayEvents()` (`utils/displayEvents.ts`, unit-tested) is the pure function behind the store's `displayEvents` getter — raw rows → paused filtering → recurrence expansion → external pause filtering → sort → open-ended resolution. The `/now` screen calls it for today's window on its own so it works regardless of which week is being browsed (feedback bug in 1.10.0)
+- **Clearing fields on edit**: the PocketBase SDK JSON-serialises bodies, so `undefined` keys are dropped and the server keeps the old value. The edit page and the templates page send `''` / `null` explicitly for cleared fields
 - "Happening now" sage ring + pulsing badge on the active event/routine
 
 ### Routes
@@ -109,7 +113,7 @@ src/lib/components/
 - `/` — Redirects to user's default calendar view
 - `/now` — Right-now focus screen (current event / next-up / idle); auto-refreshes every 30s
 - `/calendar/day/[[date]]`, `/calendar/week/[[date]]`, `/calendar/month/[[date]]` — Calendar views (optional date param)
-- `/event/new`, `/event/[id]` — Event creation/editing
+- `/event/new`, `/event/[id]` — Event creation/editing (`/event/new?date=YYYY-MM-DD&time=HH:mm` or `&allDay=1` prefills from tap-to-add)
 - `/routines`, `/routines/new`, `/routines/[id]` — Routine template management; empty-state offers "Add starter routines"
 - `/categories`, `/templates`, `/subscriptions`, `/settings` — Management pages
 
@@ -130,6 +134,7 @@ src/lib/components/
 12. `0012_event_pause.js` — `events.is_paused` (bool): paused (recurring) events keep their row but are hidden from every calendar view + the TRMNL feed and skip reminders; resumable from the sidebar's "Paused events" section
 13. `0013_external_event_pause.js` — new `external_event_pauses` collection: pause for external (subscribed) events, keyed by (subscription, **base** iCal UID) so it survives sync's wipe-and-replace and one row pauses a whole recurring series (occurrence uids are `<uid>::<stamp>`; `baseIcalUid()` strips the stamp — mirrored in `pb_helpers.js` and `src/lib/utils/externalEvents.ts`)
 14. `0014_new_event_notifications.js` — `user_settings.notify_new_events` (bool, opt-in): push to all devices when a local event is created (see hook 025)
+15. `0015_template_recurrence.js` — `templates.recurrence_rule` (json): a repeat rule applied to events created from the template (same shape as `events.recurrence_rule`)
 
 **Hooks** (`pocketbase/pb_hooks/`):
 - `005_singleton_init.pb.js` — Creates/rotates the singleton `home@calendhd.local` user on bootstrap; serves credentials at `GET /api/calendhd/bootstrap` (same-origin)
@@ -231,7 +236,7 @@ ha-addon/calendhd/
 ## Testing
 
 - **Unit tests**: Vitest in `node` environment (not jsdom)
-- **Test files**: `src/lib/utils/date.test.ts`, `src/lib/utils/recurrence.test.ts`, `src/lib/utils/index.test.ts`
+- **Test files**: `src/lib/utils/date.test.ts`, `src/lib/utils/recurrence.test.ts`, `src/lib/utils/displayEvents.test.ts`, `src/lib/utils/externalEvents.test.ts`, `src/lib/utils/index.test.ts`
 - **No E2E suite**: there is no Playwright config or e2e tests (the former `test:e2e` script was vestigial and has been removed)
 - **Code style**: Biome (`biome.json` at repo root) for `src/**/*.{ts,js}` — `npm run format` writes, `npm run format:check` verifies. `npm run lint` runs Biome + svelte-check. `.svelte` files aren't formatted by Biome yet (Svelte 5 support is partial); rely on svelte-check for those.
 

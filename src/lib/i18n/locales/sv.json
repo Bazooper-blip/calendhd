@@ -77,7 +77,11 @@
 		"icon": "Ikon",
 		"iconEmoji": "Emoji",
 		"iconIcons": "Ikoner",
-		"removeIcon": "Ta bort ikon"
+		"removeIcon": "Ta bort ikon",
+		"openEnded": "Ingen sluttid",
+		"openEndedDescription": "Räknas som pågående tills nästa händelse börjar, eller dagen är slut",
+		"addAtTime": "Lägg till händelse {time}",
+		"addOnDay": "Lägg till en händelse"
 	},
 	"externalEvent": {
 		"readOnly": "Skrivskyddad",
@@ -297,7 +301,14 @@
 		"weekly": "Veckovis",
 		"biweekly": "Varannan vecka",
 		"monthly": "Månadsvis",
-		"yearly": "Årligen"
+		"yearly": "Årligen",
+		"ends": "Slutar",
+		"endsNever": "Aldrig",
+		"endsOn": "På ett datum",
+		"endsAfter": "Efter",
+		"endsAfterTimes": "gånger",
+		"endsOnSummary": "till {date}",
+		"endsAfterSummary": "{count, plural, one {# gång} other {# gånger}}"
 	},
 	"time": {
 		"minutes": "{count, plural, one {# minut} other {# minuter}}",
@@ -306,7 +317,9 @@
 		"allDay": "Heldag",
 		"day": "dag",
 		"hour": "timme",
-		"minute": "minut"
+		"minute": "minut",
+		"from": "Från {time}",
+		"ongoing": "Pågår"
 	},
 	"days": {
 		"sunday": "Söndag",
@@ -339,7 +352,8 @@
 		"allEvents": "Händelser",
 		"freeFor": "Ledig i ~{duration}",
 		"minLeft": "{duration} kvar",
-		"moreSteps": "till"
+		"moreSteps": "till",
+		"freeForAdd": "Ledig i ~{duration} · tryck för att lägga till"
 	},
 	"common": {
 		"selectOption": "Välj ett alternativ",

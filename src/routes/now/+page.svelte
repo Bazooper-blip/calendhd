@@ -1,17 +1,63 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
-	import { calendar } from '$stores';
+	import { getEvents, getExternalEventPauses, getExternalEvents } from '$api/pocketbase';
+	import { auth, calendar, routinesStore } from '$stores';
 	import { _ } from '$lib/i18n';
 	import { Button, EventIcon } from '$components/ui';
-	import { format, isSameDay, differenceInMinutes } from 'date-fns';
+	import { buildDisplayEvents } from '$utils';
+	import { format, isSameDay, differenceInMinutes, startOfDay, endOfDay } from 'date-fns';
 	import type { DisplayEvent } from '$types';
 
 	let now = $state(new Date());
 
+	// This screen is always about *today*, but the calendar store only holds
+	// events for the range the user last browsed to (another week, say), so
+	// it fetches today's window on its own instead of reading
+	// calendar.displayEvents. Reloads: on mount, every minute, and whenever
+	// the store reloads or receives a realtime change (the layout's wake /
+	// stale-refresh logic and PocketBase realtime both land there).
+	let todayEvents = $state.raw<DisplayEvent[]>([]);
+	let loadGeneration = 0;
+
+	async function loadToday() {
+		if (!browser || !auth.user?.id) return;
+		const myGen = ++loadGeneration;
+		const day = new Date();
+		const range = { start: startOfDay(day), end: endOfDay(day) };
+		try {
+			const [events, externalEvents, externalPauses] = await Promise.all([
+				getEvents(range.start, range.end),
+				getExternalEvents(range.start, range.end),
+				getExternalEventPauses()
+			]);
+			if (myGen !== loadGeneration) return;
+			todayEvents = buildDisplayEvents({
+				events,
+				externalEvents,
+				externalPauses,
+				range,
+				routineName: (id) => routinesStore.getById(id)?.name
+			});
+		} catch (error) {
+			console.error('Failed to load today for the now screen:', error);
+		}
+	}
+
 	$effect(() => {
-		if (!browser) return;
-		const interval = setInterval(() => (now = new Date()), 30_000);
+		// Dependencies: auth (first load), store reloads, realtime changes.
+		void auth.user?.id;
+		void calendar.lastLoadSuccessAt;
+		void calendar.events;
+		void loadToday();
+	});
+
+	$effect(() => {
+		let tick = 0;
+		const interval = setInterval(() => {
+			now = new Date();
+			if (++tick % 2 === 0) void loadToday();
+		}, 30_000);
 		return () => clearInterval(interval);
 	});
 
@@ -21,22 +67,26 @@
 		| { kind: 'idle' };
 
 	const nowState = $derived.by((): NowState => {
-		const todays = calendar.displayEvents.filter(
-			(e) => !e.is_all_day && isSameDay(e.start, now)
-		);
+		const todays = todayEvents.filter((e) => !e.is_all_day && isSameDay(e.start, now));
 
-		const happening = todays.find(
-			(e) => e.start <= now && e.end && now < e.end
-		);
+		const happening = todays.find((e) => e.start <= now && e.end && now < e.end);
 		if (happening && happening.end) {
-			return { kind: 'happening', event: happening, minutesLeft: differenceInMinutes(happening.end, now) };
+			return {
+				kind: 'happening',
+				event: happening,
+				minutesLeft: differenceInMinutes(happening.end, now)
+			};
 		}
 
 		const futures = todays
 			.filter((e) => e.start > now)
 			.sort((a, b) => a.start.getTime() - b.start.getTime());
 		if (futures.length > 0) {
-			return { kind: 'next', event: futures[0], minutesAway: differenceInMinutes(futures[0].start, now) };
+			return {
+				kind: 'next',
+				event: futures[0],
+				minutesAway: differenceInMinutes(futures[0].start, now)
+			};
 		}
 
 		return { kind: 'idle' };
@@ -56,8 +106,10 @@
 		if (!event.is_external) goto(`/event/${event.original_event.id}`);
 	}
 
-	function handleComplete(event: DisplayEvent) {
-		if (event.is_task) calendar.toggleTaskComplete(event.original_event.id);
+	async function handleComplete(event: DisplayEvent) {
+		if (!event.is_task) return;
+		await calendar.toggleTaskComplete(event.original_event.id);
+		void loadToday();
 	}
 </script>
 
@@ -73,7 +125,11 @@
 				>
 					<span class="w-2 h-2 rounded-full bg-primary-500 animate-pulse"></span>
 					<span class="text-sm text-primary-700 dark:text-primary-300 font-medium">
-						{formatRelative(nowState.minutesLeft)} {$_('now.left')}
+						{#if nowState.event.is_open_ended}
+							{$_('time.ongoing')}
+						{:else}
+							{formatRelative(nowState.minutesLeft)} {$_('now.left')}
+						{/if}
 					</span>
 				</div>
 
@@ -89,11 +145,13 @@
 					<h1 class="text-3xl md:text-4xl font-semibold text-white drop-shadow-sm break-words">
 						{nowState.event.title}
 					</h1>
-					{#if nowState.event.end}
-						<p class="text-white/80 mt-3 text-sm">
+					<p class="text-white/80 mt-3 text-sm">
+						{#if nowState.event.is_open_ended || !nowState.event.end}
+							{$_('time.from', { values: { time: format(nowState.event.start, 'HH:mm') } })}
+						{:else}
 							{format(nowState.event.start, 'HH:mm')} – {format(nowState.event.end, 'HH:mm')}
-						</p>
-					{/if}
+						{/if}
+					</p>
 				</div>
 
 				<div class="flex flex-col sm:flex-row gap-3 justify-center">

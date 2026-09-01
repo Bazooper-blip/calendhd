@@ -48,21 +48,25 @@
 				endTime = parseTimeToDate(data.end_date, data.end_time).toISOString();
 			}
 
-			await updateEvent(event.id, {
+			// Cleared fields must be sent explicitly: the SDK JSON-serializes
+			// the body, so `undefined` keys are dropped and the server would
+			// keep the old end time / repeat rule / category.
+			const payload: Record<string, unknown> = {
 				title: data.title,
-				description: data.description,
-				first_step: data.first_step,
+				description: data.description ?? '',
+				first_step: data.first_step ?? '',
 				start_time: startTime,
-				end_time: endTime,
+				end_time: endTime ?? '',
 				is_all_day: data.is_all_day,
 				is_task: data.is_task,
-				category: data.category,
-				color_override: data.color_override,
-				icon: data.icon,
+				category: data.category ?? '',
+				color_override: data.color_override ?? '',
+				icon: data.icon ?? '',
 				reminders: data.reminders,
-				recurrence_rule: data.recurrence_rule,
-				is_paused: data.is_paused
-			});
+				recurrence_rule: data.recurrence_rule ?? null,
+				is_paused: data.is_paused ?? false
+			};
+			await updateEvent(event.id, payload as Partial<CalendarEvent>);
 
 			toast.success($t('event.updated'));
 			goto('/');
@@ -104,6 +108,7 @@
 			start_time: event.is_all_day ? undefined : format(start, 'HH:mm'),
 			end_date: end ? format(end, 'yyyy-MM-dd') : undefined,
 			end_time: end && !event.is_all_day ? format(end, 'HH:mm') : undefined,
+			open_ended: !event.is_all_day && !end,
 			is_all_day: event.is_all_day,
 			category: event.category,
 			color_override: event.color_override,

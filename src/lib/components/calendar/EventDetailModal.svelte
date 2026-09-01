@@ -4,7 +4,7 @@
 	import { Button, Modal, Toggle } from '$components/ui';
 	import { _ } from '$lib/i18n';
 	import { calendar, categoriesStore, settingsStore } from '$stores';
-	import { baseIcalUid, formatDateSmart, formatTimeRange } from '$utils';
+	import { baseIcalUid, formatDateSmart, formatTime, formatTimeRange } from '$utils';
 	import { getPocketBase } from '$api/pocketbase';
 	import ExternalEventReminderRow from './ExternalEventReminderRow.svelte';
 	import type { DisplayEvent, ExternalEvent, CalendarEvent, CalendarSubscription } from '$types';
@@ -108,6 +108,9 @@
 	const timeLabel = $derived.by(() => {
 		if (!event) return '';
 		if (event.is_all_day) return $_('time.allDay');
+		if (event.is_open_ended) {
+			return $_('time.from', { values: { time: formatTime(event.start, format24h) } });
+		}
 		return formatTimeRange(event.start, event.end, format24h);
 	});
 </script>

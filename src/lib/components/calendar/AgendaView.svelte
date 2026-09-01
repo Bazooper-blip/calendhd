@@ -12,6 +12,7 @@
 	import {
 		addDays,
 		cn,
+		format,
 		formatTime,
 		formatTimeRange,
 		getContrastColor,
@@ -258,6 +259,17 @@
 	}
 
 	let eventDetail = $state<DisplayEvent | null>(null);
+
+	// Tap-to-add: a "Free for ~X" gap row opens the new-event form at the
+	// gap's start (rounded up to 5 minutes); the empty day offers the same
+	// at the default time.
+	function addAt(at: Date) {
+		const rounded = new Date(Math.ceil(at.getTime() / 300_000) * 300_000);
+		goto(`/event/new?date=${format(rounded, 'yyyy-MM-dd')}&time=${format(rounded, 'HH:mm')}`);
+	}
+	function addOnDay() {
+		goto(`/event/new?date=${format(date, 'yyyy-MM-dd')}`);
+	}
 </script>
 
 <div class="flex-1 overflow-y-auto px-4 py-3 space-y-4">
@@ -290,6 +302,16 @@
 	{#if processedDayEvents.length === 0 && allDayEvents.length === 0}
 		<div class="text-center py-12 text-neutral-400 dark:text-neutral-500">
 			<p class="text-sm">{$_('event.noEvents')}</p>
+			<button
+				type="button"
+				onclick={addOnDay}
+				class="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/30 hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
+			>
+				<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+				</svg>
+				{$_('event.addOnDay')}
+			</button>
 		</div>
 	{/if}
 
@@ -350,13 +372,18 @@
 			<div class="space-y-1.5">
 				{#each upcomingWithGaps as row, idx (idx)}
 					{#if row.kind === 'gap'}
-						<div class="flex items-center gap-2 px-1 py-1 text-xs text-neutral-400 dark:text-neutral-500">
-							<div class="flex-1 h-px bg-neutral-200 dark:bg-neutral-700"></div>
+						<button
+							type="button"
+							onclick={() => addAt(row.from)}
+							class="group w-full flex items-center gap-2 px-1 py-1 text-xs text-neutral-400 dark:text-neutral-500 hover:text-primary-600 dark:hover:text-primary-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded"
+							aria-label={$_('event.addAtTime', { values: { time: formatTime(row.from, format24h) } })}
+						>
+							<span class="flex-1 h-px bg-neutral-200 dark:bg-neutral-700 group-hover:bg-primary-200 dark:group-hover:bg-primary-800"></span>
 							<span class="px-2 italic">
-								{$_('agenda.freeFor', { values: { duration: formatRelative(row.minutes) } })}
+								{$_('agenda.freeForAdd', { values: { duration: formatRelative(row.minutes) } })}
 							</span>
-							<div class="flex-1 h-px bg-neutral-200 dark:bg-neutral-700"></div>
-						</div>
+							<span class="flex-1 h-px bg-neutral-200 dark:bg-neutral-700 group-hover:bg-primary-200 dark:group-hover:bg-primary-800"></span>
+						</button>
 					{:else}
 						{@const isNextUp = isToday(date)
 							&& idx === upcomingWithGaps.findIndex((r) => r.kind === 'event')}
@@ -442,8 +469,18 @@
 						{/if}
 					</div>
 					<div class="mt-1 flex items-center gap-2 text-xs opacity-90">
-						<span>{formatTimeRange(ev.start, ev.end, format24h)}</span>
-						{#if variant === 'now' && left !== null}
+						<span>
+							{#if ev.is_open_ended}
+								{$_('time.from', { values: { time: formatTime(ev.start, format24h) } })}
+							{:else}
+								{formatTimeRange(ev.start, ev.end, format24h)}
+							{/if}
+						</span>
+						{#if variant === 'now' && ev.is_open_ended}
+							<span class="px-1.5 py-0.5 rounded-full bg-white/25 font-medium">
+								{$_('time.ongoing')}
+							</span>
+						{:else if variant === 'now' && left !== null}
 							<span class="px-1.5 py-0.5 rounded-full bg-white/25 font-medium">
 								{$_('agenda.minLeft', { values: { duration: formatRelative(left) } })}
 							</span>
@@ -598,7 +635,7 @@
 				{ev.title}
 			</span>
 			<!-- End time hugs the title; a far-right time reads as detached from its row -->
-			{#if end}
+			{#if end && !ev.is_open_ended}
 				<span class="flex-shrink-0 text-xs text-neutral-400 dark:text-neutral-500 tabular-nums">
 					&ndash;&thinsp;{formatTime(end, format24h)}
 				</span>

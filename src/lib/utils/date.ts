@@ -112,6 +112,13 @@ export function deriveDurationMinutes(start: string, end: string): number {
 	return (eh * 60 + em - (sh * 60 + sm) + 1440) % 1440;
 }
 
+/** Add minutes to an HH:mm time of day, wrapping past midnight (23:30 + 60 → 00:30). */
+export function addMinutesToTime(time: string, minutes: number): string {
+	const [h, m] = time.split(':').map(Number);
+	const total = (((h * 60 + m + minutes) % 1440) + 1440) % 1440;
+	return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+}
+
 /** True when an HH:mm range wraps past midnight (end strictly before start). */
 export function timeCrossesMidnight(start: string, end: string): boolean {
 	return end < start;

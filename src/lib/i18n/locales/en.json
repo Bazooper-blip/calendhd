@@ -77,7 +77,11 @@
 		"icon": "Icon",
 		"iconEmoji": "Emoji",
 		"iconIcons": "Icons",
-		"removeIcon": "Remove icon"
+		"removeIcon": "Remove icon",
+		"openEnded": "No end time",
+		"openEndedDescription": "Counts as ongoing until your next event starts, or the day ends",
+		"addAtTime": "Add event at {time}",
+		"addOnDay": "Add an event"
 	},
 	"externalEvent": {
 		"readOnly": "Read-only",
@@ -297,7 +301,14 @@
 		"weekly": "Weekly",
 		"biweekly": "Every 2 weeks",
 		"monthly": "Monthly",
-		"yearly": "Yearly"
+		"yearly": "Yearly",
+		"ends": "Ends",
+		"endsNever": "Never",
+		"endsOn": "On a date",
+		"endsAfter": "After",
+		"endsAfterTimes": "times",
+		"endsOnSummary": "until {date}",
+		"endsAfterSummary": "{count, plural, one {# time} other {# times}}"
 	},
 	"time": {
 		"minutes": "{count, plural, one {# minute} other {# minutes}}",
@@ -306,7 +317,9 @@
 		"allDay": "All day",
 		"day": "day",
 		"hour": "hour",
-		"minute": "minute"
+		"minute": "minute",
+		"from": "From {time}",
+		"ongoing": "Ongoing"
 	},
 	"days": {
 		"sunday": "Sunday",
@@ -339,7 +352,8 @@
 		"allEvents": "Events",
 		"freeFor": "Free for ~{duration}",
 		"minLeft": "{duration} left",
-		"moreSteps": "more"
+		"moreSteps": "more",
+		"freeForAdd": "Free for ~{duration} · tap to add"
 	},
 	"common": {
 		"selectOption": "Select an option",

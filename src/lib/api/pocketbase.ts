@@ -7,6 +7,7 @@ import type {
 	ExternalEvent,
 	ExternalEventPause,
 	ExternalEventReminder,
+	RecurrenceRule,
 	RoutineTemplate,
 	Template,
 	User,
@@ -125,7 +126,12 @@ export async function createTemplate(
 	return record as unknown as Template;
 }
 
-export async function updateTemplate(id: string, data: Partial<Template>): Promise<Template> {
+export async function updateTemplate(
+	id: string,
+	// recurrence_rule: null clears the field (undefined would be dropped by
+	// JSON serialization and leave the old rule in place)
+	data: Partial<Omit<Template, 'recurrence_rule'>> & { recurrence_rule?: RecurrenceRule | null }
+): Promise<Template> {
 	const record = await collections.templates().update(id, data);
 	return record as unknown as Template;
 }
