@@ -9,6 +9,8 @@ import {
 	eachDayOfInterval,
 	format,
 	formatDistanceToNow,
+	getISOWeek,
+	getWeek,
 	setHours,
 	setMinutes,
 	startOfDay
@@ -36,6 +38,13 @@ export function setDateLocale(localeCode: string): void {
 // Set the first day of the week used by "this week"-style formatting
 export function setWeekStartsOn(day: 0 | 1 | 6): void {
 	dateConfig.weekStartsOn = day;
+}
+
+// Week number of the week containing the given date. ISO 8601 numbering when
+// weeks start on Monday; otherwise the week containing Jan 1 is week 1.
+export function getWeekNumber(date: Date, weekStartsOn: 0 | 1 | 6): number {
+	if (weekStartsOn === 1) return getISOWeek(date);
+	return getWeek(date, { weekStartsOn, firstWeekContainsDate: 1 });
 }
 
 // Format time based on user preference and timezone

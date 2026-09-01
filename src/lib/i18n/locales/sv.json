@@ -343,7 +343,8 @@
 		"tomorrow": "imorgon",
 		"routineFallback": "Rutin",
 		"by": "senast",
-		"moreEvents": "+{count} till"
+		"moreEvents": "+{count} till",
+		"weekNumber": "v.{week}"
 	},
 	"agenda": {
 		"earlierToday": "{count, plural, one {# tidigare idag} other {# tidigare idag}}",

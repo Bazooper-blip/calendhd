@@ -62,17 +62,40 @@
             </div>
           </div>
         {% endfor %}
+        {% comment %}
+          Upcoming events first; finished ones dimmed below an "Earlier today"
+          divider (see full.liquid). Old feeds without is_past render as before.
+        {% endcomment %}
         {% for ev in today.events %}
           {% assign ev_key = ev.title | append: "|" | append: ev.time %}
           {% if ev_key != hero_key %}
+          {% unless ev.is_past %}
           <div class="item">
             <div class="content">
               <span class="title title--small">{% if ev.is_task %}{% if ev.done %}✓ {% else %}○ {% endif %}{% endif %}{% if ev.icon != blank %}{{ ev.icon }} {% endif %}{{ ev.title }}</span>
               <span class="label label--small label--gray-out">{{ ev.time }}</span>
             </div>
           </div>
+          {% endunless %}
           {% endif %}
         {% endfor %}
+        {% if today.past_count > 0 %}
+          <div class="item" style="border-top: 1px solid #555555; margin-top: 10px; padding-top: 8px;">
+            <div class="content">
+              <span class="label label--small label--gray-out">{{ strings.earlier_today | default: "Earlier today" }}</span>
+            </div>
+          </div>
+          {% for ev in today.events %}
+            {% if ev.is_past %}
+            <div class="item">
+              <div class="content">
+                <span class="title title--small" style="opacity: 0.55">{% if ev.is_task %}{% if ev.done %}✓ {% else %}○ {% endif %}{% endif %}{% if ev.icon != blank %}{{ ev.icon }} {% endif %}{{ ev.title }}</span>
+                <span class="label label--small label--gray-out">{{ ev.time }}</span>
+              </div>
+            </div>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
         {% if today.event_count == 0 %}
           <div class="item">
             <div class="content">

@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.11.0
+## 1.13.0
 
 User-feedback round: six items from a household's feedback list.
 
@@ -12,6 +12,15 @@ User-feedback round: six items from a household's feedback list.
 - New: open-ended events. A "No end time" toggle in the event form saves an event with a start but no end ("meeting at 12:30, don't know how long"). Every view now agrees on what that means: the event counts as ongoing until the next timed event that day starts, or the day ends — the week grid draws it to that point with a dashed bottom edge, the agenda and Right-now screen say "From 12:30 · Ongoing" instead of a synthetic end time, and the "Free for ~X" gap rows respect it. Events saved earlier with a blank end time get the same treatment. When the toggle is off, a blank end time defaults to one hour, and moving the start time drags the end along.
 - New: tap to add. In week view, tapping empty space in a day column opens the new-event form at that day and time (snapped to 30 minutes); tapping an empty all-day cell makes an all-day event. In day view, the "Free for ~X" gap rows are now tappable and open the form at the gap's start, and an empty day offers an "Add an event" button. Month view keeps tap-on-day → day view (its cells are too small on phones for a reliable "empty space" target); the two-tap path month → day → gap covers adding from there.
 - The `/event/new` page accepts `?date=YYYY-MM-DD&time=HH:mm` (or `&allDay=1`) to prefill the form.
+## 1.12.0
+
+- TRMNL: finished events no longer sit directly under the NOW/NEXT hero looking like they're still ahead. The feed now marks events that have already ended (`is_past` per event, `past_count` per day; no-end events count as over one minute after start, mirroring the app's Day view), and the full/half templates move them below a dimmed, localized "Earlier today" / "Tidigare idag" divider — upcoming events stay at the top. Templates still render the old flat list against servers that predate the field.
+
+## 1.11.0
+
+- New: the week view shows the current week number in the corner above the hour column (e.g. "W36" / "v.36"). ISO 8601 numbering when the week starts on Monday; when the week starts on Sunday or Saturday, week 1 is the week containing Jan 1 - always matching the configured week start and locale.
+- TRMNL: the feed now exposes `week_number` and a locale-formatted `week_label`, honoring `user_settings.week_starts_on` (helper mirrored in `pb_helpers.js`, covered by the Node test harness and the live PocketBase integration test).
+- TRMNL full layout rearranged: upcoming days now sit in the left column and today in the right; the bottom "calenDHD" title bar is gone, replaced by a date + week number heading atop the today column, with the freed height going to the upcoming list. Portrait stacking keeps today first. Half/quadrant layouts keep their title bars (they identify the plugin in mashups), and the template still renders against older servers that don't send `week_label` - the heading just omits the week number.
 
 ## 1.10.0
 

@@ -343,7 +343,8 @@
 		"tomorrow": "tomorrow",
 		"routineFallback": "Routine",
 		"by": "by",
-		"moreEvents": "+{count} more"
+		"moreEvents": "+{count} more",
+		"weekNumber": "W{week}"
 	},
 	"agenda": {
 		"earlierToday": "{count, plural, one {# earlier today} other {# earlier today}}",

@@ -1,0 +1,101 @@
+# CI: unit + static suites, then a live integration pass against the real
+# PocketBase binary (the exact version the addon ships, read from build.yaml).
+#
+# The integration job exists because mocked harnesses cannot see regressions
+# that only appear inside PocketBase itself — hook-chain suppression (a
+# handler skipping e.next() silently disables an arbitrary other handler on
+# the same hook), JSVM json-field representations, filter-language behavior,
+# and migration breakage on fresh installs. See CLAUDE.md "PocketBase JSVM
+# gotchas" and pocketbase/tests/integration.live.cjs.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 'latest'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint (Biome + svelte-check)
+        run: |
+          npx svelte-kit sync
+          npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Unit tests (vitest)
+        run: npx vitest run
+
+      - name: Hook harness tests
+        run: |
+          set -e
+          for t in pocketbase/tests/*.test.cjs; do
+            echo "== $t"
+            node "$t"
+          done
+
+      - name: i18n locale key balance
+        run: |
+          python3 - <<'EOF'
+          import json, sys
+          e = json.load(open('src/lib/i18n/locales/en.json'))
+          s = json.load(open('src/lib/i18n/locales/sv.json'))
+          def keys(d, p=''):
+              out = set()
+              for k, v in d.items():
+                  key = f'{p}.{k}' if p else k
+                  if isinstance(v, dict):
+                      out |= keys(v, key)
+                  else:
+                      out.add(key)
+              return out
+          only_en = sorted(keys(e) - keys(s))
+          only_sv = sorted(keys(s) - keys(e))
+          if only_en or only_sv:
+              print('en-only keys:', only_en)
+              print('sv-only keys:', only_sv)
+              sys.exit(1)
+          print('locales key-balanced')
+          EOF
+
+      - name: Addon hooks/migrations in sync with pocketbase/
+        run: |
+          diff -r pocketbase/pb_hooks ha-addon/calendhd/pb_hooks
+          diff -r pocketbase/pb_migrations ha-addon/calendhd/pb_migrations
+
+  pocketbase-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Resolve shipped PocketBase version
+        id: pb
+        run: |
+          v=$(grep -oP 'PB_VERSION: "\K[0-9.]+' ha-addon/calendhd/build.yaml)
+          test -n "$v"
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "Testing against PocketBase $v"
+
+      - name: Download PocketBase
+        run: |
+          curl -fsSL "https://github.com/pocketbase/pocketbase/releases/download/v${{ steps.pb.outputs.version }}/pocketbase_${{ steps.pb.outputs.version }}_linux_amd64.zip" -o /tmp/pb.zip
+          unzip -o /tmp/pb.zip -d /tmp/pb
+          /tmp/pb/pocketbase --version
+
+      - name: Live integration test (real PocketBase + repo hooks)
+        run: PB_BIN=/tmp/pb/pocketbase node pocketbase/tests/integration.live.cjs

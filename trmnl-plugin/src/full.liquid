@@ -1,6 +1,7 @@
 {% comment %}
-  calenDHD — full screen (TRMNL OG and TRMNL X). Left column: right-now focus
-  + today's agenda. Right column: the next few days.
+  calenDHD — full screen (TRMNL OG and TRMNL X). Left column: the next few
+  days. Right column: today — date (+ week number) header, right-now focus,
+  today's agenda. No title bar; the date header carries the chrome.
 
   Sizing: list heights are derived from trmnl.screen.height so the TRMNL X
   (larger logical viewport) shows more items instead of just scaling up.
@@ -17,7 +18,7 @@
 {% assign screen_h = trmnl.screen.height | default: 480 | plus: 0 %}
 {% assign extra = screen_h | minus: 480 | at_most: 200 | at_least: 0 %}
 {% assign today_list_h = 300 | plus: extra %}
-{% assign upcoming_list_h = 440 | plus: extra %}
+{% assign upcoming_list_h = 480 | plus: extra %}
 {% assign portrait = false %}
 {% if screen_h > screen_w %}
   {% assign portrait = true %}
@@ -39,6 +40,11 @@
 {% endif %}
 
 {% capture focus_block %}
+      <div class="item">
+        <div class="content">
+          <span class="title">{{ today_label }}{% if week_label != blank %} · {{ week_label }}{% endif %}</span>
+        </div>
+      </div>
       {% if current_event %}
         <div class="item">
           <div class="content">
@@ -81,17 +87,43 @@
             </div>
           </div>
         {% endfor %}
+        {% comment %}
+          Today's list is split so finished events can't be misread as still
+          ahead under the NOW/NEXT hero: upcoming first, then the past ones
+          dimmed below an "Earlier today" divider (mirrors the app's Day
+          view). Feeds that predate is_past render everything in the first
+          pass and never emit the divider — i.e. the old behavior.
+        {% endcomment %}
         {% for ev in today.events %}
           {% assign ev_key = ev.title | append: "|" | append: ev.time %}
           {% if ev_key != hero_key %}
+          {% unless ev.is_past %}
           <div class="item">
             <div class="content">
               <span class="title title--small">{% if ev.is_task %}{% if ev.done %}✓ {% else %}○ {% endif %}{% endif %}{% if ev.icon != blank %}{{ ev.icon }} {% endif %}{{ ev.title }}</span>
               <span class="label label--small label--gray-out">{{ ev.time_range }}{% if ev.routine != blank %} · {{ ev.routine }}{% elsif ev.category != blank %} · {{ ev.category }}{% endif %}</span>
             </div>
           </div>
+          {% endunless %}
           {% endif %}
         {% endfor %}
+        {% if today.past_count > 0 %}
+          <div class="item" style="border-top: 1px solid #555555; margin-top: 10px; padding-top: 8px;">
+            <div class="content">
+              <span class="label label--small label--gray-out">{{ strings.earlier_today | default: "Earlier today" }}</span>
+            </div>
+          </div>
+          {% for ev in today.events %}
+            {% if ev.is_past %}
+            <div class="item">
+              <div class="content">
+                <span class="title title--small" style="opacity: 0.55">{% if ev.is_task %}{% if ev.done %}✓ {% else %}○ {% endif %}{% endif %}{% if ev.icon != blank %}{{ ev.icon }} {% endif %}{{ ev.title }}</span>
+                <span class="label label--small label--gray-out">{{ ev.time_range }}{% if ev.routine != blank %} · {{ ev.routine }}{% elsif ev.category != blank %} · {{ ev.category }}{% endif %}</span>
+              </div>
+            </div>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
         {% if today.event_count == 0 %}
           <div class="item">
             <div class="content">
@@ -167,18 +199,13 @@
 <div class="layout">
   <div class="columns">
     <div class="column">
-      {{ focus_block }}
+      {{ upcoming_block }}
     </div>
     <div class="column">
-      {{ upcoming_block }}
+      {{ focus_block }}
     </div>
   </div>
 </div>
 {% endif %}
 
-<div class="title_bar">
-  <img class="image" src="https://usetrmnl.com/images/plugins/trmnl--render.svg" />
-  <span class="title">calenDHD</span>
-  <span class="instance">{{ today_label }}</span>
-</div>
 </div>

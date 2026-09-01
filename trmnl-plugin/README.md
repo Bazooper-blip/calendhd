@@ -114,13 +114,13 @@ Response (abridged):
         {
           "title": "Dentist", "icon": "🦷",
           "time": "09:00", "end_time": "09:45", "time_range": "09:00 – 09:45",
-          "is_all_day": false, "is_task": false, "done": false,
+          "is_all_day": false, "is_past": false, "is_task": false, "done": false,
           "category": "Health", "color": "#7C9885",
           "is_external": false, "source": "", "routine": "",
           "energy": "low", "first_step": "", "location": ""
         }
       ],
-      "event_count": 5, "more_count": 0
+      "event_count": 5, "more_count": 0, "past_count": 1
     }
   ]
 }
@@ -129,6 +129,8 @@ Response (abridged):
 Semantics deliberately mirror the app: events are bucketed by the local day of their stored start time, `current_event`/`next_event` follow the `/now` screen's rules (timed events only), `day_progress` is the waking-hours (06–22) percentage, and time strings honor the household's 12 h/24 h and English/Swedish settings. The `strings` object carries all static template chrome ("NOW", "All day", "No events today", …) localized to the household's locale, so a Swedish calendar renders fully in Swedish — the templates fall back to English when polling an older server that doesn't send it. Wall-clock times are computed in the **server's timezone** — the same assumption the routine generator and iCal sync already make. On the HA addon this is automatic (the Supervisor passes Home Assistant's configured timezone into the container as `TZ`); on Docker, set `TZ` on the `pocketbase` service if your host isn't already on the household timezone.
 
 Events are capped at 10 per day by default (`more_count` reports the overflow) to keep the polled payload small; pass `&limit=` (or set the plugin's *Events per day* field) to raise it up to 50 — worthwhile on a TRMNL X.
+
+`is_past` marks events that have already ended (no-end events count as over one minute after their start; all-day events are never past), and a day's `past_count` totals its listed past events — only ever nonzero for today. The templates use these to move finished events below a dimmed "Earlier today" divider instead of leaving them under the NOW/NEXT hero where they read as still ahead. Both fields are as fresh as the poll that produced them, same as `current_event`/`next_event`.
 
 ## Security
 

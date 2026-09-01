@@ -153,6 +153,12 @@ function call(opts) {
 		'empty: day_progress in range',
 		typeof b.day_progress === 'number' && b.day_progress >= 0 && b.day_progress <= 100
 	);
+	check(
+		'empty: earlier_today string',
+		b.strings && b.strings.earlier_today === 'Earlier today',
+		JSON.stringify(b.strings)
+	);
+	check('empty: past_count present and zero', b.days[0].past_count === 0);
 
 	const clamped = call({ query: { days: '99' } });
 	check('empty: days param clamped to 14', clamped.body.days.length === 14);
@@ -171,6 +177,12 @@ function call(opts) {
 	// "current" event: started <=30min ago (clamped inside today), ends +50min
 	const curStart = new Date(Math.max(now.getTime() - 30 * 60000, today0.getTime()));
 	const curEnd = new Date(now.getTime() + 50 * 60000);
+	// cleanly-ended event: end clamped to <= now so is_past holds regardless
+	// of when the test runs (start stays inside today)
+	const endedStart = new Date(Math.max(now.getTime() - 3 * 3600000, today0.getTime()));
+	const endedEnd = new Date(
+		Math.min(now.getTime(), Math.max(now.getTime() - 2 * 3600000, today0.getTime() + 1000))
+	);
 	// already-started event with no end (never "current", never "next") — shares
 	// curStart so it's in the past even when the test runs right after midnight
 	const morning = curStart;
@@ -215,6 +227,12 @@ function call(opts) {
 				end_time: pbDateString(tmrwEnd),
 				is_all_day: false,
 				routine_template: 'rt1'
+			}),
+			fakeRecord('ev5', {
+				title: 'Ended thing',
+				start_time: pbDateString(endedStart),
+				end_time: pbDateString(endedEnd),
+				is_all_day: false
 			})
 		],
 		external_events: [
@@ -245,9 +263,9 @@ function call(opts) {
 
 	const today = b.days[0];
 	const tomorrow = b.days[1];
-	check('events: today has 2 timed events', today.events.length === 2, JSON.stringify(today.events.map((e2) => e2.title)));
+	check('events: today has 3 timed events', today.events.length === 3, JSON.stringify(today.events.map((e2) => e2.title)));
 	check('events: today has 1 all-day event', today.all_day.length === 1);
-	check('events: event_count counts both', today.event_count === 3);
+	check('events: event_count counts both', today.event_count === 4);
 	check('events: tomorrow has 2 events', tomorrow.events.length === 2);
 
 	const cur = today.events.find((e2) => e2.title === 'Current thing');
@@ -264,6 +282,22 @@ function call(opts) {
 	const done = today.events.find((e2) => e2.title === 'Done task');
 	check('events: color_override wins', done && done.color === '#FF0000');
 	check('events: done flag from completed_at', done && done.done === true);
+
+	// --- is_past (mirrors AgendaView: end <= now; no end -> start+60s <= now) ---
+	const ended = today.events.find((e2) => e2.title === 'Ended thing');
+	check('past: ended event flagged', ended && ended.is_past === true);
+	check('past: current event not past', cur && cur.is_past === false);
+	// no-end event started >1 min ago (caveat: within the first ~90s after local
+	// midnight the clamp makes this recent instead - same exposure as fixtures above)
+	check('past: no-end started event flagged', done && done.is_past === true);
+	check('past: all-day today not past', today.all_day[0].is_past === false);
+	check('past: today past_count', today.past_count === 2, 'got ' + today.past_count);
+	check(
+		'past: tomorrow events not past',
+		tomorrow.events.every((e2) => e2.is_past === false),
+		JSON.stringify(tomorrow.events.map((e2) => e2.is_past))
+	);
+	check('past: tomorrow past_count zero', tomorrow.past_count === 0);
 
 	check('events: task counters', b.tasks_total_today === 2 && b.tasks_done_today === 1,
 		b.tasks_total_today + '/' + b.tasks_done_today);
@@ -315,6 +349,11 @@ function call(opts) {
 	check(
 		'sv: swedish strings',
 		b.strings && b.strings.now === 'NU' && b.strings.all_day === 'Heldag' && b.strings.next === 'NÄSTA',
+		JSON.stringify(b.strings)
+	);
+	check(
+		'sv: earlier_today string',
+		b.strings && b.strings.earlier_today === 'Tidigare idag',
 		JSON.stringify(b.strings)
 	);
 	const fika = b.days[0].events[0];
@@ -481,6 +520,44 @@ function call(opts) {
 		stripped.events.every((e2) => e2.icon === ''),
 		JSON.stringify(stripped.events.map((e2) => e2.icon))
 	);
+}
+
+
+// =====================================================================
+// 7. Week number: helper math + feed fields
+// =====================================================================
+{
+	const helpers = pbRequire(path.join(__dirname, '..', 'pb_hooks', 'pb_helpers.js'));
+
+	// Fixed-date helper checks (mirror getWeekNumber tests in src/lib/utils/date.test.ts)
+	check('week: ISO Sep 1 2026 -> 36', helpers.weekNumber(new Date(2026, 8, 1), 1) === 36);
+	check('week: ISO Dec 29 2025 -> 1', helpers.weekNumber(new Date(2025, 11, 29), 1) === 1);
+	check('week: Sunday start Jan 1 2026 -> 1', helpers.weekNumber(new Date(2026, 0, 1), 0) === 1);
+	check('week: Sunday start Jan 4 2026 -> 2', helpers.weekNumber(new Date(2026, 0, 4), 0) === 2);
+	check('week: Saturday start Jan 2 2026 -> 1', helpers.weekNumber(new Date(2026, 0, 2), 6) === 1);
+
+	// Feed: no settings row -> ISO week of today (app default is Monday start)
+	envVars = {};
+	collections = {};
+	const b = call().body;
+	check(
+		'week: feed defaults to ISO week of today',
+		b.week_number === helpers.weekNumber(new Date(), 1),
+		'got ' + b.week_number
+	);
+	check('week: english label', b.week_label === 'W' + b.week_number, JSON.stringify(b.week_label));
+
+	// Feed: Swedish locale + Sunday week start
+	collections = {
+		user_settings: [fakeRecord('s1', { locale: 'sv', week_starts_on: 0 })]
+	};
+	const bs = call().body;
+	check(
+		'week: honors week_starts_on',
+		bs.week_number === helpers.weekNumber(new Date(), 0),
+		'got ' + bs.week_number
+	);
+	check('week: swedish label', bs.week_label === 'v.' + bs.week_number, JSON.stringify(bs.week_label));
 }
 
 // --- summary ---
