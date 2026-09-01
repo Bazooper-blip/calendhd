@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
+	import { isValid, parseISO } from 'date-fns';
 	import { calendar } from '$stores';
 	import { EventForm } from '$components/event';
 	import { toast } from 'svelte-sonner';
@@ -8,6 +10,21 @@
 	import type { EventFormData } from '$types';
 
 	let loading = $state(false);
+
+	// Tap-to-add from the calendar views lands here with ?date=YYYY-MM-DD and
+	// either &time=HH:mm (week grid / agenda gap) or &allDay=1 (all-day row).
+	const prefill = $derived.by((): Partial<EventFormData> => {
+		const params = $page.url.searchParams;
+		const date = params.get('date');
+		const time = params.get('time');
+		const data: Partial<EventFormData> = {};
+		if (date && /^\d{4}-\d{2}-\d{2}$/.test(date) && isValid(parseISO(date))) {
+			data.start_date = date;
+		}
+		if (params.get('allDay') === '1') data.is_all_day = true;
+		else if (time && /^([01]\d|2[0-3]):[0-5]\d$/.test(time)) data.start_time = time;
+		return data;
+	});
 
 	async function handleSubmit(data: EventFormData) {
 		loading = true;
@@ -58,6 +75,7 @@
 
 		<div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-neutral-100 dark:border-neutral-700 p-6">
 			<EventForm
+				initialData={prefill}
 				onsubmit={handleSubmit}
 				oncancel={handleCancel}
 				{loading}

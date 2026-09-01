@@ -34,6 +34,7 @@ export interface Template extends BaseRecord {
 	description?: string;
 	icon?: string;
 	color_override?: string;
+	recurrence_rule?: RecurrenceRule; // events created from this template repeat like this
 }
 
 // Energy level for events and routine steps
@@ -186,7 +187,12 @@ export interface DisplayEvent {
 	id: string;
 	title: string;
 	start: Date;
+	// For open-ended events (no stored end_time) this is the *resolved* end:
+	// the next timed event's start that day, or end of day — see
+	// resolveOpenEndedEvents(). is_open_ended marks those so time labels
+	// can say "from 12:30" instead of showing the synthetic end.
 	end?: Date;
+	is_open_ended?: boolean;
 	is_all_day: boolean;
 	is_task: boolean;
 	is_completed: boolean;
@@ -211,6 +217,9 @@ export interface EventFormData {
 	start_time?: string;
 	end_date?: string;
 	end_time?: string;
+	// Existing timed event with no stored end ("don't know how long") — set
+	// by the edit page so the form shows the "No end time" toggle on.
+	open_ended?: boolean;
 	is_all_day: boolean;
 	is_task: boolean;
 	category?: string;

@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.13.0
+
+User-feedback round: six items from a household's feedback list.
+
+- Fixed: the "Right now" screen showed "Nothing scheduled" whenever the calendar had been paged to another week (or day/month) — it read today's events out of the calendar store, which only holds the range being browsed. It now fetches today's window on its own (refreshing every minute, on wake, and on realtime changes), and the "Mark done" button works from there even when today isn't the browsed range.
+- Fixed: editing an event to *remove* its end time, repeat rule, category, colour, icon, or notes silently kept the old value — the PocketBase SDK drops `undefined` keys when serialising, so cleared fields never reached the server. The edit page now sends explicit empty values.
+- New: repeat rules can end. The repeat picker in the event form gained an "Ends" control — never / on a date / after N times — so "every week for three months" is one setting. The expansion logic on both the client and the server (reminders, TRMNL feed) already honoured end dates and counts; only the UI was missing.
+- New: templates can carry a repeat rule (migration 0015 adds `templates.recurrence_rule`), applied to events created from them. The templates list shows the rule ("Weekly · until 2026-12-01").
+- Fixed: starting an event from a template now prefills the title with the template's name (and the template's notes) instead of leaving the title empty. Existing typed text is never overwritten.
+- New: open-ended events. A "No end time" toggle in the event form saves an event with a start but no end ("meeting at 12:30, don't know how long"). Every view now agrees on what that means: the event counts as ongoing until the next timed event that day starts, or the day ends — the week grid draws it to that point with a dashed bottom edge, the agenda and Right-now screen say "From 12:30 · Ongoing" instead of a synthetic end time, and the "Free for ~X" gap rows respect it. Events saved earlier with a blank end time get the same treatment. When the toggle is off, a blank end time defaults to one hour, and moving the start time drags the end along.
+- New: tap to add. In week view, tapping empty space in a day column opens the new-event form at that day and time (snapped to 30 minutes); tapping an empty all-day cell makes an all-day event. In day view, the "Free for ~X" gap rows are now tappable and open the form at the gap's start, and an empty day offers an "Add an event" button. Month view keeps tap-on-day → day view (its cells are too small on phones for a reliable "empty space" target); the two-tap path month → day → gap covers adding from there.
+- The `/event/new` page accepts `?date=YYYY-MM-DD&time=HH:mm` (or `&allDay=1`) to prefill the form.
 ## 1.12.0
 
 - TRMNL: finished events no longer sit directly under the NOW/NEXT hero looking like they're still ahead. The feed now marks events that have already ended (`is_past` per event, `past_count` per day; no-end events count as over one minute after start, mirroring the app's Day view), and the full/half templates move them below a dimmed, localized "Earlier today" / "Tidigare idag" divider — upcoming events stay at the top. Templates still render the old flat list against servers that predate the field.

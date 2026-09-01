@@ -1,6 +1,6 @@
 import { createTemplate, deleteTemplate, getTemplates, updateTemplate } from '$api/pocketbase';
 import { browser } from '$app/environment';
-import type { ReminderConfig, Template } from '$types';
+import type { RecurrenceRule, ReminderConfig, Template } from '$types';
 import { auth } from './auth.svelte';
 
 // Templates store using Svelte 5 runes
@@ -52,6 +52,7 @@ function createTemplatesStore() {
 			default_reminders: ReminderConfig[];
 			description?: string;
 			color_override?: string;
+			recurrence_rule?: RecurrenceRule;
 		}) {
 			const userId = auth.user?.id;
 			if (!userId) throw new Error('Not authenticated');
@@ -61,7 +62,10 @@ function createTemplatesStore() {
 			return serverTemplate;
 		},
 
-		async update(id: string, changes: Partial<Template>) {
+		async update(
+			id: string,
+			changes: Partial<Omit<Template, 'recurrence_rule'>> & { recurrence_rule?: RecurrenceRule | null }
+		) {
 			const serverTemplate = await updateTemplate(id, changes);
 			templates = templates
 				.map((t) => (t.id === id ? serverTemplate : t))

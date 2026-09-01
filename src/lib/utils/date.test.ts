@@ -18,6 +18,7 @@ import {
 	REMINDER_OPTIONS,
 	deriveDurationMinutes,
 	timeCrossesMidnight,
+	addMinutesToTime,
 	getWeekNumber
 } from './date';
 
@@ -410,6 +411,21 @@ describe('timeCrossesMidnight', () => {
 
 	it('is false for equal times', () => {
 		expect(timeCrossesMidnight('09:00', '09:00')).toBe(false);
+	});
+});
+
+describe('addMinutesToTime', () => {
+	it('adds within the day', () => {
+		expect(addMinutesToTime('09:00', 60)).toBe('10:00');
+		expect(addMinutesToTime('09:45', 30)).toBe('10:15');
+	});
+
+	it('wraps past midnight', () => {
+		expect(addMinutesToTime('23:30', 60)).toBe('00:30');
+	});
+
+	it('handles negative shifts', () => {
+		expect(addMinutesToTime('00:15', -30)).toBe('23:45');
 	});
 });
 

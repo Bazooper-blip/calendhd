@@ -22,20 +22,15 @@ import {
 	getExternalEventPauses,
 	getExternalEvents,
 	getPausedEvents,
+	getEvent as getServerEvent,
 	pauseExternalEvent as pauseServerExternalEvent,
 	resumeExternalEvent as resumeServerExternalEvent,
 	subscribeToEvents,
 	updateEvent as updateServerEvent
 } from '$api/pocketbase';
 import { browser } from '$app/environment';
-import type {
-	CalendarEvent,
-	CalendarSubscription,
-	DisplayEvent,
-	ExternalEvent,
-	ExternalEventPause
-} from '$types';
-import { baseIcalUid, expandRecurrenceRule, isSameDay } from '$utils';
+import type { CalendarEvent, DisplayEvent, ExternalEvent, ExternalEventPause } from '$types';
+import { baseIcalUid, buildDisplayEvents, isSameDay } from '$utils';
 import { auth } from './auth.svelte';
 import { routinesStore } from './routines.svelte';
 import { settingsStore } from './settings.svelte';
@@ -139,86 +134,17 @@ function createCalendarStore() {
 			return getViewRange();
 		},
 
-		// Get all events for display (merged and sorted)
+		// Get all events for display (merged, expanded, sorted) for the view
+		// range. The heavy lifting lives in buildDisplayEvents so the /now
+		// screen can build the same shape for today's window on its own.
 		get displayEvents(): DisplayEvent[] {
-			const allEvents: DisplayEvent[] = [];
-
-			// Convert calendar events (paused events are hidden from every view).
-			// Events with a recurrence_rule are expanded into one DisplayEvent per
-			// occurrence in the view range — the single stored row is the seed of
-			// the series (external iCal recurrences are instead materialized into
-			// rows by the sync hook, so they take the plain path below).
-			const { start: rangeStart, end: rangeEnd } = getViewRange();
-			for (const event of events) {
-				if (event.is_paused) continue;
-				const seedStart = new Date(event.start_time);
-				const seedEnd = event.end_time ? new Date(event.end_time) : undefined;
-				// Guard against corrupted rows where end precedes start — a
-				// negative duration would place occurrence ends in the past.
-				const durationMs = seedEnd ? Math.max(0, seedEnd.getTime() - seedStart.getTime()) : 0;
-				const occurrenceStarts = event.recurrence_rule?.frequency
-					? expandRecurrenceRule(event.recurrence_rule, seedStart, rangeStart, rangeEnd)
-					: [seedStart];
-				for (const start of occurrenceStarts) {
-					const isSeedOccurrence = start.getTime() === seedStart.getTime();
-					allEvents.push({
-						// Virtual occurrences need their own id for keyed {#each}
-						// blocks; anything that mutates the record must go through
-						// original_event.id instead.
-						id: isSeedOccurrence ? event.id : `${event.id}::r${start.getTime()}`,
-						title: event.title,
-						start,
-						end: isSeedOccurrence
-							? seedEnd
-							: seedEnd && durationMs > 0
-								? new Date(start.getTime() + durationMs)
-								: undefined,
-						is_all_day: event.is_all_day,
-						is_task: event.is_task || false,
-						// Recurring tasks: completion is per-day ("did I do it
-						// today?") since a single row backs the whole series.
-						is_completed: event.recurrence_rule?.frequency
-							? !!event.completed_at && isSameDay(new Date(event.completed_at), start)
-							: !!event.completed_at,
-						color: event.color_override || '#7C9885', // default sage green
-						icon: event.icon,
-						is_external: false,
-						routine_template: event.routine_template,
-						routine_step_index: event.routine_step_index,
-						energy_level: event.energy_level,
-						routine_group_name: event.routine_template
-							? routinesStore.getById(event.routine_template)?.name
-							: undefined,
-						original_event: event
-					});
-				}
-			}
-
-			// Convert external events (paused series are hidden from every view;
-			// pause rows are keyed by subscription + BASE uid)
-			const externalPauseKeys = new Set(externalPauses.map((p) => `${p.subscription}|${p.ical_uid}`));
-			for (const event of externalEvents) {
-				if (externalPauseKeys.has(`${event.subscription}|${baseIcalUid(event.uid)}`)) continue;
-				const subscription = (
-					event as ExternalEvent & { expand?: { subscription?: CalendarSubscription } }
-				).expand?.subscription;
-				allEvents.push({
-					id: event.id,
-					title: event.title,
-					start: new Date(event.start_time),
-					end: event.end_time ? new Date(event.end_time) : undefined,
-					is_all_day: event.is_all_day,
-					is_task: false,
-					is_completed: false,
-					color: subscription?.color_override || '#9A88B5', // subscription color or default lavender
-					is_external: true,
-					subscription_name: subscription?.name,
-					original_event: event
-				});
-			}
-
-			// Sort by start time
-			return allEvents.sort((a, b) => a.start.getTime() - b.start.getTime());
+			return buildDisplayEvents({
+				events,
+				externalEvents,
+				externalPauses,
+				range: getViewRange(),
+				routineName: (id) => routinesStore.getById(id)?.name
+			});
 		},
 
 		// Get events for a specific day
@@ -411,7 +337,18 @@ function createCalendarStore() {
 
 		// Toggle task completion with flexible timing cascade
 		async toggleTaskComplete(id: string) {
-			const event = events.find((e) => e.id === id);
+			// The /now screen can show an event outside the loaded view range
+			// (it fetches today's window on its own), so fall back to the
+			// server when the record isn't in the store.
+			let event = events.find((e) => e.id === id);
+			if (!event) {
+				try {
+					event = await getServerEvent(id);
+				} catch (error) {
+					console.error('Failed to load event for completion toggle:', error);
+					return;
+				}
+			}
 			if (!event?.is_task) return;
 
 			try {

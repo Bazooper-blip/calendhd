@@ -2,9 +2,10 @@
 	import { t } from 'svelte-i18n';
 	import { templatesStore, categoriesStore } from '$stores';
 	import { Button, Input, Modal, Select, Toggle, ColorPicker } from '$components/ui';
+	import { RecurrencePicker } from '$components/event';
 	import { toast } from 'svelte-sonner';
-	import { formatDuration, deriveDurationMinutes } from '$utils';
-	import type { Template, ReminderConfig } from '$types';
+	import { formatDuration, deriveDurationMinutes, RECURRENCE_PRESETS } from '$utils';
+	import type { Template, ReminderConfig, RecurrenceRule } from '$types';
 
 	let showModal = $state(false);
 	let editingTemplate = $state<Template | null>(null);
@@ -21,6 +22,16 @@
 	let defaultReminders = $state<ReminderConfig[]>([{ minutes_before: 10, type: 'notification' }]);
 	let description = $state('');
 	let colorOverride = $state('');
+	let recurrenceRule = $state<RecurrenceRule | undefined>(undefined);
+
+	// "Weekly · until 2026-12-01" / "Daily · 10 times" for the list
+	function recurrenceLabel(rule: RecurrenceRule): string {
+		const preset = RECURRENCE_PRESETS.find((p) => p.value?.frequency === rule.frequency);
+		const base = $t(preset?.i18nKey ?? 'recurrence.none');
+		if (rule.end_date) return `${base} · ${$t('recurrence.endsOnSummary', { values: { date: rule.end_date } })}`;
+		if (rule.count) return `${base} · ${$t('recurrence.endsAfterSummary', { values: { count: rule.count } })}`;
+		return base;
+	}
 
 	const categoryOptions = $derived([
 		{ value: '', label: $t('category.noCategory') },
@@ -52,6 +63,7 @@
 		defaultReminders = [{ minutes_before: 10, type: 'notification' }];
 		description = '';
 		colorOverride = '';
+		recurrenceRule = undefined;
 		showModal = true;
 	}
 
@@ -67,6 +79,7 @@
 		defaultReminders = template.default_reminders;
 		description = template.description || '';
 		colorOverride = template.color_override || '';
+		recurrenceRule = template.recurrence_rule?.frequency ? { ...template.recurrence_rule } : undefined;
 		showModal = true;
 	}
 
@@ -95,11 +108,16 @@
 				default_end_time: hasTimes ? defaultEndTime : '',
 				default_reminders: $state.snapshot(defaultReminders),
 				description: description || undefined,
-				color_override: colorOverride || undefined
+				color_override: colorOverride || undefined,
+				recurrence_rule: recurrenceRule ? $state.snapshot(recurrenceRule) : undefined
 			};
 
 			if (editingTemplate) {
-				await templatesStore.update(editingTemplate.id, data);
+				// null clears a removed rule server-side (undefined would be dropped)
+				await templatesStore.update(editingTemplate.id, {
+					...data,
+					recurrence_rule: data.recurrence_rule ?? null
+				});
 				toast.success($t('template.updated') || $t('common.success'));
 			} else {
 				await templatesStore.create(data);
@@ -154,7 +172,7 @@
 			</div>
 		{:else}
 			<div class="space-y-2">
-				{#each templatesStore.templates as template}
+				{#each templatesStore.templates as template (template.id)}
 					{@const cat = template.category ? categoriesStore.getById(template.category) : null}
 					<div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-neutral-100 dark:border-neutral-700 p-4 flex items-center gap-4">
 						<div
@@ -174,6 +192,9 @@
 									: template.default_start_time && template.default_end_time
 										? `${template.default_start_time}–${template.default_end_time}`
 										: formatDuration(template.default_duration_minutes)}
+								{#if template.recurrence_rule?.frequency}
+									· {recurrenceLabel(template.recurrence_rule)}
+								{/if}
 								{#if cat}
 									· {cat.name}
 								{/if}
@@ -277,6 +298,13 @@
 				</div>
 			{/if}
 		{/if}
+
+		<div>
+			<label for="template-recurrence" class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1">
+				{$t('event.repeat')}
+			</label>
+			<RecurrencePicker id="template-recurrence" bind:value={recurrenceRule} />
+		</div>
 
 		<div>
 			<span class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2">

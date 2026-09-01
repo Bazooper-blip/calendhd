@@ -48,7 +48,10 @@
 		event.is_task && 'border-l-4 border-l-amber-400',
 		event.is_completed && 'opacity-60',
 		isPast && !event.is_completed && 'opacity-55',
-		isHappeningNow && 'ring-2 ring-primary-400 ring-offset-2 ring-offset-white dark:ring-offset-neutral-900 shadow-md'
+		isHappeningNow && 'ring-2 ring-primary-400 ring-offset-2 ring-offset-white dark:ring-offset-neutral-900 shadow-md',
+		// Open-ended: the block runs to the next event / end of day, and the
+		// dashed edge says "no fixed end"
+		event.is_open_ended && 'border-b-2 border-dashed border-b-white/70'
 	)}
 	{style}
 	style:background-color={event.color}
@@ -111,6 +114,8 @@
 				<span class={cn('opacity-80 truncate', compact ? 'text-[10px]' : 'text-xs')}>
 					{#if compact}
 						{formatTime(event.start, format24h)}
+					{:else if event.is_open_ended}
+						{$_('time.from', { values: { time: formatTime(event.start, format24h) } })}
 					{:else}
 						{formatTimeRange(event.start, event.end, format24h)}
 					{/if}

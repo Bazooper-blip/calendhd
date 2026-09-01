@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { goto } from '$app/navigation';
 	import { calendar, settingsStore, routinesStore } from '$stores';
 	import { _ } from '$lib/i18n';
 	import {
@@ -190,6 +191,27 @@
 		eventDetail = event;
 	}
 
+	// Tap-to-add: empty space in a day column opens the new-event form at
+	// that day and (30-minute snapped) time; the all-day row makes an
+	// all-day event. Event blocks are children of the column, so a click on
+	// one bubbles here too — only act when the column itself was hit.
+	const SNAP_MINUTES = 30;
+	function handleColumnClick(e: MouseEvent, day: Date) {
+		if (e.target !== e.currentTarget) return;
+		const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+		const minutes = ((e.clientY - rect.top) / rect.height) * 1440;
+		const snapped = Math.max(
+			0,
+			Math.min(1440 - SNAP_MINUTES, Math.floor(minutes / SNAP_MINUTES) * SNAP_MINUTES)
+		);
+		const hh = String(Math.floor(snapped / 60)).padStart(2, '0');
+		const mm = String(snapped % 60).padStart(2, '0');
+		goto(`/event/new?date=${format(day, 'yyyy-MM-dd')}&time=${hh}:${mm}`);
+	}
+	function handleAllDayClick(e: MouseEvent, day: Date) {
+		if (e.target !== e.currentTarget) return;
+		goto(`/event/new?date=${format(day, 'yyyy-MM-dd')}&allDay=1`);
+	}
 </script>
 
 <div class="flex flex-col h-full">
@@ -225,7 +247,12 @@
 		<!-- All-day events row -->
 		<div class="grid grid-cols-7 gap-px border-t border-neutral-100 dark:border-neutral-800 pl-14">
 			{#each days as day (day.getTime())}
-				<div class="min-h-[2rem] p-1 space-y-0.5">
+				<!-- svelte-ignore a11y_click_events_have_key_events -->
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
+				<div
+					class="min-h-[2rem] p-1 space-y-0.5 cursor-pointer"
+					onclick={(e) => handleAllDayClick(e, day)}
+				>
 					{#each getEventsForDay(day, true) as event (event.id)}
 						<button
 							type="button"
@@ -272,7 +299,12 @@
 			<!-- Day columns -->
 			<div class="absolute left-14 right-0 top-0 bottom-0 grid grid-cols-7 gap-px">
 				{#each days as day (day.getTime())}
-					<div class="relative border-l border-neutral-100 dark:border-neutral-800">
+					<!-- svelte-ignore a11y_click_events_have_key_events -->
+					<!-- svelte-ignore a11y_no_static_element_interactions -->
+					<div
+						class="relative border-l border-neutral-100 dark:border-neutral-800 cursor-pointer"
+						onclick={(e) => handleColumnClick(e, day)}
+					>
 						<!-- Current time indicator -->
 						{#if isToday(day)}
 							<div
