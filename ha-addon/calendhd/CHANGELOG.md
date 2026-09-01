@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.12.0
+
+- TRMNL: finished events no longer sit directly under the NOW/NEXT hero looking like they're still ahead. The feed now marks events that have already ended (`is_past` per event, `past_count` per day; no-end events count as over one minute after start, mirroring the app's Day view), and the full/half templates move them below a dimmed, localized "Earlier today" / "Tidigare idag" divider — upcoming events stay at the top. Templates still render the old flat list against servers that predate the field.
+
 ## 1.11.0
 
 - New: the week view shows the current week number in the corner above the hour column (e.g. "W36" / "v.36"). ISO 8601 numbering when the week starts on Monday; when the week starts on Sunday or Saturday, week 1 is the week containing Jan 1 - always matching the configured week start and locale.

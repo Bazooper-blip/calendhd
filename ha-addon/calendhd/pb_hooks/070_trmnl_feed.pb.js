@@ -125,7 +125,8 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
             of: "av", done_today: "klara idag",
             start_with: "Börja med:",
             more: "till",
-            today_lower: "idag"
+            today_lower: "idag",
+            earlier_today: "Tidigare idag"
         }
     } : {
         weekdays: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
@@ -141,7 +142,8 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
             of: "of", done_today: "done today",
             start_with: "Start with:",
             more: "more",
-            today_lower: "today"
+            today_lower: "today",
+            earlier_today: "Earlier today"
         }
     };
 
@@ -166,6 +168,16 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
         if (!str) return null;
         var d = new Date(String(str).replace(" ", "T"));
         return isNaN(d.getTime()) ? null : d;
+    }
+
+    // "Already over" flag so templates can split today's list into upcoming
+    // vs. earlier-today. Mirrors AgendaView.svelte: past means ended (end <=
+    // now); events with no end count as ended one minute after start. All-day
+    // events are never past on their own day.
+    function isPastEvent(start, end, isAllDay) {
+        if (isAllDay) return false;
+        var endMs = end ? end.getTime() : start.getTime() + 60000;
+        return endMs <= now.getTime();
     }
 
     // ---- lookup maps -----------------------------------------------------------
@@ -253,6 +265,7 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
             end_time: endStr,
             time_range: endStr ? timeStr + " – " + endStr : timeStr,
             is_all_day: isAllDay,
+            is_past: isPastEvent(start, end, isAllDay),
             is_task: rec.getBool("is_task"),
             done: isOccurrence ? !!occDone : rec.getString("completed_at") !== "",
             category: cat ? cat.name : "",
@@ -287,6 +300,7 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
             end_time: endStr,
             time_range: endStr ? timeStr + " – " + endStr : timeStr,
             is_all_day: isAllDay,
+            is_past: isPastEvent(start, end, isAllDay),
             is_task: false,
             done: false,
             category: "",
@@ -355,7 +369,10 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
             all_day: [],
             events: [],
             event_count: 0,
-            more_count: 0
+            more_count: 0,
+            // Finished timed events among the listed ones (only ever nonzero
+            // for today) so templates know to render the earlier-today divider.
+            past_count: 0
         };
         dayList.push(bucket);
         dayByKey[bucket.date] = bucket;
@@ -380,6 +397,7 @@ routerAdd("GET", "/api/calendhd/trmnl", function (e) {
         var target = ev.is_all_day ? day.all_day : day.events;
         if (day.all_day.length + day.events.length < perDayLimit) {
             target.push(ev);
+            if (ev.is_past) day.past_count++;
         } else {
             day.more_count++;
         }

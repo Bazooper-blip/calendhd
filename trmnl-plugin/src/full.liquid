@@ -87,17 +87,43 @@
             </div>
           </div>
         {% endfor %}
+        {% comment %}
+          Today's list is split so finished events can't be misread as still
+          ahead under the NOW/NEXT hero: upcoming first, then the past ones
+          dimmed below an "Earlier today" divider (mirrors the app's Day
+          view). Feeds that predate is_past render everything in the first
+          pass and never emit the divider — i.e. the old behavior.
+        {% endcomment %}
         {% for ev in today.events %}
           {% assign ev_key = ev.title | append: "|" | append: ev.time %}
           {% if ev_key != hero_key %}
+          {% unless ev.is_past %}
           <div class="item">
             <div class="content">
               <span class="title title--small">{% if ev.is_task %}{% if ev.done %}✓ {% else %}○ {% endif %}{% endif %}{% if ev.icon != blank %}{{ ev.icon }} {% endif %}{{ ev.title }}</span>
               <span class="label label--small label--gray-out">{{ ev.time_range }}{% if ev.routine != blank %} · {{ ev.routine }}{% elsif ev.category != blank %} · {{ ev.category }}{% endif %}</span>
             </div>
           </div>
+          {% endunless %}
           {% endif %}
         {% endfor %}
+        {% if today.past_count > 0 %}
+          <div class="item" style="border-top: 1px solid #555555; margin-top: 10px; padding-top: 8px;">
+            <div class="content">
+              <span class="label label--small label--gray-out">{{ strings.earlier_today | default: "Earlier today" }}</span>
+            </div>
+          </div>
+          {% for ev in today.events %}
+            {% if ev.is_past %}
+            <div class="item">
+              <div class="content">
+                <span class="title title--small" style="opacity: 0.55">{% if ev.is_task %}{% if ev.done %}✓ {% else %}○ {% endif %}{% endif %}{% if ev.icon != blank %}{{ ev.icon }} {% endif %}{{ ev.title }}</span>
+                <span class="label label--small label--gray-out">{{ ev.time_range }}{% if ev.routine != blank %} · {{ ev.routine }}{% elsif ev.category != blank %} · {{ ev.category }}{% endif %}</span>
+              </div>
+            </div>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
         {% if today.event_count == 0 %}
           <div class="item">
             <div class="content">
