@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.13.1
+
+Maintenance release: dependency updates only, no behaviour changes.
+
+- PocketBase 0.40.1 → 0.40.4 (bugfix releases: migration/logs-db deadlock fix, nested cascade-delete fix, goja and `golang.org/x/*` bumps; the live integration suite passes 14/14 against 0.40.4).
+- Home Assistant base image 21.0.3 → 21.0.5 (Alpine package updates: curl, jq, xz).
+- Dependencies: Vite 8.3.0, @lucide/svelte 1.47.0, bits-ui 2.19.2, PocketBase JS SDK 0.28.1, Biome 2.5.14, @types/node 26.6.1. Vitest 4 → 5 (dev-only; raises the development Node floor to 22.12). (TypeScript stays dual-pinned at 6.0.3 primary — svelte-check still can't use TS 7 as the sole compiler.)
+
 ## 1.13.0
 
 User-feedback round: six items from a household's feedback list.
