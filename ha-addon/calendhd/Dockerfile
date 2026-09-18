@@ -1,9 +1,9 @@
 # Build arguments
-ARG BUILD_FROM=ghcr.io/hassio-addons/base:21.0.3
+ARG BUILD_FROM=ghcr.io/hassio-addons/base:21.0.5
 FROM ${BUILD_FROM}
 
 # PocketBase version
-ARG PB_VERSION=0.40.1
+ARG PB_VERSION=0.40.4
 
 # Set shell
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
