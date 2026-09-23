@@ -346,6 +346,19 @@
 		"moreEvents": "+{count} more",
 		"weekNumber": "W{week}"
 	},
+	"search": {
+		"title": "Search",
+		"open": "Search events",
+		"placeholder": "Search events…",
+		"hint": "Type at least {count} characters to search titles, notes and places.",
+		"searching": "Searching…",
+		"noResults": "Nothing matches “{query}”.",
+		"upcoming": "Upcoming",
+		"earlier": "Earlier",
+		"paused": "Paused",
+		"failed": "Search failed. Please try again.",
+		"shortcut": "Press / to search"
+	},
 	"agenda": {
 		"earlierToday": "{count, plural, one {# earlier today} other {# earlier today}}",
 		"now": "Now",

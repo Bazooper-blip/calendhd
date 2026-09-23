@@ -3,4 +3,5 @@ export { default as EventBlock } from './EventBlock.svelte';
 export { default as EventDetailModal } from './EventDetailModal.svelte';
 export { default as MonthView } from './MonthView.svelte';
 export { default as RoutineBlock } from './RoutineBlock.svelte';
+export { default as SearchModal } from './SearchModal.svelte';
 export { default as WeekView } from './WeekView.svelte';

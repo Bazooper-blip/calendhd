@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.14.0
+
+- New: search. A magnifier in the header (or the `/` key) opens a search box that looks through every event ever entered or synced — titles, notes, the "first step" field and, for subscribed calendars, the location — not just the week on screen. Results are split into Upcoming (soonest first) and Earlier (most recent first). A repeating event shows up once, at its next occurrence, and a repeating event from a subscribed calendar is likewise collapsed into one row instead of one per week. Paused events are listed too, marked "Paused": tapping a paused local event opens its edit page, and a paused subscribed series gets a resume button right in the results. Tapping any other result jumps to that day.
+
 ## 1.13.1
 
 Maintenance release: dependency updates only, no behaviour changes.

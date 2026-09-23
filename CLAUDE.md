@@ -69,6 +69,7 @@ Defined in `svelte.config.js`:
 | i18n | `src/lib/i18n/` | English (default, sync-loaded) and Swedish (lazy-loaded) via svelte-i18n; locale files must stay key-balanced (Python structural diff in CI-style sweeps) |
 | Date Utils | `src/lib/utils/date.ts` | Timezone-aware date formatting/manipulation via date-fns + date-fns-tz |
 | Recurrence | `src/lib/utils/recurrence.ts` | Recurrence rule expansion, formatting and presets |
+| Search | `src/lib/utils/search.ts` | `buildSearchResults()` — matched rows → grouped, series-collapsed rows for the search modal |
 | Display events | `src/lib/utils/displayEvents.ts` | `buildDisplayEvents()` / `resolveOpenEndedEvents()` — raw rows → the `DisplayEvent` list views render |
 | Notifications | `src/lib/utils/notifications.ts` | Web Push API, VAPID key handling |
 | Sample routines | `src/lib/utils/sampleRoutines.ts` | Hardcoded starter-pack routines used by the empty-state button on `/routines` |
@@ -93,7 +94,7 @@ All stores are singletons using Svelte 5 runes in `.svelte.ts` files:
 src/lib/components/
 ├── layout/     Header, Sidebar
 ├── calendar/   DayView, AgendaView, WeekView, MonthView, EventBlock,
-│               RoutineBlock, ExternalEventModal
+│               RoutineBlock, EventDetailModal, SearchModal
 ├── event/      EventForm, QuickAdd, RecurrencePicker (preset + "Ends: never / on date / after N" — shared by EventForm and the templates page)
 ├── ui/         Button, Input, Modal, Select, Toggle, ColorPicker, IconPicker,
 │               EventIcon
@@ -107,6 +108,7 @@ src/lib/components/
 - **Display-event pipeline**: `buildDisplayEvents()` (`utils/displayEvents.ts`, unit-tested) is the pure function behind the store's `displayEvents` getter — raw rows → paused filtering → recurrence expansion → external pause filtering → sort → open-ended resolution. The `/now` screen calls it for today's window on its own so it works regardless of which week is being browsed (feedback bug in 1.10.0)
 - **Clearing fields on edit**: the PocketBase SDK JSON-serialises bodies, so `undefined` keys are dropped and the server keeps the old value. The edit page and the templates page send `''` / `null` explicitly for cleared fields
 - "Happening now" sage ring + pulsing badge on the active event/routine
+- **Search** (header magnifier or `/` key; `n` opens quick add): `SearchModal` queries PocketBase directly via `searchEvents()` — local events (title/notes/first step) and external events (title/notes/location), each fetched as an *upcoming* half (ascending from today, recurring seeds always included) and a *past* half (descending) so near-today matches never fall off a "latest N" page. `buildSearchResults()` (`utils/search.ts`, unit-tested) shows a local recurring series at its next occurrence (last one if the series is over), collapses external series (subscription + base iCal UID, one row per series at its nearest occurrence), splits Upcoming / Earlier, and flags paused rows instead of hiding them. Tapping jumps to that day's view; paused local → edit page; paused external → resume button (they're hidden from every view)
 
 ### Routes
 
@@ -236,7 +238,7 @@ ha-addon/calendhd/
 ## Testing
 
 - **Unit tests**: Vitest in `node` environment (not jsdom)
-- **Test files**: `src/lib/utils/date.test.ts`, `src/lib/utils/recurrence.test.ts`, `src/lib/utils/displayEvents.test.ts`, `src/lib/utils/externalEvents.test.ts`, `src/lib/utils/index.test.ts`
+- **Test files**: `src/lib/utils/date.test.ts`, `src/lib/utils/recurrence.test.ts`, `src/lib/utils/displayEvents.test.ts`, `src/lib/utils/externalEvents.test.ts`, `src/lib/utils/search.test.ts`, `src/lib/utils/index.test.ts`
 - **No E2E suite**: there is no Playwright config or e2e tests (the former `test:e2e` script was vestigial and has been removed)
 - **Code style**: Biome (`biome.json` at repo root) for `src/**/*.{ts,js}` — `npm run format` writes, `npm run format:check` verifies. `npm run lint` runs Biome + svelte-check. `.svelte` files aren't formatted by Biome yet (Svelte 5 support is partial); rely on svelte-check for those.
 
