@@ -346,6 +346,19 @@
 		"moreEvents": "+{count} till",
 		"weekNumber": "v.{week}"
 	},
+	"search": {
+		"title": "Sök",
+		"open": "Sök händelser",
+		"placeholder": "Sök händelser…",
+		"hint": "Skriv minst {count} tecken för att söka i titlar, anteckningar och platser.",
+		"searching": "Söker…",
+		"noResults": "Inget matchar ”{query}”.",
+		"upcoming": "Kommande",
+		"earlier": "Tidigare",
+		"paused": "Pausad",
+		"failed": "Sökningen misslyckades. Försök igen.",
+		"shortcut": "Tryck / för att söka"
+	},
 	"agenda": {
 		"earlierToday": "{count, plural, one {# tidigare idag} other {# tidigare idag}}",
 		"now": "Nu",

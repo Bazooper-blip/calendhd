@@ -1,8 +1,8 @@
-import { getDefaultSettings, getUserSettings, updateUserSettings } from '$api/pocketbase';
-import { browser } from '$app/environment';
-import { setLocale } from '$lib/i18n';
-import { setDateLocale, setTimezone, setWeekStartsOn } from '$lib/utils/date';
-import type { UserSettings } from '$types';
+import { getDefaultSettings, getUserSettings, updateUserSettings } from '#api/pocketbase.js';
+import { setLocale } from '#lib/i18n/index.js';
+import { setDateLocale, setTimezone, setWeekStartsOn } from '#lib/utils/date.js';
+import type { UserSettings } from '#types';
+import { browser } from '$app/env';
 import { auth } from './auth.svelte';
 
 // Settings store using Svelte 5 runes

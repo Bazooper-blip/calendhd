@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from '$utils';
+	import { cn } from '#utils';
 
 	interface Props {
 		type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search' | 'date' | 'time';

@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
-	import { settingsStore } from '$stores';
-	import { Select, Toggle, Button } from '$components/ui';
+	import { browser } from '$app/env';
+	import { settingsStore } from '#stores';
+	import { Select, Toggle, Button } from '#components/ui/index.js';
 	import { toast } from 'svelte-sonner';
-	import { _, availableLocales } from '$lib/i18n';
+	import { _, availableLocales } from '#lib/i18n/index.js';
 	import {
 		isNotificationSupported,
 		getNotificationPermission,
@@ -14,8 +14,8 @@
 		savePushSubscription,
 		unsubscribeFromPush,
 		removePushSubscription
-	} from '$utils';
-	import { testServerNotification, getVapidPublicKey } from '$api/pocketbase';
+	} from '#utils';
+	import { testServerNotification, getVapidPublicKey } from '#api/pocketbase.js';
 
 	// Notification state
 	let notificationSupported = $state(false);

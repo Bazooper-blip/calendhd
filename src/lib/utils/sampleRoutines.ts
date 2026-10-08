@@ -1,4 +1,4 @@
-import type { RoutineSchedule, RoutineStep } from '$types';
+import type { RoutineSchedule, RoutineStep } from '#types';
 
 interface SampleRoutine {
 	name: string;

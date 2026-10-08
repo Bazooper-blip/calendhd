@@ -27,10 +27,10 @@ import {
 	resumeExternalEvent as resumeServerExternalEvent,
 	subscribeToEvents,
 	updateEvent as updateServerEvent
-} from '$api/pocketbase';
-import { browser } from '$app/environment';
-import type { CalendarEvent, DisplayEvent, ExternalEvent, ExternalEventPause } from '$types';
-import { baseIcalUid, buildDisplayEvents, isSameDay } from '$utils';
+} from '#api/pocketbase.js';
+import type { CalendarEvent, DisplayEvent, ExternalEvent, ExternalEventPause } from '#types';
+import { baseIcalUid, buildDisplayEvents, isSameDay } from '#utils';
+import { browser } from '$app/env';
 import { auth } from './auth.svelte';
 import { routinesStore } from './routines.svelte';
 import { settingsStore } from './settings.svelte';

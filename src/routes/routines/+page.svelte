@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
-	import { routinesStore } from '$stores';
-	import { Button, Toggle, EventIcon } from '$components/ui';
+	import { routinesStore } from '#stores';
+	import { Button, Toggle, EventIcon } from '#components/ui/index.js';
 	import { toast } from 'svelte-sonner';
-	import { SAMPLE_ROUTINES } from '$utils/sampleRoutines';
-	import type { RoutineTemplate } from '$types';
+	import { SAMPLE_ROUTINES } from '#utils/sampleRoutines.js';
+	import type { RoutineTemplate } from '#types';
 
 	let starterPackLoading = $state(false);
 

@@ -12,10 +12,10 @@ import type {
 	Template,
 	User,
 	UserSettings
-} from '$types';
+} from '#types';
 // Import the module directly, not the $utils barrel — the barrel re-exports
 // notifications.ts which imports back from this file (cycle).
-import { baseIcalUid } from '$utils/externalEvents';
+import { baseIcalUid } from '#utils/externalEvents.js';
 
 // PocketBase client singleton
 let pb: PocketBase | null = null;
@@ -302,6 +302,69 @@ export async function getExternalEvents(startDate: Date, endDate: Date): Promise
 		expand: 'subscription'
 	});
 	return records as unknown as ExternalEvent[];
+}
+
+// Free-text search across local and external events, all time (not just the
+// browsed range). `~` is a case-insensitive contains match; pb.filter() quotes
+// the user's text and PocketBase escapes LIKE wildcards inside `~` values.
+//
+// Each collection is queried in two halves — upcoming (soonest first) and
+// past (most recent first) — so the rows nearest to today always make the
+// cut. A single "latest N" query would fill up with far-future feed rows
+// (subscriptions often extend years ahead) and drop this week's matches.
+// Recurring seeds count as upcoming regardless of their start (their
+// occurrences may be), so a past seed can appear in both halves; the caller
+// gets a de-duplicated list.
+export async function searchEvents(
+	query: string,
+	limitPerGroup: number = 50
+): Promise<{ events: CalendarEvent[]; externalEvents: ExternalEvent[] }> {
+	const user = getCurrentUser();
+	if (!user) return { events: [], externalEvents: [] };
+	const pb = getPocketBase();
+	const todayStart = new Date();
+	todayStart.setHours(0, 0, 0, 0);
+	const since = todayStart.toISOString();
+
+	const localMatch = '(title ~ {:q} || description ~ {:q} || first_step ~ {:q})';
+	const externalMatch = 'user = {:user} && (title ~ {:q} || description ~ {:q} || location ~ {:q})';
+	const params = { q: query, user: user.id, since };
+
+	const [localUpcoming, localPast, externalUpcoming, externalPast] = await Promise.all([
+		collections.events().getList(1, limitPerGroup, {
+			filter: pb.filter(
+				`${localMatch} && (start_time >= {:since} || recurrence_rule != null)`,
+				params
+			),
+			sort: 'start_time'
+		}),
+		collections.events().getList(1, limitPerGroup, {
+			filter: pb.filter(`${localMatch} && start_time < {:since}`, params),
+			sort: '-start_time'
+		}),
+		collections.external_events().getList(1, limitPerGroup, {
+			filter: pb.filter(`${externalMatch} && start_time >= {:since}`, params),
+			sort: 'start_time',
+			expand: 'subscription'
+		}),
+		collections.external_events().getList(1, limitPerGroup, {
+			filter: pb.filter(`${externalMatch} && start_time < {:since}`, params),
+			sort: '-start_time',
+			expand: 'subscription'
+		})
+	]);
+
+	const dedupe = <T extends { id: string }>(rows: T[]): T[] => {
+		const seen = new Set<string>();
+		return rows.filter((row) => (seen.has(row.id) ? false : (seen.add(row.id), true)));
+	};
+	return {
+		events: dedupe([...localUpcoming.items, ...localPast.items] as unknown as CalendarEvent[]),
+		externalEvents: dedupe([
+			...externalUpcoming.items,
+			...externalPast.items
+		] as unknown as ExternalEvent[])
+	};
 }
 
 // User settings API

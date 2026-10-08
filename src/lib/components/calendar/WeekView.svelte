@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
+	import { browser } from '$app/env';
 	import { goto } from '$app/navigation';
-	import { calendar, settingsStore, routinesStore } from '$stores';
-	import { _ } from '$lib/i18n';
+	import { calendar, settingsStore, routinesStore } from '#stores';
+	import { _ } from '#lib/i18n/index.js';
 	import {
 		computeEventLanes,
 		formatDayOfWeek,
@@ -14,8 +14,8 @@
 		isSameDay,
 		startOfWeek,
 		endOfWeek
-	} from '$utils';
-	import type { DisplayEvent, EnergyLevel } from '$types';
+	} from '#utils';
+	import type { DisplayEvent, EnergyLevel } from '#types';
 	import { format } from 'date-fns';
 	import EventBlock from './EventBlock.svelte';
 	import RoutineBlock from './RoutineBlock.svelte';

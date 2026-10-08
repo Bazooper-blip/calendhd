@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { expandRecurrenceRule, formatRecurrenceRule, RECURRENCE_PRESETS } from './recurrence';
-import type { RecurrenceRule } from '$types';
+import type { RecurrenceRule } from '#types';
 
 describe('formatRecurrenceRule', () => {
 	it('formats daily', () => {

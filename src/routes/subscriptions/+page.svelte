@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { getSubscriptions, createSubscription, updateSubscription, deleteSubscription, getAuthToken } from '$api/pocketbase';
-	import { Button, Input, Modal, Toggle, ColorPicker } from '$components/ui';
+	import { getSubscriptions, createSubscription, updateSubscription, deleteSubscription, getAuthToken } from '#api/pocketbase.js';
+	import { Button, Input, Modal, Toggle, ColorPicker } from '#components/ui/index.js';
 	import { toast } from 'svelte-sonner';
-	import { calendar } from '$stores';
-	import { normalizeCalendarUrl, formatRelativeTime } from '$utils';
-	import type { CalendarSubscription } from '$types';
+	import { calendar } from '#stores';
+	import { normalizeCalendarUrl, formatRelativeTime } from '#utils';
+	import type { CalendarSubscription } from '#types';
 
 	let subscriptions = $state<CalendarSubscription[]>([]);
 	let loading = $state(true);

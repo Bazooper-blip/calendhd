@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { cn, getContrastColor, formatTime, formatTimeRange } from '$utils';
-	import { settingsStore, calendar } from '$stores';
-	import { _ } from '$lib/i18n';
-	import { EventIcon } from '$components/ui';
-	import type { DisplayEvent } from '$types';
+	import { cn, getContrastColor, formatTime, formatTimeRange } from '#utils';
+	import { settingsStore, calendar } from '#stores';
+	import { _ } from '#lib/i18n/index.js';
+	import { EventIcon } from '#components/ui/index.js';
+	import type { DisplayEvent } from '#types';
 
 	interface Props {
 		event: DisplayEvent;

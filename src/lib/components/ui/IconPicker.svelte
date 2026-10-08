@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from '$utils';
+	import { cn } from '#utils';
 	import { t } from 'svelte-i18n';
 	import type { Component } from 'svelte';
 

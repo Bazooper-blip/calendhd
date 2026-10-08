@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { settingsStore } from '$stores';
-	import { _ } from '$lib/i18n';
+	import { settingsStore } from '#stores';
+	import { _ } from '#lib/i18n/index.js';
 
 	// Redirect to default calendar view
 	$effect(() => {

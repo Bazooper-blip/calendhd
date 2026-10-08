@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.14.0
+
+- New: search. A magnifier in the header (or the `/` key) opens a search box that looks through every event ever entered or synced — titles, notes, the "first step" field and, for subscribed calendars, the location — not just the week on screen. Results are split into Upcoming (soonest first) and Earlier (most recent first). A repeating event shows up once, at its next occurrence, and a repeating event from a subscribed calendar is likewise collapsed into one row instead of one per week. Paused events are listed too, marked "Paused": tapping a paused local event opens its edit page, and a paused subscribed series gets a resume button right in the results. Tapping any other result jumps to that day.
+
+Maintenance in this release (no behaviour changes):
+
+- SvelteKit 2 → 3 (with adapter-static 3 → 4). The build config moved from `svelte.config.js` into `vite.config.ts`, `$app/stores` → `$app/state`, `$app/environment` → `$app/env`, the `$lib`/`$components`/`$stores`/… aliases became `#lib`/`#components`/`#stores`/… subpath imports, and the service worker became its own TypeScript project typed via `$app/service-worker`. The shipped bundle behaves the same.
+- Home Assistant base image 21.0.5 → 21.0.8.
+- Dependencies: Svelte 5.57.2, Vite 8.3.4, Vitest 5.0.3, @sveltejs/vite-plugin-svelte 7.3.1, @lucide/svelte 1.53.0, bits-ui 2.19.5, Biome 2.5.15, @types/node 26.6.4. The development Node floor rises to 22.17 (SvelteKit 3's minimum). TypeScript stays at 6.0.3 as the primary compiler — SvelteKit 3 and svelte-check both still peer-depend on TS 6; TS 7 keeps running alongside as the `--tsgo` checker. PocketBase (0.40.4), the PocketBase JS SDK (0.28.1) and web-push (3.6.7) were already current.
+
 ## 1.13.1
 
 Maintenance release: dependency updates only, no behaviour changes.

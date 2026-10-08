@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
+	import { browser } from '$app/env';
 	import { goto } from '$app/navigation';
-	import { getEvents, getExternalEventPauses, getExternalEvents } from '$api/pocketbase';
-	import { auth, calendar, routinesStore } from '$stores';
-	import { _ } from '$lib/i18n';
-	import { Button, EventIcon } from '$components/ui';
-	import { buildDisplayEvents } from '$utils';
+	import { getEvents, getExternalEventPauses, getExternalEvents } from '#api/pocketbase.js';
+	import { auth, calendar, routinesStore } from '#stores';
+	import { _ } from '#lib/i18n/index.js';
+	import { Button, EventIcon } from '#components/ui/index.js';
+	import { buildDisplayEvents } from '#utils';
 	import { format, isSameDay, differenceInMinutes, startOfDay, endOfDay } from 'date-fns';
-	import type { DisplayEvent } from '$types';
+	import type { DisplayEvent } from '#types';
 
 	let now = $state(new Date());
 

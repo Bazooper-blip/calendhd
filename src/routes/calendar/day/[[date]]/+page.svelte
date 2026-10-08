@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { page } from '$app/stores';
-	import { calendar } from '$stores';
-	import { DayView } from '$components/calendar';
+	import { page } from '$app/state';
+	import { calendar } from '#stores';
+	import { DayView } from '#components/calendar/index.js';
 	import { parseISO, isValid } from 'date-fns';
 
 	// Parse date from URL or use current
-	const dateParam = $derived($page.params.date);
+	const dateParam = $derived(page.params.date);
 	const currentDate = $derived(() => {
 		if (dateParam) {
 			const parsed = parseISO(dateParam);

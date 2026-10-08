@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { _ } from '$lib/i18n';
+	import { _ } from '#lib/i18n/index.js';
 	import { toast } from 'svelte-sonner';
 	import {
 		upsertExternalEventReminderRemote,
 		deleteExternalEventReminderRemote,
 		getExternalEventReminders
-	} from '$api/pocketbase';
-	import type { CalendarSubscription, ExternalEvent } from '$types';
+	} from '#api/pocketbase.js';
+	import type { CalendarSubscription, ExternalEvent } from '#types';
 
 	interface Props {
 		external: ExternalEvent;

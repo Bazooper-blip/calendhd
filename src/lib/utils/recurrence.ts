@@ -1,5 +1,5 @@
 import { addDays, addMonths, addYears, endOfDay } from 'date-fns';
-import type { RecurrenceRule } from '$types';
+import type { RecurrenceRule } from '#types';
 
 // Expand a recurrence rule into concrete occurrence start times within
 // [rangeStart, rangeEnd] (inclusive), seed occurrence included when it falls

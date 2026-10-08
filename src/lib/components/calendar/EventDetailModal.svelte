@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { toast } from 'svelte-sonner';
-	import { Button, Modal, Toggle } from '$components/ui';
-	import { _ } from '$lib/i18n';
-	import { calendar, categoriesStore, settingsStore } from '$stores';
-	import { baseIcalUid, formatDateSmart, formatTime, formatTimeRange } from '$utils';
-	import { getPocketBase } from '$api/pocketbase';
+	import { Button, Modal, Toggle } from '#components/ui/index.js';
+	import { _ } from '#lib/i18n/index.js';
+	import { calendar, categoriesStore, settingsStore } from '#stores';
+	import { baseIcalUid, formatDateSmart, formatTime, formatTimeRange } from '#utils';
+	import { getPocketBase } from '#api/pocketbase.js';
 	import ExternalEventReminderRow from './ExternalEventReminderRow.svelte';
-	import type { DisplayEvent, ExternalEvent, CalendarEvent, CalendarSubscription } from '$types';
+	import type { DisplayEvent, ExternalEvent, CalendarEvent, CalendarSubscription } from '#types';
 
 	interface Props {
 		event: DisplayEvent | null;

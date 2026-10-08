@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { formatDayOfWeek, isToday } from '$utils';
+	import { formatDayOfWeek, isToday } from '#utils';
 	import AgendaView from './AgendaView.svelte';
 
 	let { date = $bindable(new Date()) }: { date?: Date } = $props();

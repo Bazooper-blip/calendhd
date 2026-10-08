@@ -1,6 +1,6 @@
-import { createTemplate, deleteTemplate, getTemplates, updateTemplate } from '$api/pocketbase';
-import { browser } from '$app/environment';
-import type { RecurrenceRule, ReminderConfig, Template } from '$types';
+import { createTemplate, deleteTemplate, getTemplates, updateTemplate } from '#api/pocketbase.js';
+import type { RecurrenceRule, ReminderConfig, Template } from '#types';
+import { browser } from '$app/env';
 import { auth } from './auth.svelte';
 
 // Templates store using Svelte 5 runes

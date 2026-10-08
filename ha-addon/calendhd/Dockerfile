@@ -1,5 +1,5 @@
 # Build arguments
-ARG BUILD_FROM=ghcr.io/hassio-addons/base:21.0.5
+ARG BUILD_FROM=ghcr.io/hassio-addons/base:21.0.8
 FROM ${BUILD_FROM}
 
 # PocketBase version

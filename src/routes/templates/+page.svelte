@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { templatesStore, categoriesStore } from '$stores';
-	import { Button, Input, Modal, Select, Toggle, ColorPicker } from '$components/ui';
-	import { RecurrencePicker } from '$components/event';
+	import { templatesStore, categoriesStore } from '#stores';
+	import { Button, Input, Modal, Select, Toggle, ColorPicker } from '#components/ui/index.js';
+	import { RecurrencePicker } from '#components/event/index.js';
 	import { toast } from 'svelte-sonner';
-	import { formatDuration, deriveDurationMinutes, RECURRENCE_PRESETS } from '$utils';
-	import type { Template, ReminderConfig, RecurrenceRule } from '$types';
+	import { formatDuration, deriveDurationMinutes, RECURRENCE_PRESETS } from '#utils';
+	import type { Template, ReminderConfig, RecurrenceRule } from '#types';
 
 	let showModal = $state(false);
 	let editingTemplate = $state<Template | null>(null);

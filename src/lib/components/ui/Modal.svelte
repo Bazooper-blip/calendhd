@@ -6,6 +6,8 @@
 		title?: string;
 		size?: 'sm' | 'md' | 'lg' | 'full';
 		onclose?: () => void;
+		/** Override which element receives focus when the dialog opens (call e.preventDefault() then focus). */
+		onOpenAutoFocus?: (e: Event) => void;
 		children?: import('svelte').Snippet;
 		footer?: import('svelte').Snippet;
 	}
@@ -15,6 +17,7 @@
 		title = '',
 		size = 'md',
 		onclose,
+		onOpenAutoFocus,
 		children,
 		footer
 	}: Props = $props();
@@ -42,6 +45,7 @@
 		<Dialog.Content
 			class="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
 			trapFocus={true}
+			{onOpenAutoFocus}
 		>
 			<div
 				class={`w-full max-h-[90vh] overflow-y-auto bg-white dark:bg-neutral-800 rounded-xl shadow-lg pointer-events-auto ${sizes[size]}`}

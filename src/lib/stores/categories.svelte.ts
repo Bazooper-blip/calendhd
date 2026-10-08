@@ -4,9 +4,9 @@ import {
 	getCategories,
 	subscribeToCategories,
 	updateCategory
-} from '$api/pocketbase';
-import { browser } from '$app/environment';
-import type { Category } from '$types';
+} from '#api/pocketbase.js';
+import type { Category } from '#types';
+import { browser } from '$app/env';
 import { auth } from './auth.svelte';
 
 // Categories store using Svelte 5 runes

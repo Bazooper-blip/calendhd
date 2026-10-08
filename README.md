@@ -104,7 +104,7 @@ calendhd/
 │   │   ├── utils/        # Utilities
 │   │   └── types/        # TypeScript types
 │   │
-│   └── service-worker.ts # PWA service worker
+│   └── service-worker/   # Web Push service worker
 │
 ├── pocketbase/
 │   ├── pb_hooks/         # Server hooks (reminders, cleanup, notifications)

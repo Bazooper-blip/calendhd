@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { addDays, format } from 'date-fns';
-	import { Button, Input, Select, Toggle, ColorPicker, IconPicker } from '$components/ui';
-	import { categoriesStore, templatesStore, settingsStore } from '$stores';
-	import { REMINDER_OPTIONS, addMinutesToTime, timeCrossesMidnight } from '$utils';
-	import type { EventFormData, ReminderConfig, RecurrenceRule } from '$types';
+	import { Button, Input, Select, Toggle, ColorPicker, IconPicker } from '#components/ui/index.js';
+	import { categoriesStore, templatesStore, settingsStore } from '#stores';
+	import { REMINDER_OPTIONS, addMinutesToTime, timeCrossesMidnight } from '#utils';
+	import type { EventFormData, ReminderConfig, RecurrenceRule } from '#types';
 	import RecurrencePicker from './RecurrencePicker.svelte';
 
 	interface Props {

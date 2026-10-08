@@ -6,9 +6,9 @@
 
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { browser } from '$app/environment';
-	import { calendar, routinesStore, settingsStore } from '$stores';
-	import { _ } from '$lib/i18n';
+	import { browser } from '$app/env';
+	import { calendar, routinesStore, settingsStore } from '#stores';
+	import { _ } from '#lib/i18n/index.js';
 	import {
 		addDays,
 		cn,
@@ -18,9 +18,9 @@
 		getContrastColor,
 		isToday,
 		isSameDay
-	} from '$utils';
-	import type { DisplayEvent, EnergyLevel } from '$types';
-	import { EventIcon } from '$components/ui';
+	} from '#utils';
+	import type { DisplayEvent, EnergyLevel } from '#types';
+	import { EventIcon } from '#components/ui/index.js';
 	import EventDetailModal from './EventDetailModal.svelte';
 
 	interface RoutineStep {

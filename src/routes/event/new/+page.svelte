@@ -1,20 +1,20 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { isValid, parseISO } from 'date-fns';
-	import { calendar } from '$stores';
-	import { EventForm } from '$components/event';
+	import { calendar } from '#stores';
+	import { EventForm } from '#components/event/index.js';
 	import { toast } from 'svelte-sonner';
-	import { parseTimeToDate } from '$utils';
-	import type { EventFormData } from '$types';
+	import { parseTimeToDate } from '#utils';
+	import type { EventFormData } from '#types';
 
 	let loading = $state(false);
 
 	// Tap-to-add from the calendar views lands here with ?date=YYYY-MM-DD and
 	// either &time=HH:mm (week grid / agenda gap) or &allDay=1 (all-day row).
 	const prefill = $derived.by((): Partial<EventFormData> => {
-		const params = $page.url.searchParams;
+		const params = page.url.searchParams;
 		const date = params.get('date');
 		const time = params.get('time');
 		const data: Partial<EventFormData> = {};

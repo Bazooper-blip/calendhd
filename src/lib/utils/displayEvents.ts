@@ -5,7 +5,7 @@ import type {
 	DisplayEvent,
 	ExternalEvent,
 	ExternalEventPause
-} from '$types';
+} from '#types';
 import { isSameDay } from './date';
 import { baseIcalUid } from './externalEvents';
 import { expandRecurrenceRule } from './recurrence';

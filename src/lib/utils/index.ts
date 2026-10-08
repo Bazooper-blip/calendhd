@@ -21,6 +21,7 @@ export * from './displayEvents';
 export * from './externalEvents';
 export * from './notifications';
 export * from './recurrence';
+export * from './search';
 
 // Class name utility
 export function cn(...classes: (string | boolean | undefined | null)[]): string {

@@ -6,11 +6,11 @@
 
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { cn, getContrastColor, formatTime } from '$utils';
-	import { calendar, settingsStore } from '$stores';
-	import { _ } from '$lib/i18n';
-	import { EventIcon } from '$components/ui';
-	import type { EnergyLevel } from '$types';
+	import { cn, getContrastColor, formatTime } from '#utils';
+	import { calendar, settingsStore } from '#stores';
+	import { _ } from '#lib/i18n/index.js';
+	import { EventIcon } from '#components/ui/index.js';
+	import type { EnergyLevel } from '#types';
 
 	interface RoutineStep {
 		id: string;

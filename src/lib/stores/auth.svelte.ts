@@ -1,6 +1,6 @@
-import { getCurrentUser, getPocketBase, onAuthChange, signInWithEmail } from '$api/pocketbase';
-import { browser } from '$app/environment';
-import type { User } from '$types';
+import { getCurrentUser, getPocketBase, onAuthChange, signInWithEmail } from '#api/pocketbase.js';
+import type { User } from '#types';
+import { browser } from '$app/env';
 
 // The singleton-init hook on the server creates the user and rotates its
 // password to whatever was generated at deploy time; we fetch credentials
