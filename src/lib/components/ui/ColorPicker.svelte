@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn, getContrastColor } from '$utils';
+	import { cn, getContrastColor } from '#utils';
 
 	interface Props {
 		value?: string;

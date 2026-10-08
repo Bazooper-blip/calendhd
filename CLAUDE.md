@@ -14,10 +14,10 @@ calenDHD is a calm, ADHD-friendly calendar PWA for neurodivergent minds. It's a 
 npm run dev          # Start dev server (http://localhost:5173)
 npm run build        # Production build (static adapter → build/)
 npm run preview      # Preview production build
-npm run check        # Svelte type checking (svelte-kit sync + svelte-check)
+npm run check        # Type checking (svelte-kit sync + svelte-check + service-worker tsc)
 npm run check:watch  # Type checking in watch mode
 npm run test         # Run Vitest unit tests
-npm run lint         # Same as check (svelte-check)
+npm run lint         # Biome + the same checks as `check`
 ```
 
 PocketBase must be running separately for backend features (requires PocketBase 0.39+):
@@ -38,7 +38,7 @@ Bump `version:` in `ha-addon/calendhd/config.yaml` before each release so HA det
 
 ### Client-Only PWA (No SSR)
 
-SSR is disabled (`export const ssr = false` in `+layout.ts`). The app is built as a static SPA using `@sveltejs/adapter-static` with `fallback: 'index.html'` for client-side routing. PWA capabilities are provided by a hand-written service worker (`src/service-worker.ts`) using SvelteKit's built-in `$service-worker` module.
+SSR is disabled (`export const ssr = false` in `+layout.ts`). The app is built as a static SPA using `@sveltejs/adapter-static` with `fallback: 'index.html'` for client-side routing. The service worker (`src/service-worker/index.ts`, its own TS project via `src/service-worker/tsconfig.json` extending `$app/tsconfig/service-worker`) handles Web Push only. SvelteKit 3: there is no `svelte.config.js` — Kit/adapter options are passed to `sveltekit({...})` in `vite.config.ts`, and the root `tsconfig.json` extends `$app/tsconfig`.
 
 ### Data Flow
 
@@ -53,12 +53,11 @@ All stores use the Svelte 5 rune system (`$state`, `$derived`, `$effect`), not l
 
 ### Path Aliases
 
-Defined in `svelte.config.js`:
-- `$components` → `src/lib/components`
-- `$stores` → `src/lib/stores`
-- `$api` → `src/lib/api`
-- `$utils` → `src/lib/utils`
-- `$types` → `src/lib/types`
+Node subpath imports in `package.json` → `"imports"` (SvelteKit 3 removed `$lib` and deprecated `kit.alias`). Barrels resolve without a path; deep imports need an explicit extension (`.js` for `.ts` files):
+- `#stores`, `#types`, `#utils` → the barrel `index.ts` of `src/lib/{stores,types,utils}`
+- `#components/<dir>/index.js`, `#components/<dir>/<File>.svelte` → `src/lib/components/*`
+- `#api/pocketbase.js` → `src/lib/api/pocketbase.ts`
+- `#utils/<file>.js`, `#lib/<path>.js` → `src/lib/utils/*`, `src/lib/*`
 
 ### Key Modules
 
@@ -169,13 +168,7 @@ These have caused multiple production-breaking bugs. They're not optional knowle
 
 ### Service Worker
 
-`src/service-worker.ts` implements:
-- **Cache-first** for precached static assets
-- **Network-first** for API calls (`/api/`, `/_/`) and navigation
-- **Network-only** for POST requests
-- Push notification handling with View/Dismiss actions
-- Background sync support (`calendhd-sync` tag)
-- `SKIP_WAITING` message listener for update prompts
+`src/service-worker/index.ts` exists only for Web Push (offline caching was removed): push notification handling with View/Dismiss actions, notification-click focus/open, and a `SKIP_WAITING` message listener. It imports `self` from `$app/service-worker`; `npm run check` type-checks it separately (`tsc -p src/service-worker`).
 
 ### Dev Proxy
 

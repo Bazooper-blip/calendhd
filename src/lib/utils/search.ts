@@ -5,7 +5,7 @@ import type {
 	ExternalEvent,
 	ExternalEventPause,
 	RecurrenceRule
-} from '$types';
+} from '#types';
 import { baseIcalUid } from './externalEvents';
 import { DEFAULT_EXTERNAL_EVENT_COLOR, DEFAULT_LOCAL_EVENT_COLOR } from './displayEvents';
 import { expandRecurrenceRule } from './recurrence';

@@ -1,16 +1,16 @@
 <script lang="ts">
 	import '../app.css';
 	import { untrack } from 'svelte';
-	import { browser } from '$app/environment';
+	import { browser } from '$app/env';
 	import { afterNavigate, goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { format } from 'date-fns';
-	import { isSameDay } from '$utils';
-	import { auth, settingsStore, categoriesStore, templatesStore, calendar, routinesStore } from '$stores';
-	import { Sidebar, Header } from '$components/layout';
+	import { isSameDay } from '#utils';
+	import { auth, settingsStore, categoriesStore, templatesStore, calendar, routinesStore } from '#stores';
+	import { Sidebar, Header } from '#components/layout/index.js';
 	import { Toaster } from 'svelte-sonner';
-	import { QuickAdd } from '$components/event';
-	import { initI18n, _, isLoading as i18nLoading, locale } from '$lib/i18n';
+	import { QuickAdd } from '#components/event/index.js';
+	import { initI18n, _, isLoading as i18nLoading, locale } from '#lib/i18n/index.js';
 
 	// Initialize i18n synchronously
 	initI18n();
@@ -101,7 +101,7 @@
 		if (dayChanged && isSameDay(calendar.currentDate, lastLoad)) {
 			// The view was anchored on "today" as of the last refresh — follow
 			// the new day instead of waking up on yesterday's dates.
-			if ($page.url.pathname.startsWith('/calendar')) {
+			if (page.url.pathname.startsWith('/calendar')) {
 				// Calendar URLs may pin a date param that would override a bare
 				// setDate(), so navigate the same way the Today button does.
 				const today = format(now, 'yyyy-MM-dd');

@@ -23,31 +23,31 @@
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview",
-    "check": "svelte-kit sync && svelte-check --tsgo --tsconfig ./tsconfig.json",
+    "check": "svelte-kit sync && svelte-check --tsgo --tsconfig ./tsconfig.json && tsc -p src/service-worker --noEmit",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "test": "vitest",
-    "lint": "biome check src && svelte-check --tsgo --tsconfig ./tsconfig.json",
+    "lint": "biome check src && svelte-check --tsgo --tsconfig ./tsconfig.json && tsc -p src/service-worker --noEmit",
     "format": "biome format --write src",
     "format:check": "biome format src"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.14",
-    "@sveltejs/adapter-static": "^3.0.10",
-    "@sveltejs/kit": "^2.70.3",
-    "@sveltejs/vite-plugin-svelte": "^7.3.0",
+    "@biomejs/biome": "^2.5.15",
+    "@sveltejs/adapter-static": "^4.0.0",
+    "@sveltejs/kit": "^3.0.1",
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@tailwindcss/vite": "^4.3.3",
-    "@types/node": "^26.6.1",
+    "@types/node": "^26.6.4",
     "@typescript/native": "npm:typescript@7",
-    "svelte": "^5.57.0",
+    "svelte": "^5.57.2",
     "svelte-check": "^4.7.6",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
-    "vite": "^8.3.0",
-    "vitest": "^5.0.1"
+    "vite": "^8.3.4",
+    "vitest": "^5.0.3"
   },
   "dependencies": {
-    "@lucide/svelte": "^1.47.0",
-    "bits-ui": "^2.19.2",
+    "@lucide/svelte": "^1.53.0",
+    "bits-ui": "^2.19.5",
     "date-fns": "^4.4.0",
     "date-fns-tz": "^3.2.0",
     "pocketbase": "^0.28.1",
@@ -55,12 +55,20 @@
     "svelte-sonner": "^1.2.1"
   },
   "overrides": {
-    "cookie": "^0.7.2",
     "svelte-i18n": {
       "esbuild": "^0.28.2"
     }
   },
   "engines": {
-    "node": ">=22.12"
+    "node": ">=22.17"
+  },
+  "imports": {
+    "#lib/*": "./src/lib/*",
+    "#api/*": "./src/lib/api/*",
+    "#components/*": "./src/lib/components/*",
+    "#stores": "./src/lib/stores/index.js",
+    "#types": "./src/lib/types/index.js",
+    "#utils": "./src/lib/utils/index.js",
+    "#utils/*": "./src/lib/utils/*"
   }
 }

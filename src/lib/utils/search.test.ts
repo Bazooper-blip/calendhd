@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { setTimezone } from './date';
 import { buildSearchResults } from './search';
-import type { CalendarEvent, ExternalEvent, ExternalEventPause } from '$types';
+import type { CalendarEvent, ExternalEvent, ExternalEventPause } from '#types';
 
 beforeEach(() => {
 	setTimezone('UTC');

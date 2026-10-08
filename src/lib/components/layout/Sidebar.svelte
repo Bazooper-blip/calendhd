@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { toast } from 'svelte-sonner';
-	import { calendar, categoriesStore } from '$stores';
-	import { cn } from '$utils';
-	import { _ } from '$lib/i18n';
+	import { calendar, categoriesStore } from '#stores';
+	import { cn } from '#utils';
+	import { _ } from '#lib/i18n/index.js';
 
 	interface Props {
 		open?: boolean;
@@ -37,7 +37,7 @@
 	};
 
 	function isActive(href: string): boolean {
-		return $page.url.pathname.startsWith(href);
+		return page.url.pathname.startsWith(href);
 	}
 
 	async function resumeEvent(id: string) {

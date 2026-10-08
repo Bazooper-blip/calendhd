@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { categoriesStore } from '$stores';
-	import { Button, Input, Modal, ColorPicker } from '$components/ui';
+	import { categoriesStore } from '#stores';
+	import { Button, Input, Modal, ColorPicker } from '#components/ui/index.js';
 	import { toast } from 'svelte-sonner';
-	import { cn } from '$utils';
-	import type { Category } from '$types';
+	import { cn } from '#utils';
+	import type { Category } from '#types';
 
 	let showModal = $state(false);
 	let editingCategory = $state<Category | null>(null);

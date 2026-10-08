@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { cn } from '$utils';
-	import { _ } from '$lib/i18n';
+	import { cn } from '#utils';
+	import { _ } from '#lib/i18n/index.js';
 
 	interface Option {
 		value: string;

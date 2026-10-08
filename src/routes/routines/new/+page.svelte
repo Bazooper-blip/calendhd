@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
-	import { routinesStore } from '$stores';
-	import { Button, Input, Select, ColorPicker, IconPicker } from '$components/ui';
+	import { routinesStore } from '#stores';
+	import { Button, Input, Select, ColorPicker, IconPicker } from '#components/ui/index.js';
 	import { toast } from 'svelte-sonner';
-	import type { RoutineStep, EnergyLevel } from '$types';
+	import type { RoutineStep, EnergyLevel } from '#types';
 
 	// --- Form state ---
 	let name = $state('');

@@ -1,7 +1,7 @@
 build_from:
-  aarch64: ghcr.io/hassio-addons/base:21.0.5
-  amd64: ghcr.io/hassio-addons/base:21.0.5
-  armv7: ghcr.io/hassio-addons/base:21.0.5
+  aarch64: ghcr.io/hassio-addons/base:21.0.8
+  amd64: ghcr.io/hassio-addons/base:21.0.8
+  armv7: ghcr.io/hassio-addons/base:21.0.8
 args:
   PB_VERSION: "0.40.4"
 labels:

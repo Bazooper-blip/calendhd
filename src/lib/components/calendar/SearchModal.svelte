@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
+	import { browser } from '$app/env';
 	import { goto } from '$app/navigation';
 	import { format } from 'date-fns';
 	import { toast } from 'svelte-sonner';
-	import { searchEvents } from '$api/pocketbase';
-	import { calendar, settingsStore } from '$stores';
+	import { searchEvents } from '#api/pocketbase.js';
+	import { calendar, settingsStore } from '#stores';
 	import {
 		RECURRENCE_PRESETS,
 		buildSearchResults,
@@ -12,9 +12,9 @@
 		formatTime,
 		formatTimeRange,
 		type SearchResult
-	} from '$utils';
-	import { EventIcon, Modal } from '$components/ui';
-	import { _ } from '$lib/i18n';
+	} from '#utils';
+	import { EventIcon, Modal } from '#components/ui/index.js';
+	import { _ } from '#lib/i18n/index.js';
 
 	interface Props {
 		open?: boolean;

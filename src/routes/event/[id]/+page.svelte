@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { getEvent, updateEvent, deleteEvent } from '$api/pocketbase';
-	import { EventForm } from '$components/event';
-	import { Button, Modal } from '$components/ui';
+	import { getEvent, updateEvent, deleteEvent } from '#api/pocketbase.js';
+	import { EventForm } from '#components/event/index.js';
+	import { Button, Modal } from '#components/ui/index.js';
 	import { toast } from 'svelte-sonner';
-	import { format, parseTimeToDate } from '$utils';
-	import type { CalendarEvent, EventFormData } from '$types';
+	import { format, parseTimeToDate } from '#utils';
+	import type { CalendarEvent, EventFormData } from '#types';
 
-	const eventId = $derived($page.params.id);
+	const eventId = $derived(page.params.id);
 
 	let event = $state<CalendarEvent | null>(null);
 	let loading = $state(true);

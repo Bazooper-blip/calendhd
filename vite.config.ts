@@ -1,3 +1,5 @@
+import adapter from '@sveltejs/adapter-static';
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { readFileSync } from 'node:fs';
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
@@ -12,7 +14,15 @@ if (!version) throw new Error('No version found in ha-addon/calendhd/config.yaml
 export default defineConfig({
 	plugins: [
 		tailwindcss(),
-		sveltekit()
+		sveltekit({
+			preprocess: vitePreprocess(),
+			adapter: adapter({
+				// Use fallback for SPA-style client-side routing
+				fallback: 'index.html',
+				strict: false
+			}),
+			serviceWorker: { register: true }
+		})
 	],
 	define: {
 		__APP_VERSION__: JSON.stringify(version)
@@ -30,7 +40,8 @@ export default defineConfig({
 				target: 'http://127.0.0.1:8090',
 				changeOrigin: true
 			},
-			'/_': {
+			// Trailing slash matters: a bare '/_' prefix also swallows '/_app/*'.
+			'/_/': {
 				target: 'http://127.0.0.1:8090',
 				changeOrigin: true
 			}

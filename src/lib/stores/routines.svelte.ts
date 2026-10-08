@@ -4,9 +4,9 @@ import {
 	getRoutineTemplates,
 	subscribeToRoutineTemplates,
 	updateRoutineTemplate
-} from '$api/pocketbase';
-import { browser } from '$app/environment';
-import type { RoutineSchedule, RoutineStep, RoutineTemplate } from '$types';
+} from '#api/pocketbase.js';
+import type { RoutineSchedule, RoutineStep, RoutineTemplate } from '#types';
+import { browser } from '$app/env';
 import { auth } from './auth.svelte';
 
 function createRoutinesStore() {

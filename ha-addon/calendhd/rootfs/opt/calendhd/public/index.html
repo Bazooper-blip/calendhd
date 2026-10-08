@@ -13,20 +13,21 @@
 		<link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
 		<link rel="manifest" href="/manifest.json" />
 		<title>calenDHD</title>
-		<link href="/_app/immutable/entry/start.BVHIibcd.js" rel="modulepreload">
-		<link href="/_app/immutable/chunks/BM50Cm2a.js" rel="modulepreload">
-		<link href="/_app/immutable/chunks/C9Do8i0P.js" rel="modulepreload">
-		<link href="/_app/immutable/chunks/DMdO5f3L.js" rel="modulepreload">
-		<link href="/_app/immutable/entry/app.DSgXfrrb.js" rel="modulepreload">
-		<link href="/_app/immutable/chunks/uBIymjUX.js" rel="modulepreload">
-		<link href="/_app/immutable/chunks/xihTtKlq.js" rel="modulepreload">
-		<link href="/_app/immutable/nodes/0.DFkWPHAj.js" rel="modulepreload">
-		<link href="/_app/immutable/chunks/CbK9wYK7.js" rel="modulepreload">
-		<link href="/_app/immutable/chunks/y-v1CkPB.js" rel="modulepreload">
-		<link href="/_app/immutable/chunks/DhtpwUs3.js" rel="modulepreload">
-		<link href="/_app/immutable/chunks/6cDKppLl.js" rel="modulepreload">
-		<link href="/_app/immutable/chunks/-rPgsypg.js" rel="modulepreload">
-		<link href="/_app/immutable/chunks/Ba4yAENA.js" rel="modulepreload">
+		<link href="/_app/immutable/entry/start.C0O-AdP_.js" rel="modulepreload">
+		<link href="/_app/immutable/entry/payload.DSmR2FwN.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/CRzLMJPS.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/DxMwCZtN.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/CW6hRcQc.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/d8_t8vPv.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/BNwadM9l.js" rel="modulepreload">
+		<link href="/_app/immutable/entry/app.CSVYL4Vv.js" rel="modulepreload">
+		<link href="/_app/immutable/nodes/0.BZ2xBMX6.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/hePW80VL.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/D8AMG5Hm.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/HSNuD5Gk.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/eKsVsZ-_.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/B98H9DnK.js" rel="modulepreload">
+		<link href="/_app/immutable/chunks/CoCjq4mV.js" rel="modulepreload">
 		
 		<link href="/_app/immutable/assets/0.Bz3H0m4p.css" rel="stylesheet">
 	</head>
@@ -34,16 +35,16 @@
 		<div style="display: contents">
 			<script>
 				{
-					__sveltekit_18v9qpg = {
-						base: ""
+					__sveltekit_1ochm38 = {
+						base: "",
+						version: "1791475678451"
 					};
 
 					const element = document.currentScript.parentElement;
 
-					Promise.all([
-						import("/_app/immutable/entry/start.BVHIibcd.js"),
-						import("/_app/immutable/entry/app.DSgXfrrb.js")
-					]).then(([kit, app]) => {
+					import("/_app/immutable/entry/start.C0O-AdP_.js").then(async (kit) => {
+						kit.init(__sveltekit_1ochm38);
+						const app = await import("/_app/immutable/entry/app.CSVYL4Vv.js");
 						kit.start(app, element);
 					});
 
@@ -55,7 +56,7 @@
 						);
 						const sanitised = policy?.createScriptURL(script_url) ?? script_url;
 						addEventListener('load', function () {
-							navigator.serviceWorker.register(sanitised);
+							navigator.serviceWorker.register(sanitised, { type: 'module' });
 						});
 					}
 				}

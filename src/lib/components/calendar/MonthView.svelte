@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { calendar, settingsStore } from '$stores';
-	import { EventIcon } from '$components/ui';
+	import { calendar, settingsStore } from '#stores';
+	import { EventIcon } from '#components/ui/index.js';
 	import {
 		formatDayOfWeek,
 		getContrastColor,
@@ -13,10 +13,10 @@
 		endOfWeek,
 		startOfMonth,
 		endOfMonth
-	} from '$utils';
-	import type { DisplayEvent } from '$types';
+	} from '#utils';
+	import type { DisplayEvent } from '#types';
 	import EventDetailModal from './EventDetailModal.svelte';
-	import { _ } from '$lib/i18n';
+	import { _ } from '#lib/i18n/index.js';
 
 	interface MonthRoutineGroup {
 		kind: 'routine-group';
@@ -124,7 +124,7 @@
 
 	let eventDetail = $state<DisplayEvent | null>(null);
 
-	function handleEventClick(event: import('$types').DisplayEvent) {
+	function handleEventClick(event: import('#types').DisplayEvent) {
 		eventDetail = event;
 	}
 </script>

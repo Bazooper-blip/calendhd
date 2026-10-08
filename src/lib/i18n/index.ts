@@ -6,7 +6,7 @@ import {
 	register,
 	waitLocale
 } from 'svelte-i18n';
-import { browser } from '$app/environment';
+import { browser } from '$app/env';
 
 // Import default locale synchronously to avoid loading issues
 import en from './locales/en.json';

@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
-	import { routinesStore } from '$stores';
-	import { Button, Input, Select, ColorPicker, IconPicker } from '$components/ui';
+	import { page } from '$app/state';
+	import { routinesStore } from '#stores';
+	import { Button, Input, Select, ColorPicker, IconPicker } from '#components/ui/index.js';
 	import { toast } from 'svelte-sonner';
-	import type { RoutineStep, EnergyLevel } from '$types';
+	import type { RoutineStep, EnergyLevel } from '#types';
 
-	const routineId = $derived($page.params.id ?? '');
+	const routineId = $derived(page.params.id ?? '');
 	const routine = $derived(routineId ? routinesStore.getById(routineId) : undefined);
 
 	// --- Form state ---

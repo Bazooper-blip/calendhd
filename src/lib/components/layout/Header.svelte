@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { format } from 'date-fns';
-	import { calendar } from '$stores';
-	import { formatMonthYear, formatDateSmart } from '$utils';
-	import { Button } from '$components/ui';
-	import SearchModal from '$components/calendar/SearchModal.svelte';
-	import { _ } from '$lib/i18n';
+	import { calendar } from '#stores';
+	import { formatMonthYear, formatDateSmart } from '#utils';
+	import { Button } from '#components/ui/index.js';
+	import SearchModal from '#components/calendar/SearchModal.svelte';
+	import { _ } from '#lib/i18n/index.js';
 
 	interface Props {
 		onMenuClick?: () => void;
@@ -23,7 +23,7 @@
 	});
 
 	// Check if we're on a calendar route
-	const isCalendarRoute = $derived($page.url.pathname.startsWith('/calendar'));
+	const isCalendarRoute = $derived(page.url.pathname.startsWith('/calendar'));
 
 
 	function getCalendarTitle(): string {

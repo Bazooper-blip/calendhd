@@ -12,10 +12,10 @@ import type {
 	Template,
 	User,
 	UserSettings
-} from '$types';
+} from '#types';
 // Import the module directly, not the $utils barrel — the barrel re-exports
 // notifications.ts which imports back from this file (cycle).
-import { baseIcalUid } from '$utils/externalEvents';
+import { baseIcalUid } from '#utils/externalEvents.js';
 
 // PocketBase client singleton
 let pb: PocketBase | null = null;

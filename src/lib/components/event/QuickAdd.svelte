@@ -1,17 +1,17 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
-	import { page } from '$app/stores';
+	import { browser } from '$app/env';
+	import { page } from '$app/state';
 	import { format, addHours, setMinutes } from 'date-fns';
-	import { calendar } from '$stores';
+	import { calendar } from '#stores';
 	import { toast } from 'svelte-sonner';
-	import { _ } from '$lib/i18n';
-	import { Button, Input, Modal } from '$components/ui';
+	import { _ } from '#lib/i18n/index.js';
+	import { Button, Input, Modal } from '#components/ui/index.js';
 
 	let showModal = $state(false);
 	let showFab = $state(true);
 	let loading = $state(false);
 
-	const onMonthView = $derived($page.url.pathname.startsWith('/calendar/month'));
+	const onMonthView = $derived(page.url.pathname.startsWith('/calendar/month'));
 
 	// Form state
 	let title = $state('');

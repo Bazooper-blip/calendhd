@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { addMonths, format } from 'date-fns';
-	import { Input, Select } from '$components/ui';
-	import { RECURRENCE_PRESETS } from '$utils';
-	import type { RecurrenceRule } from '$types';
+	import { Input, Select } from '#components/ui/index.js';
+	import { RECURRENCE_PRESETS } from '#utils';
+	import type { RecurrenceRule } from '#types';
 
 	interface Props {
 		/** The rule being edited; undefined = does not repeat. */

@@ -2,8 +2,8 @@ import {
 	deleteDevicePushSubscriptionByEndpoint,
 	getCurrentUser,
 	upsertDevicePushSubscription
-} from '$api/pocketbase';
-import { browser } from '$app/environment';
+} from '#api/pocketbase.js';
+import { browser } from '$app/env';
 
 // Check if notifications are supported
 export function isNotificationSupported(): boolean {
