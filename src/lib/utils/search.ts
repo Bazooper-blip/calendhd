@@ -6,8 +6,8 @@ import type {
 	ExternalEventPause,
 	RecurrenceRule
 } from '#types';
-import { baseIcalUid } from './externalEvents';
 import { DEFAULT_EXTERNAL_EVENT_COLOR, DEFAULT_LOCAL_EVENT_COLOR } from './displayEvents';
+import { baseIcalUid } from './externalEvents';
 import { expandRecurrenceRule } from './recurrence';
 
 // One row in the search results. `when` is the date the row is shown at and
