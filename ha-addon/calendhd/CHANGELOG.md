@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.14.1
+
+Maintenance release: dependency updates only, no behaviour changes.
+
+- PocketBase 0.40.4 → 0.40.5 (the live integration suite passes 14/14 against 0.40.5).
+- Dependencies: SvelteKit 3.1.0, @lucide/svelte 1.58.0, Vitest 5.0.5, svelte-check 4.7.7, @types/node 26.6.5. TypeScript stays at 6.0.3 as the primary compiler — svelte-check 4.7.7 still peer-depends on TS 5/6; TS 7 keeps running alongside as the `--tsgo` checker. Home Assistant base image (21.0.8), PocketBase JS SDK (0.28.1) and web-push (3.6.7) were already current.
+
 ## 1.14.0
 
 - New: search. A magnifier in the header (or the `/` key) opens a search box that looks through every event ever entered or synced — titles, notes, the "first step" field and, for subscribed calendars, the location — not just the week on screen. Results are split into Upcoming (soonest first) and Earlier (most recent first). A repeating event shows up once, at its next occurrence, and a repeating event from a subscribed calendar is likewise collapsed into one row instead of one per week. Paused events are listed too, marked "Paused": tapping a paused local event opens its edit page, and a paused subscribed series gets a resume button right in the results. Tapping any other result jumps to that day.

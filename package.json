@@ -1,6 +1,6 @@
 {
   "name": "calendhd",
-  "version": "1.14.0",
+  "version": "1.14.1",
   "description": "A calm, ADHD-friendly calendar PWA for neurodivergent minds",
   "private": true,
   "type": "module",
@@ -33,20 +33,20 @@
   "devDependencies": {
     "@biomejs/biome": "^2.5.15",
     "@sveltejs/adapter-static": "^4.0.0",
-    "@sveltejs/kit": "^3.0.1",
+    "@sveltejs/kit": "^3.1.0",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@tailwindcss/vite": "^4.3.3",
-    "@types/node": "^26.6.4",
+    "@types/node": "^26.6.5",
     "@typescript/native": "npm:typescript@7",
     "svelte": "^5.57.2",
-    "svelte-check": "^4.7.6",
+    "svelte-check": "^4.7.7",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
     "vite": "^8.3.4",
-    "vitest": "^5.0.3"
+    "vitest": "^5.0.5"
   },
   "dependencies": {
-    "@lucide/svelte": "^1.53.0",
+    "@lucide/svelte": "^1.58.0",
     "bits-ui": "^2.19.5",
     "date-fns": "^4.4.0",
     "date-fns-tz": "^3.2.0",
