@@ -40,7 +40,7 @@ cd "$ADDON_DIR"
 
 docker build \
     --build-arg BUILD_FROM="ghcr.io/hassio-addons/base:21.0.5" \
-    --build-arg PB_VERSION="0.40.4" \
+    --build-arg PB_VERSION="0.40.5" \
     --platform "linux/${ARCH}" \
     -t "local/calendhd:${ARCH}" \
     .
