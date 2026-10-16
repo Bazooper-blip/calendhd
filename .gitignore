@@ -59,3 +59,4 @@ docker/.env
 
 # Claude Code
 .claude/
+.svelte-check/
