@@ -1,0 +1,16 @@
+# Context is the repo root (see Dockerfile); keep it to what the build reads
+.git
+**/node_modules
+build
+.svelte-kit
+.svelte-check
+.claude
+.superpowers
+docs
+docker
+trmnl-plugin
+pocketbase/pb_data
+pocketbase/pocketbase
+pocketbase/*.db*
+.env
+.env.*

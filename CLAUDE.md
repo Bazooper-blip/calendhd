@@ -27,12 +27,7 @@ cd pocketbase && ./pocketbase serve   # Starts on http://127.0.0.1:8090
 
 Environment variables are documented in `.env.example` (PocketBase URL, optional VAPID keys for push).
 
-Home Assistant addon release build (commits go to git for HA to pull):
-```bash
-./build-for-ha.sh    # Linux/macOS — builds frontend, syncs hooks/migrations/push-service into ha-addon/calendhd/
-./build-for-ha.cmd   # Windows equivalent (legacy; also writes ha-deploy/ staging dir)
-```
-Bump `version:` in `ha-addon/calendhd/config.yaml` before each release so HA detects the update.
+Home Assistant addon release: bump `version:` in `ha-addon/calendhd/config.yaml` (+ `CHANGELOG.md`) and merge to `main` — `.github/workflows/addon.yml` builds and publishes the image to GHCR, which HA pulls. Local test build: `ha-addon/build-local.sh [amd64|aarch64]` (needs Docker).
 
 ## Architecture
 
@@ -189,44 +184,34 @@ The HA add-on lives in `ha-addon/calendhd/` and bundles PocketBase + frontend + 
 ```
 ha-addon/calendhd/
 ├── config.yaml              # HA addon config (port 8090 exposed; ingress disabled — SPA absolute paths conflict with ingress token prefix)
-├── build.yaml               # Docker build args (PB_VERSION, base image per arch)
-├── Dockerfile               # Multi-arch build: base image + PocketBase + frontend + push-service
-├── pb_hooks/                # Copied from pocketbase/pb_hooks/ (must stay in sync)
-├── pb_migrations/           # Copied from pocketbase/pb_migrations/ (must stay in sync)
+├── Dockerfile               # Built from the REPO ROOT: frontend build stage + base image + PocketBase + hooks/migrations + push-service
+├── Dockerfile.dockerignore  # Trims the repo-root build context
 ├── translations/en.yaml     # HA config UI translations
 ├── rootfs/
 │   ├── run.sh               # Startup: launches PocketBase on 0.0.0.0:8090
 │   ├── etc/cont-init.d/calendhd-init.sh   # Init: copies files to /config/calendhd/, sets env vars
 │   ├── etc/services.d/pocketbase/          # s6-overlay service definition
-│   └── opt/calendhd/public/index.html      # Pre-built frontend placeholder
-├── DOCS.md, CHANGELOG.md
-└── push-service/            # Copied from push-service/ by build script (not checked in)
+│   └── opt/calendhd/pb_setup/              # Legacy schema export (unused by the app)
+└── DOCS.md, CHANGELOG.md
 ```
 
 **Key details:**
-- **PocketBase version**: Defined in `build.yaml` (`PB_VERSION` arg), must match `Dockerfile` default
-- **Architectures**: aarch64, amd64, armv7
+- **PocketBase version**: `ARG PB_VERSION=` in the Dockerfile (CI's integration job greps that line; bump manually). Base images (`node`, `hassio-addons/base`) are bumped by Dependabot
+- **Architectures**: aarch64, amd64 (armv7 dropped in 1.15.0 — HA's builder actions and HA itself no longer support it)
 - **Networking**: Port 8090 exposed directly; HA ingress is disabled because the SvelteKit app uses absolute paths (`goto('/calendar/...')`) that escape the dynamic ingress token prefix. Front the addon with a reverse proxy (Cloudflare Tunnel, NGINX SSL Proxy) for HTTPS.
 - **Persistence**: All data stored at `/config/calendhd/` (HA config volume)
 - **Options**: `log_level`, `vapid_public_key`, `vapid_private_key`, `vapid_email`, `trmnl_feed_token` (exported as `TRMNL_FEED_TOKEN` by the init script)
 - **Init script** copies hooks, migrations, and frontend to the config volume on each start
 
-**Keeping the addon in sync:**
-- `build-for-ha.sh` (Linux/macOS) — builds frontend, copies hooks/migrations/push-service into `ha-addon/calendhd/` for committing.
-- `build-for-ha.cmd` (Windows, legacy) — same job plus a `ha-deploy/` staging dir for manual Samba copy.
-- `ha-addon/build-local.sh` — builds the addon Docker image locally for testing (does not sync hooks/migrations).
+**Release flow (pre-built images, since 1.15.0):** `config.yaml` has `image: "ghcr.io/bazooper-blip/calendhd"`, so HA pulls a published image instead of building on-device. `.github/workflows/addon.yml` uses HA's BuildKit builder actions (`home-assistant/builder/actions/*` — the legacy `home-assistant/builder` action is retired) to build amd64/aarch64 on native runners: PRs build only; pushes to `main` (and manual runs) publish `<version>` + `latest` per arch plus a multi-arch manifest. `skip-existing` means an unchanged `version:` builds but doesn't publish — **bump `version:` to release**. Nothing generated is committed: the Dockerfile builds the frontend and copies `pocketbase/pb_hooks`, `pocketbase/pb_migrations` and `push-service/` straight from the repo (the old `build-for-ha.sh` sync step and its "forgot to rebuild" footgun are gone). The init script (`calendhd-init.sh`) copies `/opt/calendhd/public/* → /config/calendhd/pb_public/` on every start — overwriting any hot-swapped assets — so the in-image bundle is the source of truth.
 
-**Release flow:** the Dockerfile (`ha-addon/calendhd/Dockerfile`) does not run `npm run build` itself — its build context is limited to `ha-addon/calendhd/`, so the frontend at `rootfs/opt/calendhd/public/` must be pre-built and committed. `.gitignore` only excludes the top-level `build/`, so the addon's `rootfs/opt/calendhd/public/` is tracked normally.
-
-> **Critical:** any commit that changes `src/**` MUST be paired with `./build-for-ha.sh` so the rebuilt `_app/*` chunks land in `ha-addon/calendhd/rootfs/opt/calendhd/public/`. Bumping `version:` in `config.yaml` triggers HA to "update" but the image rebuild produces an identical artifact if the rootfs hasn't been refreshed. Has bitten us at least once (1.4.0 → 1.4.3). The init script (`calendhd-init.sh`) rsync's `/opt/calendhd/public/* → /config/calendhd/pb_public/` on every start — overwriting any hot-swapped assets — so the in-image bundle is the source of truth.
+> HA sees a new version as soon as `config.yaml` lands on `main`, a few minutes before the images finish publishing; an update attempted in that window fails to pull and can simply be retried. The GHCR packages must be **public** for HA to pull them.
 
 **Singleton-account password rotation.** On every addon start, `cont-init.d/calendhd-init.sh` ensures `/config/calendhd/.singleton-password` exists (generates 32-byte hex via openssl/urandom on first run), exposes it as `SINGLETON_PASSWORD` in the s6 container_environment, and the `005_singleton_init.pb.js` hook then `setPassword`s the singleton user to match. To force-rotate the password: stop addon → `rm /config/calendhd/.singleton-password` → start addon. Existing sessions are invalidated on next `authRefresh`.
 
 **Multi-device push.** Each browser/device that opts in to notifications gets its own row in the `push_subscriptions` collection (keyed by the unique Web Push endpoint URL). The reminder cron + test-notification endpoint both call `sendPushToAllDevices()` from `pb_helpers.js`, which fans out to every row for the singleton user — so notifications fire on every active device, not just the most recent one. Dead subscriptions (push-service returns 404 or 410) are pruned lazily on the next send. The push-service forwards web-push's upstream `statusCode` so the cron can distinguish prune-worthy failures (gone) from transient ones (5xx). See `pb_migrations/0007_push_subscriptions.js`.
 
 **Repo metadata:** [`repository.yaml`](repository.yaml) at the repo root marks this as an HA add-on repository. Users add `https://github.com/Bazooper-blip/calendhd` in HA → Add-on Store → Repositories.
-
-**When adding new hooks or migrations**, always run the build script or manually copy files to `ha-addon/calendhd/` to keep the addon in sync.
 
 ## Testing
 

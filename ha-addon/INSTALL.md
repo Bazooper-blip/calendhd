@@ -54,55 +54,16 @@ The addon serves plain HTTP. PWA install requires HTTPS, and you'll typically wa
 
 ---
 
-## Method 2: Local Installation (Manual)
+## Method 2: Local Test Build
 
-Use this method if you want to modify the add-on or test locally.
-
-### Step 1: Access Home Assistant Files
-
-**Option A: Using Samba Share**
-1. Install the "Samba share" add-on from the Add-on Store
-2. Configure and start it
-3. Access `\\homeassistant.local\addons\` from your computer
-
-**Option B: Using SSH**
-1. Install the "Terminal & SSH" add-on
-2. SSH into Home Assistant: `ssh root@homeassistant.local`
-
-### Step 2: Copy Add-on Files
-
-Copy the entire `calendhd` folder to `/addons/`:
-
-```
-/addons/
-└── calendhd/
-    ├── config.yaml
-    ├── Dockerfile
-    ├── build.yaml
-    ├── CHANGELOG.md
-    ├── DOCS.md
-    ├── pb_migrations/
-    ├── rootfs/
-    └── translations/
-```
-
-### Step 3: Build the Frontend (Required)
-
-The Dockerfile does **not** build the frontend during the image build — its Docker context is limited to `ha-addon/calendhd/`, so it can't reach the SvelteKit source. You must produce a build on your dev machine and stage it inside the addon directory before installing:
+HA installs a pre-built image from GitHub Container Registry (published by `.github/workflows/addon.yml`), so there is no on-device build step. To test changes before releasing, build the same image locally from the repo root (needs Docker with Buildx):
 
 ```bash
-# On your development machine, in the repo root
-./build-for-ha.sh
+ha-addon/build-local.sh            # aarch64 (HA Green); pass amd64 for x86
+docker run --rm -p 8090:8090 -v calendhd_data:/config local/calendhd:aarch64
 ```
 
-That script runs `npm install`/`npm run build`, then syncs the build output, hooks, migrations, and push-service into `ha-addon/calendhd/`. If you skip this step, the addon will start but the calendar UI won't load (only the placeholder `index.html`).
-
-### Step 4: Install the Add-on
-
-1. Go to **Settings** → **Add-ons** → **Add-on Store**
-2. Click **⋮** → **Check for updates**
-3. Look for "calenDHD" under "Local add-ons"
-4. Install and start
+The image build runs `npm ci` + `npm run build` itself, so no frontend pre-build or file syncing is needed.
 
 ---
 
@@ -160,12 +121,6 @@ That script runs `npm install`/`npm run build`, then syncs the build output, hoo
 1. Go to **Settings** → **Add-ons** → **Add-on Store**
 2. Click **⋮** → **Check for updates**
 3. If update available, click **Update** on calenDHD
-
-### Manual Update
-
-1. Download new version
-2. Replace files in `/addons/calendhd/`
-3. Restart the add-on
 
 ---
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.15.0
+
+Release-process change, no behaviour changes in the app itself.
+
+- The add-on is now installed as a pre-built image from GitHub Container Registry (`ghcr.io/bazooper-blip/calendhd`) instead of being built on your Home Assistant device. Installs and updates are much faster, especially on an HA Green.
+- **armv7 is no longer supported.** Home Assistant itself has dropped armv7 (32-bit ARM, e.g. Raspberry Pi 2/3 running 32-bit HA OS), and its add-on build tooling now only targets amd64 and aarch64. Existing armv7 installs keep running 1.14.1 but won't get this or later updates.
+
 ## 1.14.1
 
 Maintenance release: dependency updates only, no behaviour changes.
