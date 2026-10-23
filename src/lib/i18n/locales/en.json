@@ -344,7 +344,14 @@
 		"routineFallback": "Routine",
 		"by": "by",
 		"moreEvents": "+{count} more",
-		"weekNumber": "W{week}"
+		"weekNumber": "W{week}",
+		"showEarlierHours": "Show earlier hours",
+		"hideEarlierHours": "Hide earlier hours",
+		"showLaterHours": "Show later hours",
+		"hideLaterHours": "Hide later hours",
+		"nothingPlanned": "Nothing planned",
+		"showAsList": "Show as list",
+		"showAsGrid": "Show as grid"
 	},
 	"search": {
 		"title": "Search",

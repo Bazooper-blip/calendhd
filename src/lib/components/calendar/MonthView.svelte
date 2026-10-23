@@ -12,7 +12,8 @@
 		startOfWeek,
 		endOfWeek,
 		startOfMonth,
-		endOfMonth
+		endOfMonth,
+		format
 	} from '#utils';
 	import type { DisplayEvent } from '#types';
 	import EventDetailModal from './EventDetailModal.svelte';
@@ -117,9 +118,10 @@
 		return { items: allItems.slice(0, 3), moreCount };
 	}
 
+	// Navigate, don't just set the view type: the month route's sync effect
+	// would immediately switch it back to 'month'.
 	function handleDayClick(day: Date) {
-		calendar.setDate(day);
-		calendar.setViewType('day');
+		goto(`/calendar/day/${format(day, 'yyyy-MM-dd')}`);
 	}
 
 	let eventDetail = $state<DisplayEvent | null>(null);

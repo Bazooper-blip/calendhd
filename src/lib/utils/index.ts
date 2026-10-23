@@ -22,6 +22,7 @@ export * from './externalEvents';
 export * from './notifications';
 export * from './recurrence';
 export * from './search';
+export * from './weekList';
 
 // Class name utility
 export function cn(...classes: (string | boolean | undefined | null)[]): string {

@@ -12,6 +12,7 @@ import {
 	getDaysInRange,
 	getEventPosition,
 	computeEventLanes,
+	computeVisibleHourRange,
 	isToday,
 	isSameDay,
 	isSameMonth,
@@ -449,5 +450,56 @@ describe('getWeekNumber', () => {
 	it('respects a Saturday week start', () => {
 		// Fri Jan 2 2026 is in the week Dec 27 - Jan 2, which contains Jan 1
 		expect(getWeekNumber(new Date(2026, 0, 2), 6)).toBe(1);
+	});
+});
+
+describe('computeVisibleHourRange', () => {
+	const at = (h: number, m = 0, d = 5) => new Date(2026, 3, d, h, m);
+
+	it('falls back to the default window for an empty week', () => {
+		expect(computeVisibleHourRange([])).toEqual({ startHour: 7, endHour: 21 });
+	});
+
+	it('keeps the default window when every event fits inside it', () => {
+		expect(computeVisibleHourRange([{ start: at(9), end: at(17) }])).toEqual({
+			startHour: 7,
+			endHour: 21
+		});
+	});
+
+	it('widens to the earliest start and latest end, rounded to whole hours', () => {
+		expect(
+			computeVisibleHourRange([
+				{ start: at(5, 30), end: at(6) },
+				{ start: at(21, 15), end: at(22, 10) }
+			])
+		).toEqual({ startHour: 5, endHour: 23 });
+	});
+
+	it('uses the same footprint as getEventPosition (no end = 60 min, at least 45 min)', () => {
+		expect(computeVisibleHourRange([{ start: at(21, 30) }])).toEqual({ startHour: 7, endHour: 23 });
+		expect(computeVisibleHourRange([{ start: at(20, 50), end: at(20, 55) }])).toEqual({
+			startHour: 7,
+			endHour: 22
+		});
+	});
+
+	it('clamps events that run past midnight to the end of the day', () => {
+		expect(computeVisibleHourRange([{ start: at(23), end: at(1, 0, 6) }])).toEqual({
+			startHour: 7,
+			endHour: 24
+		});
+	});
+
+	it('includes the current time so the now line is always visible', () => {
+		expect(computeVisibleHourRange([], { now: at(2, 40) })).toEqual({ startHour: 2, endHour: 21 });
+		expect(computeVisibleHourRange([], { now: at(23, 5) })).toEqual({ startHour: 7, endHour: 24 });
+	});
+
+	it('accepts a custom default window', () => {
+		expect(computeVisibleHourRange([], { defaultStart: 8, defaultEnd: 18 })).toEqual({
+			startHour: 8,
+			endHour: 18
+		});
 	});
 });

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { calendar } from '#stores';
-	import { WeekView } from '#components/calendar/index.js';
+	import { calendar, weekLayoutStore } from '#stores';
+	import { WeekListView, WeekView } from '#components/calendar/index.js';
 	import { parseISO, isValid } from 'date-fns';
 
 	// Parse date from URL or use current
@@ -31,5 +31,9 @@
 </script>
 
 <div class="h-full">
-	<WeekView date={currentDate()} />
+	{#if weekLayoutStore.layout === 'list'}
+		<WeekListView date={currentDate()} />
+	{:else}
+		<WeekView date={currentDate()} />
+	{/if}
 </div>

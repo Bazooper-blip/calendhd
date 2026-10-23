@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { browser } from '$app/env';
 	import { goto } from '$app/navigation';
-	import { calendar, settingsStore, routinesStore } from '#stores';
+	import { calendar, settingsStore, routinesStore, weekLayoutStore } from '#stores';
 	import { _ } from '#lib/i18n/index.js';
 	import {
 		computeEventLanes,
+		computeVisibleHourRange,
 		formatDayOfWeek,
 		getContrastColor,
 		getDaysInRange,
@@ -17,6 +18,7 @@
 	} from '#utils';
 	import type { DisplayEvent, EnergyLevel } from '#types';
 	import { format } from 'date-fns';
+	import { ChevronDown, ChevronUp, List } from '@lucide/svelte';
 	import EventBlock from './EventBlock.svelte';
 	import RoutineBlock from './RoutineBlock.svelte';
 	import EventDetailModal from './EventDetailModal.svelte';
@@ -162,12 +164,42 @@
 
 	// Current time indicator
 	let now = $state(new Date());
-	const nowPosition = $derived.by(() => {
-		const minutes = now.getHours() * 60 + now.getMinutes();
-		return (minutes / 1440) * 100;
-	});
 	const nowTimeString = $derived(format(now, 'HH:mm'));
 	const hasToday = $derived(days.some((day) => isToday(day)));
+
+	// Visible hour window: empty night hours are trimmed (never an event or
+	// the now line); the expanders reveal the rest of the day on demand.
+	const HOUR_PX = 60;
+	let showEarlier = $state(false);
+	let showLater = $state(false);
+	const fittedRange = $derived(
+		computeVisibleHourRange(
+			days.flatMap((day) => getEventsForDay(day, false)),
+			{ now: hasToday ? now : undefined }
+		)
+	);
+	const startHour = $derived(showEarlier ? 0 : fittedRange.startHour);
+	const endHour = $derived(showLater ? 24 : fittedRange.endHour);
+	const windowMinutes = $derived((endHour - startHour) * 60);
+	const visibleHours = $derived(
+		Array.from({ length: endHour - startHour }, (_, i) => startHour + i)
+	);
+
+	// Map a full-day minute offset to a percentage of the visible window
+	function toWindowPercent(minutes: number): number {
+		return ((minutes - startHour * 60) / windowMinutes) * 100;
+	}
+
+	// getEventPosition works in percent of the full day; rescale to the window
+	function windowPosition(start: Date, end: Date | undefined, day: Date) {
+		const pos = getEventPosition(start, end, day);
+		return {
+			top: toWindowPercent((pos.top / 100) * 1440),
+			height: ((pos.height / 100) * 1440 / windowMinutes) * 100
+		};
+	}
+
+	const nowPosition = $derived(toWindowPercent(now.getHours() * 60 + now.getMinutes()));
 
 	$effect(() => {
 		const interval = setInterval(() => {
@@ -180,7 +212,7 @@
 	let timeGridRef: HTMLDivElement | undefined = $state();
 	$effect(() => {
 		if (browser && timeGridRef && hasToday) {
-			const scrollTarget = nowPosition / 100 * 1440 - 200;
+			const scrollTarget = (nowPosition / 100) * windowMinutes - 200;
 			timeGridRef.scrollTop = Math.max(0, scrollTarget);
 		}
 	});
@@ -199,10 +231,10 @@
 	function handleColumnClick(e: MouseEvent, day: Date) {
 		if (e.target !== e.currentTarget) return;
 		const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-		const minutes = ((e.clientY - rect.top) / rect.height) * 1440;
+		const minutes = startHour * 60 + ((e.clientY - rect.top) / rect.height) * windowMinutes;
 		const snapped = Math.max(
-			0,
-			Math.min(1440 - SNAP_MINUTES, Math.floor(minutes / SNAP_MINUTES) * SNAP_MINUTES)
+			startHour * 60,
+			Math.min(endHour * 60 - SNAP_MINUTES, Math.floor(minutes / SNAP_MINUTES) * SNAP_MINUTES)
 		);
 		const hh = String(Math.floor(snapped / 60)).padStart(2, '0');
 		const mm = String(snapped % 60).padStart(2, '0');
@@ -218,10 +250,19 @@
 	<!-- Week header -->
 	<div class="flex-shrink-0 border-b border-neutral-100 dark:border-neutral-800">
 		<div class="flex">
-			<div class="w-14 flex-shrink-0 flex items-center justify-center">
+			<div class="w-14 flex-shrink-0 flex flex-col items-center justify-center gap-1">
 				<span class="text-xs font-medium text-neutral-400 dark:text-neutral-500">
 					{$_('calendar.weekNumber', { values: { week: weekNumber } })}
 				</span>
+				<button
+					type="button"
+					onclick={() => weekLayoutStore.set('list')}
+					class="p-1 rounded-md text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600 dark:text-neutral-500 dark:hover:bg-neutral-700 dark:hover:text-neutral-300"
+					aria-label={$_('calendar.showAsList')}
+					title={$_('calendar.showAsList')}
+				>
+					<List class="w-4 h-4" />
+				</button>
 			</div>
 			<div class="flex-1 grid grid-cols-7 gap-px">
 				{#each days as day (day.getTime())}
@@ -229,10 +270,7 @@
 						<span class="text-xs text-neutral-500 dark:text-neutral-400">{formatDayOfWeek(day, true)}</span>
 						<button
 							type="button"
-							onclick={() => {
-								calendar.setDate(day);
-								calendar.setViewType('day');
-							}}
+							onclick={() => goto(`/calendar/day/${format(day, 'yyyy-MM-dd')}`)}
 							class="w-8 h-8 mx-auto mt-1 rounded-full flex items-center justify-center text-sm font-semibold transition-colors {isToday(day)
 								? 'bg-primary-500 text-white'
 								: 'text-neutral-800 dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-700'}"
@@ -271,12 +309,27 @@
 
 	<!-- Time grid -->
 	<div class="flex-1 overflow-y-auto" bind:this={timeGridRef}>
-		<div class="relative h-[1440px] mt-3">
+		{#if fittedRange.startHour > 0}
+			<button
+				type="button"
+				onclick={() => (showEarlier = !showEarlier)}
+				class="w-full flex items-center justify-center gap-1 py-1.5 text-xs text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300"
+			>
+				{#if showEarlier}
+					<ChevronDown class="w-3.5 h-3.5" />
+					{$_('calendar.hideEarlierHours')}
+				{:else}
+					<ChevronUp class="w-3.5 h-3.5" />
+					{$_('calendar.showEarlierHours')}
+				{/if}
+			</button>
+		{/if}
+		<div class="relative mt-3" style="height: {(endHour - startHour) * HOUR_PX}px">
 			<!-- Hour lines and labels -->
-			{#each Array(24) as _, hour (hour)}
+			{#each visibleHours as hour (hour)}
 				<div
 					class="absolute left-0 right-0 border-t border-neutral-100 dark:border-neutral-800"
-					style="top: {(hour / 24) * 100}%"
+					style="top: {((hour - startHour) / (endHour - startHour)) * 100}%"
 				>
 					<span class="absolute -top-3 left-1 text-xs text-neutral-400 dark:text-neutral-500 bg-white dark:bg-neutral-800 px-1 w-12">
 						{hour.toString().padStart(2, '0')}:00
@@ -326,7 +379,7 @@
 						<!-- Events -->
 						{#each getLaidOutEventsForDay(day) as { item, lane, laneCount } (item.kind === 'single' ? item.event.id : item.routine_template)}
 							{#if item.kind === 'single'}
-								{@const pos = getEventPosition(item.event.start, item.event.end, day)}
+								{@const pos = windowPosition(item.event.start, item.event.end, day)}
 								<EventBlock
 									event={item.event}
 									style="top: {pos.top}%; height: {pos.height}%; {laneStyle(lane, laneCount)}"
@@ -334,7 +387,7 @@
 									onclick={() => handleEventClick(item.event)}
 								/>
 							{:else}
-								{@const pos = getEventPosition(item.start, item.end, day)}
+								{@const pos = windowPosition(item.start, item.end, day)}
 								<RoutineBlock
 									routine_template={item.routine_template}
 									routine_group_name={item.routine_group_name}
@@ -351,6 +404,21 @@
 				{/each}
 			</div>
 		</div>
+		{#if fittedRange.endHour < 24}
+			<button
+				type="button"
+				onclick={() => (showLater = !showLater)}
+				class="w-full flex items-center justify-center gap-1 py-1.5 text-xs text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300"
+			>
+				{#if showLater}
+					<ChevronUp class="w-3.5 h-3.5" />
+					{$_('calendar.hideLaterHours')}
+				{:else}
+					<ChevronDown class="w-3.5 h-3.5" />
+					{$_('calendar.showLaterHours')}
+				{/if}
+			</button>
+		{/if}
 	</div>
 </div>
 

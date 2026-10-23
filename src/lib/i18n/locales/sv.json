@@ -344,7 +344,14 @@
 		"routineFallback": "Rutin",
 		"by": "senast",
 		"moreEvents": "+{count} till",
-		"weekNumber": "v.{week}"
+		"weekNumber": "v.{week}",
+		"showEarlierHours": "Visa tidigare timmar",
+		"hideEarlierHours": "Dölj tidigare timmar",
+		"showLaterHours": "Visa senare timmar",
+		"hideLaterHours": "Dölj senare timmar",
+		"nothingPlanned": "Inget planerat",
+		"showAsList": "Visa som lista",
+		"showAsGrid": "Visa som rutnät"
 	},
 	"search": {
 		"title": "Sök",

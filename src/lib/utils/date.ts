@@ -210,6 +210,35 @@ export function computeEventLanes(
 	return result;
 }
 
+// Hour window the week grid shows: the default waking window, widened to fit
+// every timed item (same footprint as getEventPosition) and the current time,
+// so the grid skips empty night hours without ever hiding an event.
+export function computeVisibleHourRange(
+	items: Array<{ start: Date; end?: Date }>,
+	options: { now?: Date; defaultStart?: number; defaultEnd?: number } = {}
+): { startHour: number; endHour: number } {
+	const { now, defaultStart = 7, defaultEnd = 21 } = options;
+	let startMinutes = defaultStart * 60;
+	let endMinutes = defaultEnd * 60;
+
+	for (const { start, end } of items) {
+		const s = differenceInMinutes(start, startOfDay(start));
+		const e = end ? differenceInMinutes(end, startOfDay(start)) : s + 60;
+		startMinutes = Math.min(startMinutes, s);
+		endMinutes = Math.max(endMinutes, e, s + 45);
+	}
+	if (now) {
+		const n = differenceInMinutes(now, startOfDay(now));
+		startMinutes = Math.min(startMinutes, n);
+		endMinutes = Math.max(endMinutes, n + 1);
+	}
+
+	return {
+		startHour: Math.max(0, Math.floor(startMinutes / 60)),
+		endHour: Math.min(24, Math.ceil(endMinutes / 60))
+	};
+}
+
 // Timezone-aware isToday check
 export function isToday(date: Date): boolean {
 	const zonedDate = toZonedTime(date, dateConfig.timezone);
