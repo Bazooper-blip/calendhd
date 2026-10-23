@@ -12,7 +12,7 @@ RUN npm ci --no-audit --no-fund
 COPY . .
 RUN npm run build
 
-FROM ghcr.io/hassio-addons/base:21.0.8
+FROM ghcr.io/hassio-addons/base:21.0.9
 
 # PocketBase version (CI's integration job reads this line)
 ARG PB_VERSION=0.40.5
