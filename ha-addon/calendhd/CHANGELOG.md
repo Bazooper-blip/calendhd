@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.16.0
+
+- New: week list. A list icon under the week number switches the week view to one row per day, so a busy week reads at a glance without scrolling a time grid. Each row shows all-day events, then timed events in order; a routine is one line with its progress (✓ 2/5). Past events are dimmed, the event happening now gets the sage ring with "Now" (or "Ongoing" for events with no end time), and today's next event says how long until it starts. Tapping an event opens it, tapping a routine or a day opens that day, and tapping empty space in a row adds an event on that day. "Show as grid" switches back. The choice is remembered per device, so a phone can keep the list while a desktop keeps the grid.
+- Week grid: empty night hours are hidden. The grid shows 07:00–21:00 by default and widens automatically to fit any earlier or later event (and the current time), so nothing is ever cut off; "Show earlier hours" / "Show later hours" reveal the rest of the day.
+- Fix: tapping a day number in the week view, or a day in the month view, now opens that day's view again (it silently stayed on the week/month view).
+
 ## 1.15.1
 
 Maintenance release: dependency updates only, no behaviour changes.

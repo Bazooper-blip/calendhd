@@ -64,6 +64,7 @@ Node subpath imports in `package.json` → `"imports"` (SvelteKit 3 removed `$li
 | Date Utils | `src/lib/utils/date.ts` | Timezone-aware date formatting/manipulation via date-fns + date-fns-tz |
 | Recurrence | `src/lib/utils/recurrence.ts` | Recurrence rule expansion, formatting and presets |
 | Search | `src/lib/utils/search.ts` | `buildSearchResults()` — matched rows → grouped, series-collapsed rows for the search modal |
+| Week list | `src/lib/utils/weekList.ts` | `buildWeekListDays()` — display events → per-day rows with past/now/next status for `WeekListView` |
 | Display events | `src/lib/utils/displayEvents.ts` | `buildDisplayEvents()` / `resolveOpenEndedEvents()` — raw rows → the `DisplayEvent` list views render |
 | Notifications | `src/lib/utils/notifications.ts` | Web Push API, VAPID key handling |
 | Sample routines | `src/lib/utils/sampleRoutines.ts` | Hardcoded starter-pack routines used by the empty-state button on `/routines` |
@@ -81,6 +82,7 @@ All stores are singletons using Svelte 5 runes in `.svelte.ts` files:
 | `categories.svelte.ts` | categories | Category CRUD with 8 default colors, reorderable |
 | `templates.svelte.ts` | templates | Event template CRUD |
 | `routines.svelte.ts` | routines | Routine template CRUD with active/inactive toggling |
+| `weekLayout.svelte.ts` | layout | Week view grid/list choice, per device (localStorage, try/catch-guarded) |
 
 ### Components
 
@@ -88,7 +90,7 @@ All stores are singletons using Svelte 5 runes in `.svelte.ts` files:
 src/lib/components/
 ├── layout/     Header, Sidebar
 ├── calendar/   DayView, AgendaView, WeekView, MonthView, EventBlock,
-│               RoutineBlock, EventDetailModal, SearchModal
+│               WeekListView, RoutineBlock, EventDetailModal, SearchModal
 ├── event/      EventForm, QuickAdd, RecurrencePicker (preset + "Ends: never / on date / after N" — shared by EventForm and the templates page)
 ├── ui/         Button, Input, Modal, Select, Toggle, ColorPicker, IconPicker,
 │               EventIcon
@@ -97,7 +99,8 @@ src/lib/components/
 
 **Time-blindness UX** (intentional design — keep these affordances coherent when editing):
 - Day view is agenda-only (`DayView` = header + `AgendaView`; the old 24h-grid "timeline" style was removed): past/now/upcoming sections, pulsing "Now" cards with minutes-left, a highlighted next-up card with time-until, "Free for ~X" gap rows (fixed ≥20 min threshold, not a setting; tappable → new event at the gap start), collapsed "earlier today", an empty-day "Add an event" button, and a tomorrow-preview footer
-- Week view: horizontal red "now" line at the current minute with auto-scroll-to-now; overlapping events split into side-by-side lanes (`computeEventLanes` in `date.ts`) so each stays tappable on narrow columns; tapping empty column space opens `/event/new?date=&time=` (30-min snap), an empty all-day cell opens `?allDay=1`. Month view deliberately keeps tap-on-cell → day view (cells are too small on phones for an "empty space" target)
+- Week view: the time grid shows only the hours that matter — 07–21 by default, widened by `computeVisibleHourRange()` (`date.ts`) to fit every event and the current time, with "Show earlier/later hours" expanders; horizontal red "now" line at the current minute with auto-scroll-to-now; overlapping events split into side-by-side lanes (`computeEventLanes` in `date.ts`) so each stays tappable on narrow columns; tapping empty column space opens `/event/new?date=&time=` (30-min snap), an empty all-day cell opens `?allDay=1`. Month view deliberately keeps tap-on-cell → day view (cells are too small on phones for an "empty space" target). Opening the day view from another view must `goto('/calendar/day/<date>')` — just calling `calendar.setViewType('day')` is undone by the current route's view-type sync effect
+- **Week list layout** (`WeekListView`, toggle under the week number; remembered **per device** in localStorage by `weekLayout.svelte.ts`, not in `user_settings`, so a phone can keep the list and a desktop the grid): one row per day, all-day chips then timed items, routine steps collapsed to one line with ✓ done/total (tap → that day), past dimmed, sage-ring "Now"/"Ongoing" item, today's next item shows "in X". No free-gap rows and no "+N more" — a busy day just grows. Pure logic in `buildWeekListDays()` (`utils/weekList.ts`, unit-tested)
 - **Open-ended events** (start, no `end_time`; "No end time" toggle in the form): `resolveOpenEndedEvents()` in `utils/displayEvents.ts` gives them a resolved `end` = next timed event that day or end of day, and sets `is_open_ended`. Every view agrees the event is "now" until then; time labels check the flag and say "From 12:30" / "Ongoing" instead of showing the synthetic end. Local events only (an external iCal event without DTEND is zero-length by spec)
 - **Display-event pipeline**: `buildDisplayEvents()` (`utils/displayEvents.ts`, unit-tested) is the pure function behind the store's `displayEvents` getter — raw rows → paused filtering → recurrence expansion → external pause filtering → sort → open-ended resolution. The `/now` screen calls it for today's window on its own so it works regardless of which week is being browsed (feedback bug in 1.10.0)
 - **Clearing fields on edit**: the PocketBase SDK JSON-serialises bodies, so `undefined` keys are dropped and the server keeps the old value. The edit page and the templates page send `''` / `null` explicitly for cleared fields
@@ -216,7 +219,7 @@ ha-addon/calendhd/
 ## Testing
 
 - **Unit tests**: Vitest in `node` environment (not jsdom)
-- **Test files**: `src/lib/utils/date.test.ts`, `src/lib/utils/recurrence.test.ts`, `src/lib/utils/displayEvents.test.ts`, `src/lib/utils/externalEvents.test.ts`, `src/lib/utils/search.test.ts`, `src/lib/utils/index.test.ts`
+- **Test files**: `src/lib/utils/date.test.ts`, `src/lib/utils/recurrence.test.ts`, `src/lib/utils/displayEvents.test.ts`, `src/lib/utils/externalEvents.test.ts`, `src/lib/utils/search.test.ts`, `src/lib/utils/weekList.test.ts`, `src/lib/utils/index.test.ts`
 - **No E2E suite**: there is no Playwright config or e2e tests (the former `test:e2e` script was vestigial and has been removed)
 - **Code style**: Biome (`biome.json` at repo root) for `src/**/*.{ts,js}` — `npm run format` writes, `npm run format:check` verifies. `npm run lint` runs Biome + svelte-check. `.svelte` files aren't formatted by Biome yet (Svelte 5 support is partial); rely on svelte-check for those.
 
