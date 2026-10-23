@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.15.1
+
+Maintenance release: dependency updates only, no behaviour changes.
+
+- Home Assistant base image 21.0.8 → 21.0.9.
+- Dependencies: @lucide/svelte 1.60.0.
+
 ## 1.15.0
 
 Release-process change, no behaviour changes in the app itself.
