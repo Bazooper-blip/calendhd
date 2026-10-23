@@ -1,0 +1,128 @@
+# Builds the Home Assistant add-on image and publishes it to GHCR, where HA
+# pulls it from (`image:` in ha-addon/calendhd/config.yaml). Replaces the old
+# build-for-ha.sh flow of committing the frontend bundle + hook copies.
+#
+# - Pull requests: build only (catches Dockerfile / frontend build breakage).
+# - Push to main / manual run: build and publish `<version>` + `latest`, where
+#   version comes from config.yaml. If that version tag already exists the
+#   images are built but not pushed — bump `version:` to release.
+#
+# Uses HA's BuildKit builder actions (the legacy home-assistant/builder action
+# is retired); they build each arch on a native runner (amd64, aarch64 only).
+name: Add-on image
+
+on:
+  push:
+    branches: [main]
+    paths: &build-inputs
+      - 'ha-addon/calendhd/**'
+      - 'pocketbase/pb_hooks/**'
+      - 'pocketbase/pb_migrations/**'
+      - 'push-service/**'
+      - 'src/**'
+      - 'static/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.config.ts'
+      - 'tsconfig.json'
+      - '.github/workflows/addon.yml'
+  pull_request:
+    paths: *build-inputs
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: addon-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # GHCR namespaces must be lowercase (the owner login is not)
+  REGISTRY_PREFIX: ghcr.io/bazooper-blip
+  IMAGE_NAME: calendhd
+  PUBLISH: ${{ github.event_name != 'pull_request' }}
+
+jobs:
+  prepare:
+    name: Prepare
+    runs-on: ubuntu-latest
+    outputs:
+      architectures: ${{ steps.info.outputs.architectures }}
+      version: ${{ steps.info.outputs.version }}
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Read add-on config
+        id: info
+        run: |
+          cfg=ha-addon/calendhd/config.yaml
+          version=$(yq '.version' "$cfg")
+          test -n "$version" && test "$version" != null
+          image=$(yq '.image' "$cfg")
+          test "$image" = "$REGISTRY_PREFIX/$IMAGE_NAME"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "architectures=$(yq -o=json -I=0 '.arch' "$cfg")" >> "$GITHUB_OUTPUT"
+          echo "Add-on version $version"
+
+      - name: Build matrix
+        id: matrix
+        uses: home-assistant/builder/actions/prepare-multi-arch-matrix@2026.09.0
+        with:
+          architectures: ${{ steps.info.outputs.architectures }}
+          image-name: ${{ env.IMAGE_NAME }}
+          registry-prefix: ${{ env.REGISTRY_PREFIX }}
+
+  build:
+    name: Build ${{ matrix.arch }} image
+    needs: prepare
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write # Cosign signing
+      packages: write # Push to GHCR
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Build image
+        uses: home-assistant/builder/actions/build-image@2026.09.0
+        with:
+          arch: ${{ matrix.arch }}
+          container-registry-password: ${{ secrets.GITHUB_TOKEN }}
+          context: .
+          file: ha-addon/calendhd/Dockerfile
+          image: ${{ matrix.image }}
+          image-tags: |
+            ${{ needs.prepare.outputs.version }}
+            latest
+          push: ${{ env.PUBLISH }}
+          skip-existing: ${{ needs.prepare.outputs.version }}
+          version: ${{ needs.prepare.outputs.version }}
+
+  manifest:
+    name: Publish multi-arch manifest
+    needs: [prepare, build]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # Cosign signing
+      packages: write # Push to GHCR
+    steps:
+      - name: Publish multi-arch manifest
+        uses: home-assistant/builder/actions/publish-multi-arch-manifest@2026.09.0
+        with:
+          architectures: ${{ needs.prepare.outputs.architectures }}
+          container-registry-password: ${{ secrets.GITHUB_TOKEN }}
+          image-name: ${{ env.IMAGE_NAME }}
+          image-tags: |
+            ${{ needs.prepare.outputs.version }}
+            latest
+          registry-prefix: ${{ env.REGISTRY_PREFIX }}
+          skip-existing: ${{ needs.prepare.outputs.version }}

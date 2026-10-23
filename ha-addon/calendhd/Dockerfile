@@ -1,8 +1,20 @@
-# Build arguments
-ARG BUILD_FROM=ghcr.io/hassio-addons/base:21.0.8
-FROM ${BUILD_FROM}
+# Built from the REPO ROOT, not this directory:
+#   docker build -f ha-addon/calendhd/Dockerfile .
+# CI (.github/workflows/addon.yml) publishes the result to GHCR and HA pulls it
+# via `image:` in config.yaml, so nothing generated is committed to the repo.
 
-# PocketBase version
+# Frontend: platform-independent static output, so build it on the runner's
+# native platform regardless of the target arch
+FROM --platform=$BUILDPLATFORM node:26-alpine AS frontend
+WORKDIR /src
+COPY package.json package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY . .
+RUN npm run build
+
+FROM ghcr.io/hassio-addons/base:21.0.8
+
+# PocketBase version (CI's integration job reads this line)
 ARG PB_VERSION=0.40.5
 
 # Set shell
@@ -21,7 +33,6 @@ RUN apk add --no-cache --virtual .pb-fetch unzip && \
     case "${ARCH}" in \
         x86_64) PB_ARCH="amd64" ;; \
         aarch64) PB_ARCH="arm64" ;; \
-        armv7l) PB_ARCH="armv7" ;; \
         *) echo "Unsupported architecture: ${ARCH}" && exit 1 ;; \
     esac && \
     curl -fsSL "https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSION}/pocketbase_${PB_VERSION}_linux_${PB_ARCH}.zip" -o /tmp/pb.zip && \
@@ -30,8 +41,8 @@ RUN apk add --no-cache --virtual .pb-fetch unzip && \
     chmod +x /opt/pocketbase/pocketbase && \
     apk del .pb-fetch
 
-# Copy calenDHD frontend (pre-built) and s6 service scripts
-COPY rootfs /
+# s6 service scripts and init
+COPY ha-addon/calendhd/rootfs /
 
 # Ensure s6-overlay scripts are executable (exec bits can be lost via Windows/Samba/Git on non-Linux)
 RUN chmod +x \
@@ -42,26 +53,31 @@ RUN chmod +x \
     /etc/services.d/push-service/finish \
     /run.sh
 
-# Copy PocketBase hooks and migrations
-COPY pb_hooks/ /opt/pocketbase/pb_hooks/
-COPY pb_migrations/ /opt/pocketbase/pb_migrations/
+# calenDHD frontend
+COPY --from=frontend /src/build/ /opt/calendhd/public/
+
+# PocketBase hooks and migrations
+COPY pocketbase/pb_hooks/ /opt/pocketbase/pb_hooks/
+COPY pocketbase/pb_migrations/ /opt/pocketbase/pb_migrations/
 
 # Copy and install push-service; npm is only needed for the install,
 # so it is removed again in the same layer (node itself stays)
-COPY push-service/ /opt/push-service/
+COPY push-service/package.json push-service/package-lock.json push-service/index.js push-service/generate-vapid.js /opt/push-service/
 RUN apk add --no-cache --virtual .npm-install npm && \
     cd /opt/push-service && \
     npm ci --omit=dev --no-audit --no-fund && \
     npm cache clean --force && \
     apk del .npm-install
 
-# Labels
+# Labels (io.hass.arch / io.hass.version are added by the CI builder)
 LABEL \
     io.hass.name="calenDHD" \
     io.hass.description="A calm, ADHD-friendly calendar PWA" \
-    io.hass.arch="aarch64|amd64|armv7" \
     io.hass.type="addon" \
-    io.hass.version="${BUILD_VERSION}"
+    org.opencontainers.image.title="calenDHD" \
+    org.opencontainers.image.description="A calm, ADHD-friendly calendar PWA for Home Assistant" \
+    org.opencontainers.image.source="https://github.com/Bazooper-blip/calendhd" \
+    org.opencontainers.image.licenses="MIT"
 
 # Set working directory
 WORKDIR /opt/pocketbase

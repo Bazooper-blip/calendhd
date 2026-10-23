@@ -1,5 +1,5 @@
 # CI: unit + static suites, then a live integration pass against the real
-# PocketBase binary (the exact version the addon ships, read from build.yaml).
+# PocketBase binary (the exact version the addon ships, read from the addon Dockerfile).
 #
 # The integration job exists because mocked harnesses cannot see regressions
 # that only appear inside PocketBase itself — hook-chain suppression (a
@@ -72,11 +72,6 @@ jobs:
           print('locales key-balanced')
           EOF
 
-      - name: Addon hooks/migrations in sync with pocketbase/
-        run: |
-          diff -r pocketbase/pb_hooks ha-addon/calendhd/pb_hooks
-          diff -r pocketbase/pb_migrations ha-addon/calendhd/pb_migrations
-
   pocketbase-integration:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -86,7 +81,7 @@ jobs:
       - name: Resolve shipped PocketBase version
         id: pb
         run: |
-          v=$(grep -oP 'PB_VERSION: "\K[0-9.]+' ha-addon/calendhd/build.yaml)
+          v=$(grep -oP '^ARG PB_VERSION=\K[0-9.]+' ha-addon/calendhd/Dockerfile)
           test -n "$v"
           echo "version=$v" >> "$GITHUB_OUTPUT"
           echo "Testing against PocketBase $v"
