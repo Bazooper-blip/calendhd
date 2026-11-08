@@ -31,28 +31,28 @@
     "format:check": "biome format src"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.6.4",
-    "@sveltejs/adapter-static": "^4.0.0",
-    "@sveltejs/kit": "^3.1.0",
+    "@biomejs/biome": "^2.6.5",
+    "@sveltejs/adapter-static": "^4.0.1",
+    "@sveltejs/kit": "^3.1.1",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
-    "@tailwindcss/vite": "^4.3.3",
+    "@tailwindcss/vite": "^4.3.4",
     "@types/node": "^26.6.6",
     "@typescript/native": "npm:typescript@7",
     "svelte": "^5.57.3",
-    "svelte-check": "^4.7.7",
+    "svelte-check": "^4.7.8",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
-    "vite": "^8.3.5",
-    "vitest": "^5.0.5"
+    "vite": "^8.3.6",
+    "vitest": "^5.1.0"
   },
   "dependencies": {
-    "@lucide/svelte": "^1.64.0",
-    "bits-ui": "^2.20.2",
+    "@lucide/svelte": "^1.69.0",
+    "bits-ui": "^2.20.6",
     "date-fns": "^4.4.0",
     "date-fns-tz": "^3.2.0",
-    "pocketbase": "^0.28.1",
+    "pocketbase": "^0.28.2",
     "svelte-i18n": "^4.0.1",
-    "svelte-sonner": "^1.2.2"
+    "svelte-sonner": "^1.2.3"
   },
   "overrides": {
     "svelte-i18n": {
