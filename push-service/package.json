@@ -9,6 +9,6 @@
     "generate-vapid": "node generate-vapid.js"
   },
   "dependencies": {
-    "web-push": "^3.6.7"
+    "web-push": "^4.0.0"
   }
 }
