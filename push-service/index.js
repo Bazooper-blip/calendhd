@@ -9,7 +9,7 @@
  */
 
 import http from 'http';
-import webpush from 'web-push';
+import * as webpush from 'web-push';
 
 // Configuration from environment variables
 const PORT = process.env.PUSH_SERVICE_PORT || 3001;

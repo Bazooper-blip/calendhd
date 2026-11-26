@@ -6,7 +6,7 @@
  * Copy the output to your .env file
  */
 
-import webpush from 'web-push';
+import * as webpush from 'web-push';
 
 const vapidKeys = webpush.generateVAPIDKeys();
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.16.3
+
+- Fix: push notifications work again. 1.16.2 shipped web-push 4.0.0, which no longer has a default export, so the push service crashed on start ("does not provide an export named 'default'") and no reminders or test notifications could be delivered.
+
 ## 1.16.2
 
 - Quieter logs: the add-on no longer writes an "[ext-rem] scheduled reminder" line for every reminder scheduled from a subscribed calendar, which flooded the Home Assistant log on each feed sync. Failures are still logged.
