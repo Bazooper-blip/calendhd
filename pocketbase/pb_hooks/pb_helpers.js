@@ -715,7 +715,6 @@ module.exports = {
             record.set("scheduled_for", scheduledFor.toISOString());
             record.set("reminder_type", "notification");
             $app.save(record);
-            console.log("[ext-rem] scheduled reminder for '" + externalEvent.get("title") + "' at " + scheduledFor.toISOString());
         } catch (err) {
             console.log("[ext-rem] failed to schedule:", err);
         }

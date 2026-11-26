@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.16.2
+
+- Quieter logs: the add-on no longer writes an "[ext-rem] scheduled reminder" line for every reminder scheduled from a subscribed calendar, which flooded the Home Assistant log on each feed sync. Failures are still logged.
+
 ## 1.16.0
 
 - New: week list. A list icon under the week number switches the week view to one row per day, so a busy week reads at a glance without scrolling a time grid. Each row shows all-day events, then timed events in order; a routine is one line with its progress (✓ 2/5). Past events are dimmed, the event happening now gets the sage ring with "Now" (or "Ongoing" for events with no end time), and today's next event says how long until it starts. Tapping an event opens it, tapping a routine or a day opens that day, and tapping empty space in a row adds an event on that day. "Show as grid" switches back. The choice is remembered per device, so a phone can keep the list while a desktop keeps the grid.
